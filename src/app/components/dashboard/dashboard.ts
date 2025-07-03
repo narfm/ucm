@@ -44,8 +44,26 @@ export class DashboardComponent implements OnInit {
   }
   
   private applyTopFilter(count: number): void {
+    // Get top records first (this returns flattened data)
     const topRecords = this.mockDataService.getTopRecords(this.originalData(), count);
-    this.filteredData.set(topRecords);
+    
+    // Reconstruct hierarchy based on current mode
+    const currentMode = this.currentHierarchy();
+    let hierarchicalData: DataNode[];
+    
+    if (currentMode.type === 'bank') {
+      // For bank hierarchy, we need to rebuild the tree structure from top records
+      hierarchicalData = this.mockDataService.reconstructBankHierarchy(topRecords);
+    } else {
+      // For other hierarchies, use the reshape method with the top records
+      hierarchicalData = this.mockDataService.reshapeByHierarchy(
+        topRecords, 
+        currentMode.type, 
+        currentMode.groupBy
+      );
+    }
+    
+    this.filteredData.set(hierarchicalData);
   }
   
   private changeHierarchy(hierarchyMode: HierarchyMode): void {

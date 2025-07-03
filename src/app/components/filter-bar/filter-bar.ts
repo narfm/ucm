@@ -24,10 +24,6 @@ export class FilterBarComponent {
   
   // Current selections
   selectedHierarchy = signal<'bank' | 'salesPerson' | 'service'>('bank');
-  selectedSalesPerson = signal<SalesPerson | ''>('');
-  selectedService = signal<ServiceType | ''>('');
-  showSalesPersonDropdown = signal(false);
-  showServiceDropdown = signal(false);
   
   applyTopFilter(count: number): void {
     this.filterChange.emit({
@@ -36,57 +32,11 @@ export class FilterBarComponent {
     });
   }
   
-  toggleHierarchyMode(mode: 'salesPerson' | 'service'): void {
-    if (mode === 'salesPerson') {
-      this.showSalesPersonDropdown.set(!this.showSalesPersonDropdown());
-      this.showServiceDropdown.set(false);
-    } else {
-      this.showServiceDropdown.set(!this.showServiceDropdown());
-      this.showSalesPersonDropdown.set(false);
-    }
-  }
-  
-  selectSalesPerson(person: SalesPerson): void {
-    this.selectedSalesPerson.set(person);
-    this.selectedHierarchy.set('salesPerson');
-    this.showSalesPersonDropdown.set(false);
+  setHierarchy(type: 'bank' | 'salesPerson' | 'service'): void {
+    this.selectedHierarchy.set(type);
     
     const hierarchyMode: HierarchyMode = {
-      type: 'salesPerson',
-      groupBy: person
-    };
-    
-    this.filterChange.emit({
-      type: 'hierarchy',
-      value: hierarchyMode
-    });
-  }
-  
-  selectService(service: ServiceType): void {
-    this.selectedService.set(service);
-    this.selectedHierarchy.set('service');
-    this.showServiceDropdown.set(false);
-    
-    const hierarchyMode: HierarchyMode = {
-      type: 'service',
-      groupBy: service
-    };
-    
-    this.filterChange.emit({
-      type: 'hierarchy',
-      value: hierarchyMode
-    });
-  }
-  
-  resetToDefaultHierarchy(): void {
-    this.selectedHierarchy.set('bank');
-    this.selectedSalesPerson.set('');
-    this.selectedService.set('');
-    this.showSalesPersonDropdown.set(false);
-    this.showServiceDropdown.set(false);
-    
-    const hierarchyMode: HierarchyMode = {
-      type: 'bank'
+      type: type
     };
     
     this.filterChange.emit({

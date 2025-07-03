@@ -363,4 +363,102 @@ export class MockDataService {
     const sorted = flatData.sort((a, b) => b.assetsUnderCustody - a.assetsUnderCustody);
     return sorted.slice(0, count);
   }
+
+  // Reconstruct bank hierarchy from flat data
+  reconstructBankHierarchy(flatData: DataNode[]): DataNode[] {
+    const bankMap: Map<string, DataNode> = new Map();
+    const regionMap: Map<string, Map<string, DataNode>> = new Map();
+    
+    // First pass: organize by bank and region
+    flatData.forEach(account => {
+      const bankName = account.bankName;
+      
+      // Get or create bank node
+      if (!bankMap.has(bankName)) {
+        bankMap.set(bankName, {
+          id: `bank-${bankName}`,
+          accountName: bankName,
+          bankName: bankName,
+          service: 'All Services',
+          salesPerson: 'All',
+          assetsUnderCustody: 0,
+          profitLoss: 0,
+          level: 0,
+          expanded: false,
+          children: []
+        });
+        regionMap.set(bankName, new Map());
+      }
+      
+      const bank = bankMap.get(bankName)!;
+      const bankRegions = regionMap.get(bankName)!;
+      
+      // Determine region based on account name pattern or bank
+      const region = this.determineRegion(bankName, account.accountName);
+      
+      // Get or create region node
+      if (!bankRegions.has(region)) {
+        const regionNode: DataNode = {
+          id: `${bankName}-${region}`,
+          accountName: region,
+          bankName: bankName,
+          service: 'All Services',
+          salesPerson: 'All',
+          assetsUnderCustody: 0,
+          profitLoss: 0,
+          level: 1,
+          expanded: false,
+          children: [],
+          parent: bank
+        };
+        bankRegions.set(region, regionNode);
+        bank.children!.push(regionNode);
+      }
+      
+      const regionNode = bankRegions.get(region)!;
+      
+      // Add account to region
+      const accountNode: DataNode = {
+        ...account,
+        level: 2,
+        expanded: false,
+        children: undefined,
+        parent: regionNode
+      };
+      regionNode.children!.push(accountNode);
+      
+      // Update aggregates
+      regionNode.assetsUnderCustody += account.assetsUnderCustody;
+      regionNode.profitLoss += account.profitLoss;
+      bank.assetsUnderCustody += account.assetsUnderCustody;
+      bank.profitLoss += account.profitLoss;
+    });
+    
+    // Return sorted banks
+    return Array.from(bankMap.values()).sort((a, b) => 
+      b.assetsUnderCustody - a.assetsUnderCustody
+    );
+  }
+
+  private determineRegion(bankName: string, accountName: string): string {
+    // Logic to determine region based on bank and account patterns
+    if (bankName === 'BNY') {
+      if (accountName.includes('Asia')) return 'Asia';
+      if (accountName.includes('Europe')) return 'Europe';
+      return 'North America';
+    } else if (bankName === 'State Street') {
+      if (accountName.includes('Asia')) return 'GS Asia';
+      if (accountName.includes('Europe')) return 'Europe';
+      return 'GS North America';
+    } else if (bankName === 'Goldman Sachs') {
+      if (accountName.includes('India')) return 'India';
+      if (accountName.includes('China')) return 'China';
+      return 'USA';
+    } else if (bankName === 'CITI') {
+      if (accountName.includes('Canada')) return 'Canada';
+      if (accountName.includes('USA')) return 'USA';
+      return 'North America';
+    }
+    return 'Global';
+  }
 }

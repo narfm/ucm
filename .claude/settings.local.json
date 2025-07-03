@@ -3,7 +3,10 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(ng generate component:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm start)",
+      "Bash(rm:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

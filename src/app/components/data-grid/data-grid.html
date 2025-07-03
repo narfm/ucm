@@ -1,0 +1,79 @@
+<div class="data-grid-container">
+  <div class="grid-header">
+    <div class="header-row">
+      <div *ngFor="let column of columns; trackBy: trackByColumn"
+           class="header-cell"
+           [style.width]="column.width"
+           [style.min-width]="column.minWidth"
+           [class.sortable]="column.sortable"
+           [class.sorted-asc]="gridState().sortColumn === column.key && gridState().sortDirection === 'asc'"
+           [class.sorted-desc]="gridState().sortColumn === column.key && gridState().sortDirection === 'desc'"
+           [class.text-right]="column.align === 'right'"
+           [class.text-center]="column.align === 'center'"
+           (click)="onColumnSort(column)">
+        <span class="column-label">{{ column.label }}</span>
+        <span *ngIf="column.sortable" class="sort-indicator">
+          <svg *ngIf="gridState().sortColumn === column.key && gridState().sortDirection === 'asc'" 
+               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 15l-6-6-6 6"/>
+          </svg>
+          <svg *ngIf="gridState().sortColumn === column.key && gridState().sortDirection === 'desc'" 
+               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+          <svg *ngIf="gridState().sortColumn !== column.key" 
+               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="sort-icon-inactive">
+            <path d="M7 14l5-5 5 5"/>
+            <path d="M7 10l5 5 5-5"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <cdk-virtual-scroll-viewport 
+    class="grid-viewport"
+    [itemSize]="rowHeight"
+    [minBufferPx]="400"
+    [maxBufferPx]="800">
+    
+    <div *cdkVirtualFor="let row of flattenedData(); trackBy: trackByRow"
+         class="grid-row"
+         [class.clickable]="true"
+         (click)="onRowClick(row)">
+      
+      <div *ngFor="let column of columns; trackBy: trackByColumn"
+           class="grid-cell"
+           [style.width]="column.width"
+           [style.min-width]="column.minWidth"
+           [class.text-right]="column.align === 'right'"
+           [class.text-center]="column.align === 'center'"
+           [class.text-success]="column.key === 'profitLoss' && getCellValue(row, column) > 0"
+           [class.text-danger]="column.key === 'profitLoss' && getCellValue(row, column) < 0"
+           (click)="onCellClick(row, column, $event)">
+        
+        <!-- Account name with expand/collapse -->
+        <div *ngIf="column.key === 'accountName'" class="account-cell">
+          <span class="indent" [style.padding-left.px]="row.level * 20"></span>
+          
+          <button *ngIf="row.children && row.children.length > 0"
+                  class="expand-button"
+                  (click)="toggleExpand(row, $event)"
+                  [attr.aria-label]="gridState().expandedNodeIds.has(row.id) ? 'Collapse' : 'Expand'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path *ngIf="!gridState().expandedNodeIds.has(row.id)" d="M9 18l6-6-6-6"/>
+              <path *ngIf="gridState().expandedNodeIds.has(row.id)" d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          
+          <span class="account-name">{{ formatCellValue(getCellValue(row, column), column) }}</span>
+        </div>
+        
+        <!-- Other cells -->
+        <span *ngIf="column.key !== 'accountName'">
+          {{ formatCellValue(getCellValue(row, column), column) }}
+        </span>
+      </div>
+    </div>
+  </cdk-virtual-scroll-viewport>
+</div>

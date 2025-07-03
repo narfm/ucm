@@ -1,0 +1,69 @@
+<div class="filter-bar-container">
+  <div class="filter-section">
+    <button class="filter-button" (click)="applyTopFilter(250)">
+      Top 250
+    </button>
+    <button class="filter-button" (click)="applyTopFilter(1000)">
+      Top 1K
+    </button>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <div class="filter-section hierarchy-section">
+    <span class="hierarchy-label">Hierarchy:</span>
+    
+    <button 
+      class="hierarchy-button"
+      [class.active]="selectedHierarchy() === 'bank'"
+      (click)="resetToDefaultHierarchy()">
+      By Bank Name
+    </button>
+    
+    <div class="dropdown-container">
+      <button 
+        class="hierarchy-button dropdown-trigger"
+        [class.active]="selectedHierarchy() === 'salesPerson'"
+        (click)="toggleHierarchyMode('salesPerson')">
+        <span>
+          {{ selectedSalesPerson() || 'By Sales Person' }}
+        </span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+      
+      <div class="dropdown-menu" [class.show]="showSalesPersonDropdown()">
+        <button 
+          *ngFor="let person of salesPersons"
+          class="dropdown-item"
+          (click)="selectSalesPerson(person)">
+          {{ person }}
+        </button>
+      </div>
+    </div>
+    
+    <div class="dropdown-container">
+      <button 
+        class="hierarchy-button dropdown-trigger"
+        [class.active]="selectedHierarchy() === 'service'"
+        (click)="toggleHierarchyMode('service')">
+        <span>
+          {{ selectedService() || 'By Service' }}
+        </span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+      
+      <div class="dropdown-menu" [class.show]="showServiceDropdown()">
+        <button 
+          *ngFor="let service of services"
+          class="dropdown-item"
+          (click)="selectService(service)">
+          {{ service }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

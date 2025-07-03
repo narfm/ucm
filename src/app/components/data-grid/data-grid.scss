@@ -1,0 +1,309 @@
+.data-grid-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-primary);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    pointer-events: none;
+  }
+}
+
+.grid-header {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--grid-header-bg) 0%, var(--bg-secondary) 100%);
+  border-bottom: 2px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  height: 56px;
+}
+
+.header-cell {
+  padding: 0 1.5rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-right: 1px solid var(--border-color);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:last-child {
+    border-right: none;
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-color) 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+  
+  &.sortable {
+    cursor: pointer;
+    user-select: none;
+    
+    &:hover {
+      color: var(--text-primary);
+      background: linear-gradient(135deg, var(--hover-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+      transform: translateY(-1px);
+      
+      &::before {
+        transform: scaleX(1);
+      }
+    }
+  }
+  
+  &.sorted-asc,
+  &.sorted-desc {
+    color: var(--accent-color);
+    background: linear-gradient(135deg, var(--hover-bg) 0%, rgba(102, 126, 234, 0.1) 100%);
+    
+    &::before {
+      transform: scaleX(1);
+    }
+  }
+}
+
+.column-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.sort-indicator {
+  flex-shrink: 0;
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  
+  svg {
+    stroke-width: 2.5;
+    transition: all 0.3s ease;
+  }
+  
+  .sort-icon-inactive {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+}
+
+.grid-viewport {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg-primary);
+}
+
+.grid-row {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.15s ease;
+  position: relative;
+  
+  &.clickable {
+    cursor: pointer;
+  }
+  
+  &:hover {
+    background-color: var(--grid-row-hover);
+  }
+  
+  &:nth-child(even) {
+    background-color: rgba(102, 126, 234, 0.01);
+    
+    &:hover {
+      background-color: var(--grid-row-hover);
+    }
+  }
+}
+
+.grid-cell {
+  padding: 0 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &:last-child {
+    border-right: none;
+  }
+  
+  &.text-success {
+    color: var(--success-color);
+    font-weight: 600;
+    position: relative;
+    
+    &::before {
+      content: '↗';
+      margin-right: 0.5rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+  }
+  
+  &.text-danger {
+    color: var(--danger-color);
+    font-weight: 600;
+    position: relative;
+    
+    &::before {
+      content: '↘';
+      margin-right: 0.5rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+  }
+}
+
+.account-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  font-weight: 600;
+}
+
+.expand-button {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin-right: 0.5rem;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--hover-bg) 100%);
+  border: 1px solid var(--border-color);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  &:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+  
+  &:active {
+    transform: scale(1.05);
+  }
+  
+  svg {
+    stroke-width: 2.5;
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover svg {
+    transform: scale(1.1);
+  }
+}
+
+.account-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+
+// Virtual scroll styles with improvements
+::ng-deep .cdk-virtual-scroll-content-wrapper {
+  width: 100%;
+}
+
+// Add loading animation
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.loading-row {
+  height: 48px;
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--hover-bg) 37%, var(--bg-secondary) 63%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+// Enhanced scrollbar
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--border-color) 0%, var(--text-tertiary) 100%);
+  border-radius: 6px;
+  border: 2px solid var(--bg-secondary);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-secondary);
+}

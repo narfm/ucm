@@ -1,0 +1,27 @@
+<div class="search-bar-container">
+  <div class="search-input-wrapper">
+    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.35-4.35"></path>
+    </svg>
+    
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search by client name..."
+      [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange($event)"
+      aria-label="Search">
+    
+    <button
+      *ngIf="searchText"
+      class="clear-button"
+      (click)="clearSearch()"
+      aria-label="Clear search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</div>

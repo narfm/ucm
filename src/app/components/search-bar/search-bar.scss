@@ -1,0 +1,215 @@
+.search-bar-container {
+  width: 100%;
+  position: relative;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+    
+    &::before {
+      opacity: 1;
+    }
+  }
+  
+  &:focus-within {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+    
+    &::before {
+      opacity: 1;
+    }
+  }
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.25rem;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  stroke-width: 2;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.search-input-wrapper:focus-within .search-icon {
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 3rem 1rem 3.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+  
+  &::placeholder {
+    color: var(--text-tertiary);
+    font-weight: 400;
+    transition: all 0.3s ease;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    
+    &::placeholder {
+      color: var(--accent-color);
+      transform: translateY(-2px);
+      opacity: 0.8;
+    }
+  }
+  
+  &:not(:placeholder-shown) {
+    font-weight: 600;
+  }
+}
+
+.clear-button {
+  position: absolute;
+  right: 1rem;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+  opacity: 0;
+  transform: scale(0.8) translateX(10px);
+  
+  &:hover {
+    color: var(--danger-color);
+    background: var(--bg-primary);
+    border-color: var(--danger-color);
+    transform: scale(1.05) translateX(0);
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.2);
+  }
+  
+  &:active {
+    transform: scale(0.95) translateX(0);
+  }
+  
+  svg {
+    display: block;
+    stroke-width: 2.5;
+    transition: transform 0.2s ease;
+  }
+  
+  &:hover svg {
+    transform: rotate(90deg);
+  }
+}
+
+.search-input-wrapper:focus-within .clear-button,
+.search-input:not(:placeholder-shown) + .clear-button {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+}
+
+// Add search suggestions dropdown (placeholder for future enhancement)
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+  }
+}
+
+.suggestion-item {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background: linear-gradient(90deg, var(--hover-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    color: var(--accent-color);
+    transform: translateX(8px);
+  }
+}
+
+// Loading state animation
+@keyframes searchPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.search-input-wrapper.loading .search-icon {
+  animation: searchPulse 1.5s ease-in-out infinite;
+}
+
+// Enhanced focus ring
+.search-input-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+  border-radius: 18px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.search-input-wrapper:focus-within::after {
+  opacity: 0.2;
+}

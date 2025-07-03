@@ -1,0 +1,17 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Financial Data Dashboard</h1>
+  </div>
+  
+  <div class="controls-section">
+    <div class="search-container">
+      <app-search-bar (searchChange)="onSearchChange($event)"></app-search-bar>
+    </div>
+    
+    <app-filter-bar (filterChange)="onFilterChange($event)"></app-filter-bar>
+  </div>
+  
+  <div class="dashboard-content">
+    <app-data-grid [data]="filteredData"></app-data-grid>
+  </div>
+</div>

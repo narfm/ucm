@@ -27,6 +27,79 @@
   }
 }
 
+.search-section {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  min-width: 300px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 3rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+  
+  &:focus {
+    border-color: var(--accent-color);
+    background: var(--hover-bg);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    
+    ~ .search-icon {
+      color: var(--accent-color);
+    }
+  }
+}
+
+.clear-button {
+  position: absolute;
+  right: 0.75rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+    transform: rotate(90deg) scale(1.1);
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+  }
+}
+
 .filter-section {
   display: flex;
   align-items: center;
@@ -68,7 +141,6 @@
     background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
     border-color: var(--accent-color);
     color: white;
-    transform: translateY(-3px);
     box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
     
     &::before {
@@ -76,9 +148,6 @@
     }
   }
   
-  &:active {
-    transform: translateY(-1px);
-  }
 }
 
 .divider {
@@ -150,7 +219,6 @@
   &:hover {
     background: var(--hover-bg);
     border-color: var(--accent-color);
-    transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     
     &::before {
@@ -162,7 +230,6 @@
     background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
     color: white;
     border-color: var(--accent-color);
-    transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
     
     &::before {
@@ -172,7 +239,6 @@
     &:hover {
       background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
       opacity: 0.9;
-      transform: translateY(-3px);
     }
   }
 }
@@ -317,7 +383,6 @@
 
 // Enhanced hover effects for the entire container
 .filter-bar-container:hover {
-  transform: translateY(-2px);
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
 }
 

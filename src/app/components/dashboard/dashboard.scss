@@ -98,21 +98,6 @@
   }
 }
 
-.search-container {
-  max-width: 500px;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    transform: translateY(-50%);
-    width: 1px;
-    height: 30px;
-    background: linear-gradient(135deg, var(--border-color) 0%, transparent 100%);
-  }
-}
 
 .dashboard-content {
   flex: 1;
@@ -148,13 +133,6 @@
     gap: 1rem;
   }
   
-  .search-container {
-    max-width: 100%;
-    
-    &::after {
-      display: none;
-    }
-  }
 }
 
 // Add floating particles effect (subtle)

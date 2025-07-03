@@ -1,7 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
-import { SearchBarComponent } from '../search-bar/search-bar';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
 import { DataNode, HierarchyMode } from '../../models';
 import { MockDataService } from '../../services/mock-data.service';
@@ -9,7 +8,7 @@ import { MockDataService } from '../../services/mock-data.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DataGridComponent, SearchBarComponent, FilterBarComponent],
+  imports: [CommonModule, DataGridComponent, FilterBarComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
@@ -27,11 +26,6 @@ export class DashboardComponent implements OnInit {
     this.filteredData.set(mockData);
   }
   
-  onSearchChange(searchText: string): void {
-    this.searchText.set(searchText);
-    this.applyFilters();
-  }
-  
   onFilterChange(event: FilterEvent): void {
     switch (event.type) {
       case 'top':
@@ -39,6 +33,10 @@ export class DashboardComponent implements OnInit {
         break;
       case 'hierarchy':
         this.changeHierarchy(event.value);
+        break;
+      case 'search':
+        this.searchText.set(event.value);
+        this.applyFilters();
         break;
     }
   }

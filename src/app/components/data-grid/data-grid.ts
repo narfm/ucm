@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, computed, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { DataNode, ColumnDefinition, GridState } from '../../models';
@@ -11,13 +11,20 @@ import { MockDataService } from '../../services/mock-data.service';
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
-export class DataGridComponent implements OnInit {
+export class DataGridComponent implements OnInit, OnDestroy {
   @Input() data = signal<DataNode[]>([]);
   @Input() columns: ColumnDefinition[] = [];
   @Output() rowClick = new EventEmitter<DataNode>();
   @Output() cellClick = new EventEmitter<{row: DataNode, column: ColumnDefinition}>();
   
   private mockDataService = inject(MockDataService);
+  
+  // Resize properties
+  resizing = false;
+  private resizeColumnIndex: number | null = null;
+  private startX = 0;
+  private startWidth = 0;
+  private minColumnWidth = 50;
   
   // Grid state
   gridState = signal<GridState>({
@@ -189,5 +196,52 @@ export class DataGridComponent implements OnInit {
       ...node,
       children: node.children ? this.sortData(node.children, sortColumn, direction) : undefined
     }));
+  }
+  
+  // Column resize methods
+  onResizeStart(event: MouseEvent, columnIndex: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.resizing = true;
+    this.resizeColumnIndex = columnIndex;
+    this.startX = event.pageX;
+    
+    const column = this.columns[columnIndex];
+    const currentWidth = column.width ? parseInt(column.width) : 150;
+    this.startWidth = currentWidth;
+    
+    // Add mouse event listeners
+    document.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('mouseup', this.onMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+  
+  private onMouseMove = (event: MouseEvent): void => {
+    if (!this.resizing || this.resizeColumnIndex === null) return;
+    
+    const diff = event.pageX - this.startX;
+    const newWidth = Math.max(this.minColumnWidth, this.startWidth + diff);
+    
+    // Update column width
+    this.columns[this.resizeColumnIndex].width = `${newWidth}px`;
+  };
+  
+  private onMouseUp = (): void => {
+    this.resizing = false;
+    this.resizeColumnIndex = null;
+    
+    // Remove event listeners
+    document.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('mouseup', this.onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+  
+  ngOnDestroy(): void {
+    // Clean up event listeners
+    document.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('mouseup', this.onMouseUp);
   }
 }

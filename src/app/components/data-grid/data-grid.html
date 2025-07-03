@@ -1,7 +1,7 @@
-<div class="data-grid-container">
+<div class="data-grid-container" [class.resizing]="resizing">
   <div class="grid-header">
     <div class="header-row">
-      <div *ngFor="let column of columns; trackBy: trackByColumn"
+      <div *ngFor="let column of columns; let i = index; trackBy: trackByColumn"
            class="header-cell"
            [style.width]="column.width"
            [style.min-width]="column.minWidth"
@@ -27,6 +27,9 @@
             <path d="M7 10l5 5 5-5"/>
           </svg>
         </span>
+        <div *ngIf="i < columns.length - 1" 
+             class="resize-handle"
+             (mousedown)="onResizeStart($event, i)"></div>
       </div>
     </div>
   </div>

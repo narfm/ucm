@@ -1,4 +1,7 @@
 <div class="data-grid-container" [class.resizing]="resizing">
+  <!-- Loading progress bar -->
+  <app-progress-bar [show]="loading()" message="Loading data..."></app-progress-bar>
+
   <div class="grid-header">
     <div class="header-row">
       <div *ngFor="let column of columns; let i = index; trackBy: trackByColumn"

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
+import { ProgressBarComponent } from '../progress-bar/progress-bar';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -17,6 +18,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
   @Input() hierarchyRequest?: HierarchyRequest;
   @Output() rowClick = new EventEmitter<HierarchyNode>();
   @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
+  
+  // Loading state
+  loading = signal<boolean>(false);
   
   private mockDataService = inject(MockDataService);
   
@@ -73,8 +77,17 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     // Generate mock data if none provided
     if (this.data().length === 0 && this.hierarchyRequest) {
-      const response = this.mockDataService.generateHierarchicalData(this.hierarchyRequest);
-      this.data.set(response.root.children);
+      this.loading.set(true);
+      this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
+        next: (response) => {
+          this.data.set(response.root.children || []);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading data:', error);
+          this.loading.set(false);
+        }
+      });
     }
   }
   

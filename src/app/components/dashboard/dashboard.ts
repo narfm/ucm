@@ -31,9 +31,17 @@ export class DashboardComponent implements OnInit {
   }
   
   private loadHierarchicalData(): void {
-    const response: HierarchyResponse = this.mockDataService.generateHierarchicalData(this.hierarchyRequest);
-    this.originalData.set(response.root.children);
-    this.filteredData.set(response.root.children);
+    this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
+      next: (response: HierarchyResponse) => {
+        this.originalData.set(response.root.children || []);
+        this.filteredData.set(response.root.children || []);
+      },
+      error: (error) => {
+        console.error('Error loading hierarchical data:', error);
+        this.originalData.set([]);
+        this.filteredData.set([]);
+      }
+    });
   }
   
   onFilterChange(event: FilterEvent): void {

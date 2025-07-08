@@ -16,6 +16,7 @@ html, body {
 // Light theme
 .light-theme {
   --bg-primary: #ffffff;
+  --bg-primary-rgb: 255, 255, 255;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #edf2f7;
   --text-primary: #1a202c;
@@ -38,6 +39,7 @@ html, body {
 // Dark theme
 .dark-theme {
   --bg-primary: #0f172a;
+  --bg-primary-rgb: 15, 23, 42;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
   --text-primary: #f1f5f9;

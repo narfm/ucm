@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Observable, of, delay } from 'rxjs';
 import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria } from '../models/financial-data.interface';
 
 @Injectable({
@@ -28,7 +29,7 @@ export class MockDataService {
 
   private nodeIdCounter = 0;
 
-  generateHierarchicalData(request: HierarchyRequest): HierarchyResponse {
+  generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {
     const response: HierarchyResponse = {
       root: {
         children: []
@@ -46,7 +47,8 @@ export class MockDataService {
       }
     });
 
-    return response;
+    // Simulate loading delay and return as Observable
+    return of(response).pipe(delay(1500));
   }
 
   private createFilterNode(filterType: FilterType, filterName: string, maxDepth: number): HierarchyNode {

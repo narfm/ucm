@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-UCM is a financial data dashboard built with Angular 20 and TypeScript. The application displays hierarchical financial data with advanced filtering, searching, and performance optimizations for handling 100K+ rows.
+UCM is a hierarchical financial data dashboard built with Angular 20 and TypeScript. The application displays hierarchical organization/person data with advanced filtering, searching, and performance optimizations for handling large datasets.
 
 ## Essential Commands
 
@@ -27,85 +27,135 @@ npm test           # Run unit tests with Karma/Jasmine
 ### Technology Stack
 - **Framework**: Angular 20 with standalone components
 - **Language**: TypeScript 5.8 with strict mode
-- **Styling**: SCSS
+- **Styling**: SCSS with CSS variables for theming
 - **Testing**: Karma + Jasmine
 - **Build**: Angular CLI with esbuild
+- **Virtual Scrolling**: Angular CDK
 
 ### Key Architectural Decisions
 1. **Standalone Components**: No NgModules, using modern Angular approach
 2. **Strict TypeScript**: Full strict mode enabled for type safety
 3. **Component Structure**: Components should be self-contained with .ts, .html, .scss, and .spec.ts files
+4. **Signal-based State**: Using Angular signals for reactive state management
 
-### Project Structure Pattern
+### Project Structure
 ```
 src/app/
-├── components/          # Reusable UI components
-├── services/           # Business logic and data services
-├── models/             # TypeScript interfaces/types
-├── shared/             # Shared utilities and helpers
-└── features/           # Feature-specific modules
+├── components/          
+│   ├── dashboard/      # Main dashboard component
+│   ├── data-grid/      # Hierarchical data grid with virtual scrolling
+│   ├── filter-bar/     # Filter controls
+│   └── header/         # App header with theme toggle
+├── services/           
+│   ├── mock-data.service.ts  # Generates hierarchical data
+│   └── theme.service.ts      # Theme management
+├── models/             
+│   └── financial-data.interface.ts  # Data structures
+└── app.ts              # Root component
 ```
 
-## Key Implementation Requirements (from PRD)
+## Current Data Structure
 
-### Core Features to Implement
-1. **Hierarchical Data Grid**
-   - Virtual scrolling for 100K+ rows
-   - Expand/collapse functionality
-   - Inline editing with validation
-   - Column sorting and resizing
+### Hierarchy Request/Response
+```typescript
+interface HierarchyRequest {
+  filters: string[];        // e.g., ['UPM_L1_NAME']
+  hierarchyTypeCode: string; // e.g., 'G001'
+  maxDepth: number;         // Controls tree depth
+}
 
-2. **Performance Requirements**
-   - Initial load < 3 seconds
-   - Smooth scrolling (60 fps)
-   - Search results < 500ms
-   - Use virtual scrolling and lazy loading
-
-3. **UI Components Needed**
-   - Header with theme toggle and user menu
-   - Search bar with advanced filtering
-   - Hierarchical data grid
-   - Context menus for row actions
-   - Loading states and error handling
-
-4. **Data Service**
-   - Mock service generating 10,000 hierarchical records
-   - Support for CRUD operations
-   - Filtering and search functionality
-   - Hierarchy manipulation methods
-
-## Testing Approach
-
-Run specific tests:
-```bash
-ng test --include='**/specific.spec.ts'    # Run specific test file
-ng test --watch=false                      # Run tests once without watching
-ng test --code-coverage                    # Generate coverage report
+interface HierarchyNode {
+  name: string;
+  type: 'FILTER' | 'ORG' | 'PERSON';
+  filters?: string[];       // e.g., ['UPM_L1_NAME/Asset Servicing']
+  partyId?: string;
+  childrenCount?: number;
+  hasChildren?: boolean;
+  legalEntity?: boolean;
+  children?: HierarchyNode[];
+  expanded?: boolean;
+  level?: number;
+  parent?: HierarchyNode;
+}
 ```
 
-## Important Configuration
+### Filter Types
+- Asset Servicing
+- Corporate Trust
+- Credit Services
+- Depository Receipts (note: spelled as "Depository" not "Depositry")
+- Markets
+- Other
+- Treasury Services
 
-### TypeScript (tsconfig.json)
-- Strict mode is enabled - all type checking features are on
-- Target: ES2022
-- Use path aliases for clean imports when needed
+## Key Components
 
-### Angular Build
-- Production budgets: 500KB initial, 1MB total
-- SCSS preprocessing enabled
-- Source maps enabled for development
+### Data Grid Component
+- Displays hierarchical data with expand/collapse
+- Virtual scrolling for performance
+- Column definitions:
+  - Name (with hierarchy indentation)
+  - Type (FILTER/ORG/PERSON)
+  - Party ID
+  - Legal Entity (boolean)
+  - Children Count
+- Supports sorting and column resizing
+- Row/cell click events
 
-### Code Style
-- 2-space indentation (enforced by .editorconfig)
-- Single quotes in TypeScript
-- UTF-8 encoding
-- Trim trailing whitespace
+### Filter Bar Component
+- Search by name or party ID
+- Max depth selector (1-5 levels)
+- Filter type toggles (multi-select)
+- Clear all functionality
+
+### Mock Data Service
+- Generates hierarchical data based on request parameters
+- Creates organizations and persons under filter types
+- Supports search and filtering
+- Maintains parent-child relationships
+
+## Styling Approach
+- Uses CSS custom properties for theming
+- Dark/light theme support via ThemeService
+- Gradient-based modern UI design
+- Hover effects and transitions
+- Special styling for different node types:
+  - FILTER: Accent color, uppercase, bold
+  - ORG: Primary text color
+  - PERSON: Secondary color, italic
+
+## Performance Considerations
+- Virtual scrolling implemented for large datasets
+- Computed signals for efficient data transformation
+- Debounced search input (300ms)
+- Flattened data structure for virtual scroll
+
+## Recent Changes (Session Summary)
+1. Replaced old financial data structure with new hierarchy structure
+2. Updated mock data service to generate organizations/persons
+3. Modified data grid to display new columns
+4. Updated filter bar for filter types and depth control
+5. Fixed TypeScript errors related to undefined values and type mismatches
+6. Made data grid compact and professional (32px row height, reduced padding)
+7. Fixed level calculation - level is now calculated dynamically in flattenData() method instead of being generated by mock service
+
+## Next Steps/TODO
+- Add error handling for data loading
+- Implement lazy loading for deep hierarchies
+- Add loading states during data fetching
+- Consider implementing data persistence
+- Add unit tests for new functionality
+- Optimize performance for very large datasets (100K+ nodes)
+
+## Known Issues
+- None currently identified in latest implementation
 
 ## Development Notes
-
-1. Always use Angular CLI for generating components/services: `ng generate component <name>`
-2. Follow Angular style guide for naming conventions
-3. Implement lazy loading for better performance with large datasets
-4. Use OnPush change detection strategy for grid components
-5. Implement proper error boundaries and loading states
-6. Consider using Angular CDK Virtual Scrolling for the data grid
+1. Always check for undefined values when accessing optional properties
+2. Use type guards when working with union types (FILTER|ORG|PERSON)
+3. Maintain parent references carefully when building hierarchies
+4. Virtual scrolling requires flattened data - use flattenHierarchy method
+5. Column resize functionality is implemented but may need testing
+6. Search functionality works across name, partyId, and type fields
+7. **IMPORTANT**: Level property is calculated dynamically in data-grid component's flattenData() method, not generated by mock service
+8. Hierarchy indentation is achieved using calculated level * 20px padding

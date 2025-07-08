@@ -55,15 +55,15 @@ export class DataGridComponent implements OnInit, OnDestroy {
   });
   
   // Row height for virtual scrolling
-  rowHeight = 40;
+  rowHeight = 32;
   
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '300px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '100px' },
-    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '150px' },
-    { key: 'legalEntity', label: 'Legal Entity', sortable: true, dataType: 'boolean', align: 'center', width: '120px' },
-    { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '100px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '250px', minWidth: '200px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '80px', minWidth: '80px' },
+    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '120px', minWidth: '100px' },
+    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '60px', minWidth: '60px' },
+    { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '80px', minWidth: '60px' }
   ];
   
   ngOnInit() {
@@ -99,12 +99,14 @@ export class DataGridComponent implements OnInit, OnDestroy {
     });
   }
   
-  private flattenData(nodes: HierarchyNode[], expandedIds: Set<string>, result: HierarchyNode[] = []): HierarchyNode[] {
+  private flattenData(nodes: HierarchyNode[], expandedIds: Set<string>, result: HierarchyNode[] = [], level: number = 0): HierarchyNode[] {
     nodes.forEach(node => {
-      result.push(node);
+      // Create a copy with the calculated level
+      const nodeWithLevel = { ...node, level };
+      result.push(nodeWithLevel);
       
       if (node.children && expandedIds.has(node.partyId || node.name)) {
-        this.flattenData(node.children, expandedIds, result);
+        this.flattenData(node.children, expandedIds, result, level + 1);
       }
     });
     
@@ -190,7 +192,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
     // Also sort children recursively
     return sortedNodes.map(node => ({
       ...node,
-      children: node.children ? this.sortData(node.children, sortColumn, direction) : undefined
+      children: node.children ? this.sortData(node.children, sortColumn, direction) : node.children
     }));
   }
   

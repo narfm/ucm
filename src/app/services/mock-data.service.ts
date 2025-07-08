@@ -55,8 +55,7 @@ export class MockDataService {
       type: 'FILTER',
       filters: [`${filterName}/${filterType}`],
       children: [],
-      expanded: false,
-      level: 0
+      expanded: false
     };
 
     if (maxDepth > 1) {
@@ -87,7 +86,6 @@ export class MockDataService {
       legalEntity: Math.random() > 0.3,
       children: [],
       expanded: false,
-      level: currentDepth,
       parent: parent
     };
 

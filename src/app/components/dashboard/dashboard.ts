@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
-import { DataNode, HierarchyMode } from '../../models';
+import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterCriteria } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 
 @Component({
@@ -15,83 +15,72 @@ import { MockDataService } from '../../services/mock-data.service';
 export class DashboardComponent implements OnInit {
   private mockDataService = inject(MockDataService);
   
-  originalData = signal<DataNode[]>([]);
-  filteredData = signal<DataNode[]>([]);
+  originalData = signal<HierarchyNode[]>([]);
+  filteredData = signal<HierarchyNode[]>([]);
   searchText = signal<string>('');
-  currentHierarchy = signal<HierarchyMode>({ type: 'bank' });
+  
+  // Default hierarchy request
+  hierarchyRequest: HierarchyRequest = {
+    filters: ['UPM_L1_NAME'],
+    hierarchyTypeCode: 'G001',
+    maxDepth: 3
+  };
   
   ngOnInit() {
-    const mockData = this.mockDataService.generateMockData(10000);
-    this.originalData.set(mockData);
-    this.filteredData.set(mockData);
+    this.loadHierarchicalData();
+  }
+  
+  private loadHierarchicalData(): void {
+    const response: HierarchyResponse = this.mockDataService.generateHierarchicalData(this.hierarchyRequest);
+    this.originalData.set(response.root.children);
+    this.filteredData.set(response.root.children);
   }
   
   onFilterChange(event: FilterEvent): void {
     switch (event.type) {
-      case 'top':
-        this.applyTopFilter(event.value);
-        break;
-      case 'hierarchy':
-        this.changeHierarchy(event.value);
-        break;
       case 'search':
         this.searchText.set(event.value);
-        this.applyFilters();
+        this.applySearch();
+        break;
+      case 'filter':
+        this.applyColumnFilters(event.value);
+        break;
+      case 'hierarchy':
+        // Update hierarchy request and reload data
+        if (event.value.maxDepth) {
+          this.hierarchyRequest.maxDepth = event.value.maxDepth;
+          this.loadHierarchicalData();
+        }
         break;
     }
   }
   
-  private applyTopFilter(count: number): void {
-    // Get top records first (this returns flattened data)
-    const topRecords = this.mockDataService.getTopRecords(this.originalData(), count);
-    
-    // Reconstruct hierarchy based on current mode
-    const currentMode = this.currentHierarchy();
-    let hierarchicalData: DataNode[];
-    
-    if (currentMode.type === 'bank') {
-      // For bank hierarchy, we need to rebuild the tree structure from top records
-      hierarchicalData = this.mockDataService.reconstructBankHierarchy(topRecords);
-    } else {
-      // For other hierarchies, use the reshape method with the top records
-      hierarchicalData = this.mockDataService.reshapeByHierarchy(
-        topRecords, 
-        currentMode.type, 
-        currentMode.groupBy
-      );
-    }
-    
-    this.filteredData.set(hierarchicalData);
-  }
-  
-  private changeHierarchy(hierarchyMode: HierarchyMode): void {
-    this.currentHierarchy.set(hierarchyMode);
-    
-    let reshapedData: DataNode[];
-    
-    if (hierarchyMode.type === 'bank') {
-      reshapedData = this.originalData();
-    } else {
-      reshapedData = this.mockDataService.reshapeByHierarchy(
-        this.originalData(), 
-        hierarchyMode.type, 
-        hierarchyMode.groupBy
-      );
-    }
-    
-    this.filteredData.set(reshapedData);
-    this.applyFilters();
-  }
-  
-  private applyFilters(): void {
-    let data = this.filteredData();
-    
+  private applySearch(): void {
     const searchText = this.searchText();
-    if (searchText) {
-      data = this.mockDataService.searchData(data, searchText, ['accountName']);
+    if (!searchText) {
+      this.filteredData.set(this.originalData());
+      return;
     }
     
-    // Since we're updating the signal, the data grid will automatically react
-    this.filteredData.set(data);
+    const filtered = this.mockDataService.searchNodes(this.originalData(), searchText);
+    this.filteredData.set(filtered);
+  }
+  
+  private applyColumnFilters(filters: FilterCriteria[]): void {
+    if (!filters || filters.length === 0) {
+      this.filteredData.set(this.originalData());
+      return;
+    }
+    
+    const filtered = this.mockDataService.filterNodes(this.originalData(), filters);
+    this.filteredData.set(filtered);
+  }
+  
+  onRowClick(node: HierarchyNode): void {
+    console.log('Row clicked:', node);
+  }
+  
+  onCellClick(event: {row: HierarchyNode, column: any}): void {
+    console.log('Cell clicked:', event);
   }
 }

@@ -8,6 +8,10 @@
   </div>
   
   <div class="dashboard-content">
-    <app-data-grid [data]="filteredData"></app-data-grid>
+    <app-data-grid 
+      [data]="filteredData"
+      [hierarchyRequest]="hierarchyRequest"
+      (rowClick)="onRowClick($event)"
+      (cellClick)="onCellClick($event)"></app-data-grid>
   </div>
 </div>

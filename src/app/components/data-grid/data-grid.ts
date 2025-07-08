@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
-import { DataNode, ColumnDefinition, GridState } from '../../models';
+import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 
 @Component({
@@ -12,10 +12,11 @@ import { MockDataService } from '../../services/mock-data.service';
   styleUrl: './data-grid.scss'
 })
 export class DataGridComponent implements OnInit, OnDestroy {
-  @Input() data = signal<DataNode[]>([]);
+  @Input() data = signal<HierarchyNode[]>([]);
   @Input() columns: ColumnDefinition[] = [];
-  @Output() rowClick = new EventEmitter<DataNode>();
-  @Output() cellClick = new EventEmitter<{row: DataNode, column: ColumnDefinition}>();
+  @Input() hierarchyRequest?: HierarchyRequest;
+  @Output() rowClick = new EventEmitter<HierarchyNode>();
+  @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
   
   private mockDataService = inject(MockDataService);
   
@@ -29,7 +30,6 @@ export class DataGridComponent implements OnInit, OnDestroy {
   // Grid state
   gridState = signal<GridState>({
     filters: [],
-    hierarchyMode: { type: 'bank' },
     expandedNodeIds: new Set<string>()
   });
   
@@ -59,11 +59,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
   
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
-    { key: 'accountName', label: 'Account Name', sortable: true, searchable: true, width: '250px' },
-    { key: 'salesPerson', label: 'Sales Person', sortable: true, searchable: true, width: '150px' },
-    { key: 'service', label: 'Service', sortable: true, searchable: true, width: '150px' },
-    { key: 'assetsUnderCustody', label: 'Assets Under Custody', sortable: true, dataType: 'currency', align: 'right', width: '180px' },
-    { key: 'profitLoss', label: 'Profit/Loss', sortable: true, dataType: 'currency', align: 'right', width: '150px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '300px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '100px' },
+    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '150px' },
+    { key: 'legalEntity', label: 'Legal Entity', sortable: true, dataType: 'boolean', align: 'center', width: '120px' },
+    { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '100px' }
   ];
   
   ngOnInit() {
@@ -72,24 +72,25 @@ export class DataGridComponent implements OnInit, OnDestroy {
     }
     
     // Generate mock data if none provided
-    if (this.data().length === 0) {
-      const mockData = this.mockDataService.generateMockData(10000);
-      this.data.set(mockData);
+    if (this.data().length === 0 && this.hierarchyRequest) {
+      const response = this.mockDataService.generateHierarchicalData(this.hierarchyRequest);
+      this.data.set(response.root.children);
     }
   }
   
-  toggleExpand(node: DataNode, event: Event) {
+  toggleExpand(node: HierarchyNode, event: Event) {
     event.stopPropagation();
     
     if (!node.children || node.children.length === 0) return;
     
     const currentState = this.gridState();
     const newExpandedIds = new Set(currentState.expandedNodeIds);
+    const nodeId = node.partyId || node.name;
     
-    if (newExpandedIds.has(node.id)) {
-      newExpandedIds.delete(node.id);
+    if (newExpandedIds.has(nodeId)) {
+      newExpandedIds.delete(nodeId);
     } else {
-      newExpandedIds.add(node.id);
+      newExpandedIds.add(nodeId);
     }
     
     this.gridState.set({
@@ -98,11 +99,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
     });
   }
   
-  private flattenData(nodes: DataNode[], expandedIds: Set<string>, result: DataNode[] = []): DataNode[] {
+  private flattenData(nodes: HierarchyNode[], expandedIds: Set<string>, result: HierarchyNode[] = []): HierarchyNode[] {
     nodes.forEach(node => {
       result.push(node);
       
-      if (node.children && expandedIds.has(node.id)) {
+      if (node.children && expandedIds.has(node.partyId || node.name)) {
         this.flattenData(node.children, expandedIds, result);
       }
     });
@@ -110,7 +111,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
     return result;
   }
   
-  getCellValue(row: DataNode, column: ColumnDefinition): any {
+  getCellValue(row: HierarchyNode, column: ColumnDefinition): any {
     return (row as any)[column.key];
   }
   
@@ -118,31 +119,26 @@ export class DataGridComponent implements OnInit, OnDestroy {
     if (value == null) return '';
     
     switch (column.dataType) {
-      case 'currency':
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(value);
       case 'number':
         return new Intl.NumberFormat('en-US').format(value);
+      case 'boolean':
+        return value ? 'Yes' : 'No';
       default:
         return String(value);
     }
   }
   
-  onRowClick(row: DataNode) {
+  onRowClick(row: HierarchyNode) {
     this.rowClick.emit(row);
   }
   
-  onCellClick(row: DataNode, column: ColumnDefinition, event: Event) {
+  onCellClick(row: HierarchyNode, column: ColumnDefinition, event: Event) {
     event.stopPropagation();
     this.cellClick.emit({ row, column });
   }
   
-  trackByRow(index: number, row: DataNode): string {
-    return row.id;
+  trackByRow(index: number, row: HierarchyNode): string {
+    return row.partyId || row.name;
   }
   
   trackByColumn(index: number, column: ColumnDefinition): string {
@@ -170,7 +166,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
     });
   }
   
-  private sortData(nodes: DataNode[], sortColumn: string, direction: 'asc' | 'desc'): DataNode[] {
+  private sortData(nodes: HierarchyNode[], sortColumn: string, direction: 'asc' | 'desc'): HierarchyNode[] {
     const sortedNodes = [...nodes].sort((a, b) => {
       const aValue = (a as any)[sortColumn];
       const bValue = (b as any)[sortColumn];

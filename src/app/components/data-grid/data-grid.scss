@@ -209,7 +209,7 @@
   }
 }
 
-.account-cell {
+.name-cell {
   display: flex;
   align-items: center;
   width: 100%;
@@ -271,11 +271,37 @@
   }
 }
 
-.account-name {
+.node-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
+  
+  &.filter-type {
+    color: var(--accent-color);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  &.org-type {
+    color: var(--text-primary);
+  }
+  
+  &.person-type {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+}
+
+.boolean-true {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.boolean-false {
+  color: #ef4444;
+  font-weight: 600;
 }
 
 // Virtual scroll styles with improvements

@@ -2,10 +2,10 @@ import { Component, Output, EventEmitter, signal, OnDestroy } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { HierarchyMode, ServiceType, SalesPerson } from '../../models';
+import { FilterType, FilterCriteria } from '../../models/financial-data.interface';
 
 export interface FilterEvent {
-  type: 'top' | 'hierarchy' | 'search';
+  type: 'search' | 'filter' | 'hierarchy';
   value: any;
 }
 
@@ -19,12 +19,23 @@ export interface FilterEvent {
 export class FilterBarComponent implements OnDestroy {
   @Output() filterChange = new EventEmitter<FilterEvent>();
   
-  // Available options
-  salesPersons: SalesPerson[] = ['Alice', 'Bob', 'Charlie', 'Diana'];
-  services: ServiceType[] = ['Corporate Trust', 'Treasury', 'Custody'];
+  // Filter type options
+  filterTypes: FilterType[] = [
+    'Asset Servicing',
+    'Corporate Trust',
+    'Credit Services',
+    'Depository Receipts',
+    'Markets',
+    'Other',
+    'Treasury Services'
+  ];
   
-  // Current selections
-  selectedHierarchy = signal<'bank' | 'salesPerson' | 'service'>('bank');
+  // Depth options
+  depthOptions = [1, 2, 3, 4, 5];
+  selectedDepth = 3;
+  
+  // Selected filter types
+  selectedFilterTypes: FilterType[] = [];
   
   // Search functionality
   searchText = '';
@@ -44,23 +55,39 @@ export class FilterBarComponent implements OnDestroy {
     });
   }
   
-  applyTopFilter(count: number): void {
+  onDepthChange(depth: number): void {
+    this.selectedDepth = depth;
     this.filterChange.emit({
-      type: 'top',
-      value: count
+      type: 'hierarchy',
+      value: { maxDepth: depth }
     });
   }
   
-  setHierarchy(type: 'bank' | 'salesPerson' | 'service'): void {
-    this.selectedHierarchy.set(type);
+  toggleFilterType(filterType: FilterType): void {
+    const index = this.selectedFilterTypes.indexOf(filterType);
+    if (index >= 0) {
+      this.selectedFilterTypes.splice(index, 1);
+    } else {
+      this.selectedFilterTypes.push(filterType);
+    }
     
-    const hierarchyMode: HierarchyMode = {
-      type: type
-    };
+    this.applyFilters();
+  }
+  
+  isFilterTypeSelected(filterType: FilterType): boolean {
+    return this.selectedFilterTypes.includes(filterType);
+  }
+  
+  private applyFilters(): void {
+    const filters: FilterCriteria[] = this.selectedFilterTypes.map(filterType => ({
+      column: 'filters',
+      value: `UPM_L1_NAME/${filterType}`,
+      operator: 'contains' as const
+    }));
     
     this.filterChange.emit({
-      type: 'hierarchy',
-      value: hierarchyMode
+      type: 'filter',
+      value: filters
     });
   }
   
@@ -72,6 +99,12 @@ export class FilterBarComponent implements OnDestroy {
   clearSearch(): void {
     this.searchText = '';
     this.searchSubject.next('');
+  }
+  
+  clearAllFilters(): void {
+    this.selectedFilterTypes = [];
+    this.clearSearch();
+    this.applyFilters();
   }
   
   ngOnDestroy(): void {

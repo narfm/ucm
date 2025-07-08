@@ -51,29 +51,29 @@
            [style.min-width]="column.minWidth"
            [class.text-right]="column.align === 'right'"
            [class.text-center]="column.align === 'center'"
-           [class.text-success]="column.key === 'profitLoss' && getCellValue(row, column) > 0"
-           [class.text-danger]="column.key === 'profitLoss' && getCellValue(row, column) < 0"
+           [class.boolean-true]="column.dataType === 'boolean' && getCellValue(row, column) === true"
+           [class.boolean-false]="column.dataType === 'boolean' && getCellValue(row, column) === false"
            (click)="onCellClick(row, column, $event)">
         
-        <!-- Account name with expand/collapse -->
-        <div *ngIf="column.key === 'accountName'" class="account-cell">
-          <span class="indent" [style.padding-left.px]="row.level * 20"></span>
+        <!-- Name with expand/collapse -->
+        <div *ngIf="column.key === 'name'" class="name-cell">
+          <span class="indent" [style.padding-left.px]="(row.level || 0) * 20"></span>
           
           <button *ngIf="row.children && row.children.length > 0"
                   class="expand-button"
                   (click)="toggleExpand(row, $event)"
-                  [attr.aria-label]="gridState().expandedNodeIds.has(row.id) ? 'Collapse' : 'Expand'">
+                  [attr.aria-label]="gridState().expandedNodeIds.has(row.partyId || row.name) ? 'Collapse' : 'Expand'">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path *ngIf="!gridState().expandedNodeIds.has(row.id)" d="M9 18l6-6-6-6"/>
-              <path *ngIf="gridState().expandedNodeIds.has(row.id)" d="M6 9l6 6 6-6"/>
+              <path *ngIf="!gridState().expandedNodeIds.has(row.partyId || row.name)" d="M9 18l6-6-6-6"/>
+              <path *ngIf="gridState().expandedNodeIds.has(row.partyId || row.name)" d="M6 9l6 6 6-6"/>
             </svg>
           </button>
           
-          <span class="account-name">{{ formatCellValue(getCellValue(row, column), column) }}</span>
+          <span class="node-name" [class.filter-type]="row.type === 'FILTER'" [class.org-type]="row.type === 'ORG'" [class.person-type]="row.type === 'PERSON'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
         </div>
         
         <!-- Other cells -->
-        <span *ngIf="column.key !== 'accountName'">
+        <span *ngIf="column.key !== 'name'">
           {{ formatCellValue(getCellValue(row, column), column) }}
         </span>
       </div>

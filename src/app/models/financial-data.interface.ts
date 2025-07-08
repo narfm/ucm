@@ -1,26 +1,47 @@
-export interface DataNode {
-  id: string;
-  accountName: string;
-  bankName: string;
-  service: string;
-  salesPerson: string;
-  assetsUnderCustody: number;
-  profitLoss: number;
-  level: number;
+export interface HierarchyNode {
+  name: string;
+  type: 'FILTER' | 'ORG' | 'PERSON';
+  filters?: string[];
+  partyId?: string;
+  childrenCount?: number;
+  hasChildren?: boolean;
+  legalEntity?: boolean;
+  children?: HierarchyNode[];
   expanded?: boolean;
-  children?: DataNode[];
-  parent?: DataNode;
+  level?: number;
+  parent?: HierarchyNode;
 }
 
+export interface HierarchyRequest {
+  filters: string[];
+  hierarchyTypeCode: string;
+  maxDepth: number;
+}
+
+export interface HierarchyResponse {
+  root: {
+    children: HierarchyNode[];
+  };
+}
+
+export type FilterType = 
+  | 'Asset Servicing'
+  | 'Corporate Trust'
+  | 'Credit Services'
+  | 'Depository Receipts'
+  | 'Markets'
+  | 'Other'
+  | 'Treasury Services';
+
 export interface ColumnDefinition {
-  key: keyof DataNode | string;
+  key: keyof HierarchyNode | string;
   label: string;
   sortable?: boolean;
   searchable?: boolean;
   width?: string;
   minWidth?: string;
   resizable?: boolean;
-  dataType?: 'string' | 'number' | 'currency';
+  dataType?: 'string' | 'number' | 'boolean';
   align?: 'left' | 'center' | 'right';
 }
 
@@ -36,21 +57,10 @@ export interface SearchCriteria {
   caseSensitive?: boolean;
 }
 
-export interface HierarchyMode {
-  type: 'bank' | 'salesPerson' | 'service';
-  groupBy?: string;
-}
-
 export interface GridState {
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
   filters: FilterCriteria[];
   searchCriteria?: SearchCriteria;
-  hierarchyMode: HierarchyMode;
   expandedNodeIds: Set<string>;
 }
-
-export type ServiceType = 'Corporate Trust' | 'Treasury' | 'Custody';
-export type BankName = 'BNY' | 'CITI' | 'State Street' | 'Goldman Sachs';
-export type SalesPerson = 'Alice' | 'Bob' | 'Charlie' | 'Diana';
-export type Region = 'GS Asia' | 'GS North America' | 'Europe' | 'India' | 'China' | 'USA' | 'Canada';

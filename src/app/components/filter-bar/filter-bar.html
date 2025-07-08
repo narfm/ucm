@@ -9,7 +9,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Search by client name..."
+        placeholder="Search by name or party ID..."
         [(ngModel)]="searchText"
         (ngModelChange)="onSearchChange($event)"
         aria-label="Search">
@@ -30,38 +30,35 @@
   <div class="divider"></div>
   
   <div class="filter-section">
-    <button class="filter-button" (click)="applyTopFilter(250)">
-      Top 250
-    </button>
-    <button class="filter-button" (click)="applyTopFilter(1000)">
-      Top 1K
+    <span class="filter-label">Max Depth:</span>
+    <select 
+      class="depth-select" 
+      [(ngModel)]="selectedDepth" 
+      (ngModelChange)="onDepthChange($event)">
+      <option *ngFor="let depth of depthOptions" [value]="depth">{{depth}}</option>
+    </select>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <div class="filter-section filter-types">
+    <span class="filter-label">Filter Types:</span>
+    
+    <button 
+      *ngFor="let filterType of filterTypes"
+      class="filter-type-button"
+      [class.active]="isFilterTypeSelected(filterType)"
+      (click)="toggleFilterType(filterType)">
+      {{ filterType }}
     </button>
   </div>
   
   <div class="divider"></div>
   
-  <div class="filter-section hierarchy-section">
-    <span class="hierarchy-label">Hierarchy:</span>
-    
-    <button 
-      class="hierarchy-button"
-      [class.active]="selectedHierarchy() === 'bank'"
-      (click)="setHierarchy('bank')">
-      By Bank Name
-    </button>
-    
-    <button 
-      class="hierarchy-button"
-      [class.active]="selectedHierarchy() === 'salesPerson'"
-      (click)="setHierarchy('salesPerson')">
-      By Sales Person
-    </button>
-    
-    <button 
-      class="hierarchy-button"
-      [class.active]="selectedHierarchy() === 'service'"
-      (click)="setHierarchy('service')">
-      By Service
-    </button>
-  </div>
+  <button 
+    class="clear-all-button" 
+    (click)="clearAllFilters()"
+    [disabled]="selectedFilterTypes.length === 0 && !searchText">
+    Clear All
+  </button>
 </div>

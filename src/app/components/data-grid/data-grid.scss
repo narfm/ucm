@@ -155,6 +155,54 @@
       background: rgba(102, 126, 234, 0.06);
     }
   }
+  
+  // Row loading state
+  &.row-loading {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+    
+    .grid-cell {
+      opacity: 0.5;
+    }
+  }
+}
+
+// Row loading indicator
+.row-loading-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  opacity: 0.95;
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+  }
+  
+  .loading-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .grid-cell {

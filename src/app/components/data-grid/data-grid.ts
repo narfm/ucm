@@ -25,6 +25,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
   // Loading state
   loading = signal<boolean>(false);
   
+  // Row-level loading state - tracks which rows are currently loading
+  rowLoadingStates = signal<Map<string, boolean>>(new Map());
+  
   // Context menu properties
   contextMenuVisible = false;
   contextMenuX = 0;
@@ -100,6 +103,21 @@ export class DataGridComponent implements OnInit, OnDestroy {
   // Row height for virtual scrolling
   rowHeight = 32;
   
+  // Helper methods for row loading states
+  private setRowLoading(nodeId: string, loading: boolean) {
+    const currentStates = new Map(this.rowLoadingStates());
+    if (loading) {
+      currentStates.set(nodeId, true);
+    } else {
+      currentStates.delete(nodeId);
+    }
+    this.rowLoadingStates.set(currentStates);
+  }
+  
+  isRowLoading(nodeId: string): boolean {
+    return this.rowLoadingStates().has(nodeId);
+  }
+  
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
     { key: 'name', label: 'Name', sortable: true, searchable: true, width: '250px', minWidth: '200px' },
@@ -147,7 +165,10 @@ export class DataGridComponent implements OnInit, OnDestroy {
   private loadNodeChildren(node: HierarchyNode): void {
     if (!this.hierarchyRequest || !node.partyId) return;
     
-    this.loading.set(true);
+    // Set row loading state instead of global loading
+    if (node.partyId) {
+      this.setRowLoading(node.partyId, true);
+    }
     
     const childRequest: HierarchyRequest = {
       ...this.hierarchyRequest,
@@ -177,11 +198,17 @@ export class DataGridComponent implements OnInit, OnDestroy {
           expandedNodeIds: newExpandedIds
         });
         
-        this.loading.set(false);
+        // Clear row loading state
+        if (node.partyId) {
+          this.setRowLoading(node.partyId, false);
+        }
       },
       error: (error) => {
         console.error('Error loading node children:', error);
-        this.loading.set(false);
+        // Clear row loading state on error
+        if (node.partyId) {
+          this.setRowLoading(node.partyId, false);
+        }
       }
     });
   }
@@ -296,6 +323,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Start row loading for this node
+    if (node.partyId) {
+      this.setRowLoading(node.partyId, true);
+    }
+    
     // Reset the node's children state
     node.children = [];
     node.childrenLoaded = false;
@@ -389,7 +421,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
     };
     
     // Load new hierarchy data for this node
-    this.loading.set(true);
+    if (targetNode.partyId) {
+      this.setRowLoading(targetNode.partyId, true);
+    }
     this.mockDataService.generateHierarchicalData(nodeHierarchyRequest).subscribe({
       next: (response) => {
         if (targetNode) {
@@ -413,12 +447,18 @@ export class DataGridComponent implements OnInit, OnDestroy {
           });
         }
         
-        this.loading.set(false);
+        // Clear row loading state
+        if (targetNode.partyId) {
+          this.setRowLoading(targetNode.partyId, false);
+        }
         this.closeNodeHierarchySelector();
       },
       error: (error) => {
         console.error('Error loading node hierarchy:', error);
-        this.loading.set(false);
+        // Clear row loading state on error
+        if (targetNode.partyId) {
+          this.setRowLoading(targetNode.partyId, false);
+        }
         alert('Failed to load new hierarchy. Please try again.');
       }
     });

@@ -1,5 +1,5 @@
 <div class="data-grid-container" [class.resizing]="resizing">
-  <!-- Loading progress bar -->
+  <!-- Global loading progress bar (only for initial data loading) -->
   <app-progress-bar [show]="loading()" message="Loading data..."></app-progress-bar>
 
   <div class="grid-header">
@@ -49,8 +49,15 @@
          [class.filter-row]="row.type === 'FILTER' || row.type.startsWith('FILTER/')"
          [class.org-row]="row.type === 'ORG'"
          [class.person-row]="row.type === 'PERSON'"
+         [class.row-loading]="isRowLoading(row.partyId || row.name)"
          (click)="onRowClick(row)"
          (contextmenu)="onRowContextMenu(row, $event)">
+      
+      <!-- Row loading indicator -->
+      <div *ngIf="isRowLoading(row.partyId || row.name)" class="row-loading-indicator">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">Loading...</span>
+      </div>
       
       <div *ngFor="let column of columns; trackBy: trackByColumn"
            class="grid-cell"

@@ -146,6 +146,15 @@
   &.clickable {
     cursor: pointer;
   }
+
+  // Row color coding by type
+  &.filter-row {
+    background: rgba(102, 126, 234, 0.02);
+    
+    &:hover {
+      background: rgba(102, 126, 234, 0.06);
+    }
+  }
 }
 
 .grid-cell {
@@ -182,6 +191,46 @@
   align-items: center;
   width: 100%;
   gap: 4px;
+}
+
+.type-icons {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.type-icon {
+  stroke-width: 2;
+  
+  &.filter-icon {
+    color: var(--accent-color);
+  }
+  
+  &.org-icon {
+    color: #22c55e;
+  }
+  
+  &.person-icon {
+    color: #a855f7;
+  }
+}
+
+.legal-icons {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.legal-icon {
+  stroke-width: 2;
+  
+  &.legal-yes {
+    color: #10b981;
+  }
+  
+  &.legal-no {
+    color: #ef4444;
+  }
 }
 
 .expand-button {

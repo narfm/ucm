@@ -12,9 +12,9 @@
 }
 
 .hierarchy-section {
-  flex: 1;
-  min-width: 300px;
-  max-width: 400px;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
 }
 
 .search-section {

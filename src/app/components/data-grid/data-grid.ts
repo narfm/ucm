@@ -161,7 +161,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
   }
   
   onColumnSort(column: ColumnDefinition): void {
-    if (!column.sortable) return;
+    if (!column.sortable || this.resizing) return;
     
     const currentState = this.gridState();
     let newSortDirection: 'asc' | 'desc' | undefined = 'asc';
@@ -240,14 +240,17 @@ export class DataGridComponent implements OnInit, OnDestroy {
   };
   
   private onMouseUp = (): void => {
-    this.resizing = false;
-    this.resizeColumnIndex = null;
-    
     // Remove event listeners
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    
+    // Delay resetting the flag to prevent click events from firing immediately
+    setTimeout(() => {
+      this.resizing = false;
+      this.resizeColumnIndex = null;
+    }, 50);
   };
   
   ngOnDestroy(): void {

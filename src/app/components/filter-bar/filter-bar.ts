@@ -6,7 +6,7 @@ import { FilterType, FilterCriteria, HierarchyConfig } from '../../models/financ
 import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
 
 export interface FilterEvent {
-  type: 'search' | 'filter' | 'hierarchy' | 'hierarchy-config';
+  type: 'search' | 'filter' | 'hierarchy-config';
   value: any;
 }
 
@@ -31,9 +31,6 @@ export class FilterBarComponent implements OnDestroy {
     'Treasury Services'
   ];
   
-  // Depth options
-  depthOptions = [1, 2, 3, 4, 5];
-  selectedDepth = 3;
   
   // Selected filter types
   selectedFilterTypes: FilterType[] = [];
@@ -77,13 +74,6 @@ export class FilterBarComponent implements OnDestroy {
     });
   }
   
-  onDepthChange(depth: number): void {
-    this.selectedDepth = depth;
-    this.filterChange.emit({
-      type: 'hierarchy',
-      value: { maxDepth: depth }
-    });
-  }
   
   toggleFilterType(filterType: FilterType): void {
     const index = this.selectedFilterTypes.indexOf(filterType);

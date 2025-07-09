@@ -3,6 +3,14 @@
   border-radius: 8px;
   padding: 1rem;
   border: 1px solid var(--border-color);
+  
+  // When used in modal mode (inside configuration overlay or node hierarchy modal)
+  &.modal-content {
+    padding: 1.5rem;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
 }
 
 .hierarchy-header {
@@ -335,6 +343,13 @@
   margin: 0 0.125rem;
 }
 
+.max-depth-compact {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-left: 0.5rem;
+  font-weight: 400;
+}
+
 .no-hierarchy {
   font-size: 0.75rem;
   color: var(--text-tertiary);
@@ -396,10 +411,14 @@
   margin: 0;
 }
 
+.panel-content {
+  padding: 1.5rem;
+}
+
 .panel-description {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  margin: 1rem 1.5rem 0;
+  margin: 0 0 1.5rem 0;
 }
 
 .close-button {
@@ -418,14 +437,16 @@
 }
 
 .configuration-panel .hierarchy-levels {
-  padding: 1.5rem;
   max-height: 400px;
   overflow-y: auto;
 }
 
 .configuration-panel .hierarchy-summary {
-  padding: 0 1.5rem 1.5rem;
-  margin-top: 0;
+  margin-top: 1.5rem;
+}
+
+.configuration-panel .max-depth-container {
+  margin: 1.5rem 0 0 0;
 }
 
 @keyframes fadeIn {
@@ -445,6 +466,43 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+// Max depth selector for modal mode
+.max-depth-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  
+  .max-depth-select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+    }
   }
 }
 

@@ -1,14 +1,16 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
-import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest } from '../../models/financial-data.interface';
+import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, HierarchyConfig } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
+import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, ProgressBarComponent],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, HierarchySelectorComponent],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -28,6 +30,29 @@ export class DataGridComponent implements OnInit, OnDestroy {
   contextMenuX = 0;
   contextMenuY = 0;
   contextMenuNode: HierarchyNode | null = null;
+  
+  // Node hierarchy selector properties
+  showNodeHierarchySelector = false;
+  nodeForHierarchyChange: HierarchyNode | null = null;
+  nodeHierarchyConfig: HierarchyConfig = {
+    levels: [
+      {
+        id: 'UPM_L1_NAME',
+        name: 'Service Area',
+        description: 'Primary business service area',
+        enabled: true,
+        order: 0
+      },
+      {
+        id: 'CLIENT_OWNER_NAME',
+        name: 'Client Owner',
+        description: 'Client relationship owner',
+        enabled: false,
+        order: 1
+      }
+    ],
+    maxDepth: 3
+  };
   
   private mockDataService = inject(MockDataService);
   
@@ -282,6 +307,111 @@ export class DataGridComponent implements OnInit, OnDestroy {
     this.loadNodeChildren(node);
     
     this.hideContextMenu();
+  }
+  
+  changeNodeHierarchy(node: HierarchyNode) {
+    if (!node.hasChildren || !node.partyId) {
+      this.hideContextMenu();
+      return;
+    }
+    
+    this.nodeForHierarchyChange = node;
+    
+    // Set up hierarchy config based on current hierarchy request
+    if (this.hierarchyRequest?.filters) {
+      this.nodeHierarchyConfig = {
+        levels: [
+          {
+            id: 'UPM_L1_NAME',
+            name: 'Service Area',
+            description: 'Primary business service area',
+            enabled: this.hierarchyRequest.filters.includes('UPM_L1_NAME'),
+            order: this.hierarchyRequest.filters.indexOf('UPM_L1_NAME') !== -1 
+              ? this.hierarchyRequest.filters.indexOf('UPM_L1_NAME') 
+              : 0
+          },
+          {
+            id: 'CLIENT_OWNER_NAME',
+            name: 'Client Owner',
+            description: 'Client relationship owner',
+            enabled: this.hierarchyRequest.filters.includes('CLIENT_OWNER_NAME'),
+            order: this.hierarchyRequest.filters.indexOf('CLIENT_OWNER_NAME') !== -1 
+              ? this.hierarchyRequest.filters.indexOf('CLIENT_OWNER_NAME') 
+              : 1
+          }
+        ],
+        maxDepth: this.hierarchyRequest.maxDepth || 3
+      };
+    }
+    
+    this.showNodeHierarchySelector = true;
+    this.hideContextMenu();
+  }
+  
+  closeNodeHierarchySelector() {
+    this.showNodeHierarchySelector = false;
+    this.nodeForHierarchyChange = null;
+  }
+  
+  onNodeHierarchyConfigChange(config: HierarchyConfig) {
+    if (!this.nodeForHierarchyChange || !this.nodeForHierarchyChange.partyId) {
+      this.closeNodeHierarchySelector();
+      return;
+    }
+    
+    const enabledLevels = config.levels
+      .filter(level => level.enabled)
+      .sort((a, b) => a.order - b.order);
+    
+    const newFilters = enabledLevels.map(level => level.id);
+    
+    if (newFilters.length === 0) {
+      alert('Please select at least one hierarchy level');
+      return;
+    }
+    
+    // Create new hierarchy request for this node
+    const nodeHierarchyRequest: HierarchyRequest = {
+      filters: newFilters,
+      hierarchyTypeCode: this.hierarchyRequest?.hierarchyTypeCode || 'G001',
+      maxDepth: config.maxDepth,
+      rootParentId: this.nodeForHierarchyChange.partyId
+    };
+    
+    // Load new hierarchy data for this node
+    this.loading.set(true);
+    this.mockDataService.generateHierarchicalData(nodeHierarchyRequest).subscribe({
+      next: (response) => {
+        if (this.nodeForHierarchyChange) {
+          // Update the node with new children
+          this.nodeForHierarchyChange.children = response.root.children;
+          this.nodeForHierarchyChange.childrenLoaded = true;
+          this.nodeForHierarchyChange.allChildrenLoaded = true;
+          this.nodeForHierarchyChange.childrenCount = response.root.children?.length || 0;
+          
+          // Update the main data signal to trigger re-render
+          this.updateNodeInData(this.nodeForHierarchyChange);
+          
+          // Expand the node to show new children
+          const currentState = this.gridState();
+          const newExpandedIds = new Set(currentState.expandedNodeIds);
+          newExpandedIds.add(this.nodeForHierarchyChange.partyId!);
+          
+          this.gridState.set({
+            ...currentState,
+            expandedNodeIds: newExpandedIds
+          });
+        }
+        
+        this.loading.set(false);
+        this.closeNodeHierarchySelector();
+      },
+      error: (error) => {
+        console.error('Error loading node hierarchy:', error);
+        this.loading.set(false);
+        alert('Failed to load new hierarchy. Please try again.');
+      }
+    });
   }
   
   trackByRow(index: number, row: HierarchyNode): string {

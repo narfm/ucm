@@ -29,18 +29,6 @@
   
   <div class="divider"></div>
   
-  <div class="filter-section">
-    <span class="filter-label">Max Depth:</span>
-    <select 
-      class="depth-select" 
-      [(ngModel)]="selectedDepth" 
-      (ngModelChange)="onDepthChange($event)">
-      <option *ngFor="let depth of depthOptions" [value]="depth">{{depth}}</option>
-    </select>
-  </div>
-  
-  <div class="divider"></div>
-  
   <button 
     class="clear-all-button" 
     (click)="clearAllFilters()"

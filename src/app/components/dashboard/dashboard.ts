@@ -36,15 +36,6 @@ export class DashboardComponent implements OnInit {
       case 'filter':
         // Column filters not implemented yet
         break;
-      case 'hierarchy':
-        // Update hierarchy request and reload data
-        if (event.value.maxDepth) {
-          this.hierarchyRequest.maxDepth = event.value.maxDepth;
-          if (this.dataGrid) {
-            this.dataGrid.reloadWithNewHierarchy(this.hierarchyRequest);
-          }
-        }
-        break;
       case 'hierarchy-config':
         // Update hierarchy configuration and reload data
         const config = event.value as HierarchyConfig;

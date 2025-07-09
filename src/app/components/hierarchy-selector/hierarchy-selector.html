@@ -7,6 +7,7 @@
       {{ level.name }}
       <span *ngIf="i < getEnabledLevels().length - 1" class="separator-compact">→</span>
     </span>
+    <span class="max-depth-compact">(Max: {{ config.maxDepth }})</span>
   </div>
   <ng-template #noHierarchy>
     <span class="no-hierarchy">Click to configure</span>
@@ -28,7 +29,8 @@
         </svg>
       </button>
     </div>
-    <p class="panel-description">Drag to reorder, toggle to enable/disable levels</p>
+    <div class="panel-content">
+      <p class="panel-description">Drag to reorder, toggle to enable/disable levels</p>
 
     <div class="hierarchy-levels" 
          cdkDropList 
@@ -86,6 +88,14 @@
       </div>
     </div>
 
+    <!-- Max Depth Selector for compact mode -->
+    <div class="max-depth-container">
+      <label>Max Depth:</label>
+      <select [(ngModel)]="pendingConfig.maxDepth" class="max-depth-select">
+        <option *ngFor="let depth of [1,2,3,4,5]" [value]="depth">{{ depth }}</option>
+      </select>
+    </div>
+
     <div class="panel-actions">
       <button class="action-button cancel-button" (click)="cancelConfiguration()">
         Cancel
@@ -94,11 +104,12 @@
         Apply Changes
       </button>
     </div>
+    </div>
   </div>
 </div>
 
 <!-- Full mode (original) -->
-<div *ngIf="!compactMode" class="hierarchy-selector">
+<div *ngIf="!compactMode" class="hierarchy-selector" [class.modal-content]="modalMode">
   <div class="hierarchy-header">
     <h3 class="hierarchy-title">Hierarchy Configuration</h3>
     <p class="hierarchy-description">Drag to reorder, toggle to enable/disable levels</p>
@@ -108,7 +119,7 @@
        cdkDropList 
        (cdkDropListDropped)="onDrop($event)">
     
-    <div *ngFor="let level of config.levels; trackBy: trackByLevel"
+    <div *ngFor="let level of (modalMode ? pendingConfig.levels : config.levels); trackBy: trackByLevel"
          class="hierarchy-level"
          [class.enabled]="level.enabled"
          [class.disabled]="!level.enabled"
@@ -149,14 +160,34 @@
     </div>
   </div>
 
-  <div class="hierarchy-summary" *ngIf="getEnabledLevels().length > 0">
-    <h4>Active Hierarchy:</h4>
+  <div class="hierarchy-summary" *ngIf="(modalMode ? getPendingEnabledLevels() : getEnabledLevels()).length > 0">
+    <h4>{{ modalMode ? 'Preview Hierarchy:' : 'Active Hierarchy:' }}</h4>
     <div class="active-levels">
-      <span *ngFor="let level of getEnabledLevels(); let i = index" 
+      <span *ngFor="let level of (modalMode ? getPendingEnabledLevels() : getEnabledLevels()); let i = index" 
             class="active-level">
         {{ level.name }}
-        <span *ngIf="i < getEnabledLevels().length - 1" class="separator">→</span>
+        <span *ngIf="i < (modalMode ? getPendingEnabledLevels() : getEnabledLevels()).length - 1" class="separator">→</span>
       </span>
     </div>
+  </div>
+
+  <!-- Max Depth Selector -->
+  <div class="max-depth-container">
+    <label>Max Depth:</label>
+    <select [value]="getCurrentMaxDepth()" 
+            (change)="onMaxDepthChange($event)"
+            class="max-depth-select">
+      <option *ngFor="let depth of [1,2,3,4,5]" [value]="depth">{{ depth }}</option>
+    </select>
+  </div>
+
+  <!-- Apply/Cancel buttons for modal mode -->
+  <div class="panel-actions" *ngIf="modalMode">
+    <button class="action-button cancel-button" (click)="cancelConfiguration()">
+      Cancel
+    </button>
+    <button class="action-button apply-button" (click)="applyConfiguration()">
+      Apply Changes
+    </button>
   </div>
 </div>

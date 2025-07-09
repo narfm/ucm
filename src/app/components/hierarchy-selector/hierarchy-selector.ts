@@ -1,12 +1,13 @@
 import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HierarchyLevel, HierarchyConfig } from '../../models/financial-data.interface';
 
 @Component({
   selector: 'app-hierarchy-selector',
   standalone: true,
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, DragDropModule, FormsModule],
   templateUrl: './hierarchy-selector.html',
   styleUrl: './hierarchy-selector.scss'
 })
@@ -32,6 +33,7 @@ export class HierarchySelectorComponent implements OnChanges {
   };
 
   @Input() compactMode: boolean = false;
+  @Input() modalMode: boolean = false; // New mode for modal usage
   @Output() configChange = new EventEmitter<HierarchyConfig>();
   @Output() openConfiguration = new EventEmitter<void>();
 
@@ -123,5 +125,28 @@ export class HierarchySelectorComponent implements OnChanges {
 
   closeConfiguration(): void {
     this.showFullConfiguration.set(false);
+  }
+
+  getCurrentMaxDepth(): number {
+    return (this.modalMode || this.compactMode) ? this.pendingConfig.maxDepth : this.config.maxDepth;
+  }
+
+  onMaxDepthChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const depth = parseInt(target.value, 10);
+    
+    if (this.modalMode || this.compactMode) {
+      // In modal or compact mode, update pending config
+      this.pendingConfig = {
+        ...this.pendingConfig,
+        maxDepth: depth
+      };
+    } else {
+      // In full mode, emit change immediately
+      this.configChange.emit({
+        ...this.config,
+        maxDepth: depth
+      });
+    }
   }
 }

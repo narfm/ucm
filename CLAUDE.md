@@ -47,10 +47,12 @@ src/app/
 │   ├── filter-bar/     # Filter controls
 │   ├── header/         # App header with theme toggle
 │   ├── hierarchy-selector/ # Hierarchy configuration component
+│   ├── hierarchy-config-modal/ # Root-level modal for hierarchy configuration
 │   └── progress-bar/   # Reusable loading progress bar
 ├── services/           
-│   ├── mock-data.service.ts  # Generates hierarchical data (returns Observable)
-│   └── theme.service.ts      # Theme management
+│   ├── mock-data.service.ts     # Generates hierarchical data (returns Observable)
+│   ├── theme.service.ts         # Theme management
+│   └── hierarchy-modal.service.ts # Global modal state management
 ├── models/             
 │   └── financial-data.interface.ts  # Data structures
 └── app.ts              # Root component
@@ -105,24 +107,29 @@ interface HierarchyNode {
   - Children Count
 - Supports sorting and column resizing (resize doesn't trigger sort)
 - Row/cell click events
+- Context menu with "Refresh Children" and "Change Hierarchy" options
 - Visual differentiation: filter rows have subtle background coloring
 - Iconography: type icons (filter/org/person) and legal entity status (checkmark/X)
 - Loading states during hierarchy configuration changes
+- Node-specific hierarchy configuration via modal service
 
 ### Filter Bar Component
 - Search by name or party ID
-- Max depth selector (1-5 levels)
 - Clear all functionality
 - Compact hierarchy selector in header with click-to-expand configuration
+- Shows current selected hierarchy and max depth in header
+- Uses modal service for hierarchy configuration
 
 ### Hierarchy Selector Component
-- Dual-mode display: compact in header, full modal on click
+- Dual-mode display: compact in header, full configuration in modal
 - Drag-and-drop reordering with Angular CDK
 - Active/inactive hierarchy configuration
-- Modal overlay pattern with Apply/Cancel workflow
+- Integrated max depth selector
+- Apply/Cancel workflow for configuration changes
 - Pending configuration state - changes applied only on Apply button click
 - Preview functionality shows configuration before applying
-- Loading indicator during data reload after configuration changes
+- Compact mode triggers modal service for configuration
+- Modal mode supports node-specific hierarchy configuration
 
 ### Mock Data Service
 - Returns Observable<HierarchyResponse> for async data loading
@@ -130,12 +137,28 @@ interface HierarchyNode {
 - Creates organizations and persons under filter types
 - Supports search and filtering
 - Maintains parent-child relationships
-- Simulates network delay (1.5s) for realistic loading experience
+- Simulates random network delay (500ms-5s) for realistic loading experience
 
 ### Progress Bar Component
 - Reusable loading component
 - Configurable message and show/hide state
+- Rotating message sequence during loading (baking, loading, transferring, etc.)
+- Indeterminate animation that doesn't complete until data is loaded
 - Used during async data operations
+
+### Hierarchy Config Modal Component
+- Root-level modal component to bypass CSS stacking context issues
+- Renders at app root level with z-index: 2000
+- Uses HierarchyModalService for global state management
+- Supports both filter-bar and node-specific hierarchy configuration
+- Animated overlay with blur backdrop and slide-up animation
+
+### Hierarchy Modal Service
+- Global service for managing hierarchy configuration modal state
+- Signal-based reactive state management
+- Handles opening/closing modal with configuration data
+- Supports callback pattern for configuration changes
+- Enables node-specific hierarchy configuration with context
 
 ## Styling Approach
 - Uses CSS custom properties for theming
@@ -154,16 +177,16 @@ interface HierarchyNode {
 - Flattened data structure for virtual scroll
 
 ## Recent Changes (Session Summary)
-1. **Async Data Loading**: Converted MockDataService to return Observable with simulated delay
-2. **Progress Bar**: Added reusable ProgressBarComponent for loading states
-3. **Hierarchy Configuration**: Created HierarchySelectorComponent with dual-mode display (compact header + full modal)
-4. **Apply/Cancel Workflow**: Implemented pending configuration state with Apply/Cancel buttons
-5. **Data Grid Reload**: Added self-managed data loading with loading indicators during configuration changes
-6. **Visual Improvements**: Added row color coding and iconography for different node types
-7. **Subtle Styling**: Filter rows now have subtle background color (2% opacity blue)
-8. **Bug Fixes**: Fixed column resize triggering sort by adding timing controls
-9. **TypeScript Cleanup**: Removed unnecessary optional chaining operators
-10. **Component Architecture**: Improved separation of concerns with dedicated components
+1. **Random Delay Implementation**: Updated MockDataService to use random delay (500ms-5s) for realistic loading simulation
+2. **Progress Bar Enhancement**: Added rotating message sequence with indeterminate animation that doesn't complete until data is loaded
+3. **Context Menu**: Added "Change Hierarchy" option to data grid row context menu for node-specific hierarchy configuration
+4. **Root-Level Modal Architecture**: Created HierarchyConfigModalComponent to render at app root level, bypassing CSS stacking context issues
+5. **Modal Service Pattern**: Implemented HierarchyModalService for global modal state management using Angular signals
+6. **Z-Index Issue Resolution**: Fixed modal appearing behind header by rendering at root level with z-index: 2000
+7. **Integrated Max Depth**: Moved max depth selector into hierarchy-selector component for unified configuration
+8. **Node-Specific Hierarchy**: Enabled per-node hierarchy configuration with context information and callback patterns
+9. **Improved Component Architecture**: Separated modal concerns from inline overlays for better maintainability
+10. **Service-Based Modal Management**: Replaced inline modal implementations with centralized service approach
 
 ## Next Steps/TODO
 - Add error handling for data loading
@@ -192,3 +215,8 @@ interface HierarchyNode {
 13. **Configuration Management**: Use pending state pattern for configuration changes with Apply/Cancel workflow
 14. **Data Grid Patterns**: Use ViewChild to access data grid methods for triggering reloads
 15. **Loading States**: Show progress indicators during data reload operations to provide user feedback
+16. **Modal Management**: Use HierarchyModalService for all modal operations to avoid CSS stacking context issues
+17. **Z-Index Layering**: Root-level modals should use z-index: 2000+ to appear above all other components
+18. **Progress Animation**: Use indeterminate animations that don't complete until actual data loading is finished
+19. **Service Patterns**: Prefer service-based state management over component-level state for cross-component communication
+20. **Context Menu**: Right-click context menus should provide relevant actions based on node type and capabilities

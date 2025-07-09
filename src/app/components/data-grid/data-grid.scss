@@ -204,6 +204,18 @@
   
   &.filter-icon {
     color: var(--accent-color);
+    
+    &.ump-filter-icon {
+      color: #3b82f6; // Blue for UMP filter
+    }
+    
+    &.client-filter-icon {
+      color: #f59e0b; // Orange for client owner filter
+    }
+    
+    &.default-filter-icon {
+      color: #6b7280; // Gray for default filter
+    }
   }
   
   &.org-icon {

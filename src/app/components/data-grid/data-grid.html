@@ -77,10 +77,25 @@
 
           <!-- Type icons -->
           <div class="type-icons">
-            <!-- Filter icon -->
-            <svg *ngIf="row.type === 'FILTER' || row.type.startsWith('FILTER/')" 
-                 class="type-icon filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <!-- UPM_L1_NAME filter icon (funnel) -->
+            <svg *ngIf="row.type === 'FILTER/UPM_L1_NAME'" 
+                 class="type-icon filter-icon upm-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            
+            <!-- CLIENT_OWNER_NAME filter icon (user) -->
+            <svg *ngIf="row.type === 'FILTER/CLIENT_OWNER_NAME'" 
+                 class="type-icon filter-icon client-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            
+            <!-- Default filter icon (for other filter types) -->
+            <svg *ngIf="row.type === 'FILTER' || (row.type.startsWith('FILTER/') && row.type !== 'FILTER/UPM_L1_NAME' && row.type !== 'FILTER/CLIENT_OWNER_NAME')" 
+                 class="type-icon filter-icon default-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6m0 6v6"/>
+              <path d="m21 12-6-6-6 6"/>
             </svg>
             
             <!-- Organization icon -->

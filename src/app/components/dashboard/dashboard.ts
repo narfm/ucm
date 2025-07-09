@@ -2,8 +2,7 @@ import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
-import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterCriteria, HierarchyConfig } from '../../models/financial-data.interface';
-import { MockDataService } from '../../services/mock-data.service';
+import { HierarchyNode, HierarchyRequest, HierarchyConfig } from '../../models/financial-data.interface';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,12 +12,9 @@ import { MockDataService } from '../../services/mock-data.service';
   styleUrl: './dashboard.scss'
 })
 export class DashboardComponent implements OnInit {
-  private mockDataService = inject(MockDataService);
   
   @ViewChild('dataGrid') dataGrid!: DataGridComponent;
   
-  originalData = signal<HierarchyNode[]>([]);
-  filteredData = signal<HierarchyNode[]>([]);
   searchText = signal<string>('');
   
   // Default hierarchy request
@@ -36,10 +32,9 @@ export class DashboardComponent implements OnInit {
     switch (event.type) {
       case 'search':
         this.searchText.set(event.value);
-        this.applySearch();
         break;
       case 'filter':
-        this.applyColumnFilters(event.value);
+        // Column filters not implemented yet
         break;
       case 'hierarchy':
         // Update hierarchy request and reload data
@@ -67,26 +62,6 @@ export class DashboardComponent implements OnInit {
     }
   }
   
-  private applySearch(): void {
-    const searchText = this.searchText();
-    if (!searchText) {
-      this.filteredData.set(this.originalData());
-      return;
-    }
-    
-    const filtered = this.mockDataService.searchNodes(this.originalData(), searchText);
-    this.filteredData.set(filtered);
-  }
-  
-  private applyColumnFilters(filters: FilterCriteria[]): void {
-    if (!filters || filters.length === 0) {
-      this.filteredData.set(this.originalData());
-      return;
-    }
-    
-    const filtered = this.mockDataService.filterNodes(this.originalData(), filters);
-    this.filteredData.set(filtered);
-  }
   
   onRowClick(node: HierarchyNode): void {
     console.log('Row clicked:', node);

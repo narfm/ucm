@@ -16,6 +16,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
   @Input() data = signal<HierarchyNode[]>([]);
   @Input() columns: ColumnDefinition[] = [];
   @Input() hierarchyRequest?: HierarchyRequest;
+  @Input() searchText = signal<string>('');
   @Output() rowClick = new EventEmitter<HierarchyNode>();
   @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
   
@@ -41,21 +42,27 @@ export class DataGridComponent implements OnInit, OnDestroy {
   flattenedData = computed(() => {
     const state = this.gridState();
     const currentData = this.data();
+    const searchTerm = this.searchText();
     
     // Ensure we have data before processing
     if (!currentData || currentData.length === 0) {
       return [];
     }
     
-    let sortedData = currentData;
+    let processedData = currentData;
+    
+    // Apply search filtering first
+    if (searchTerm && searchTerm.trim() !== '') {
+      processedData = this.filterBySearch(processedData, searchTerm.trim());
+    }
     
     // Apply sorting
     if (state.sortColumn && state.sortDirection) {
-      sortedData = this.sortData(sortedData, state.sortColumn, state.sortDirection);
+      processedData = this.sortData(processedData, state.sortColumn, state.sortDirection);
     }
     
     // Then flatten for virtual scrolling
-    return this.flattenData(sortedData, state.expandedNodeIds);
+    return this.flattenData(processedData, state.expandedNodeIds);
   });
   
   // Row height for virtual scrolling
@@ -192,6 +199,31 @@ export class DataGridComponent implements OnInit, OnDestroy {
     });
   }
   
+  private filterBySearch(nodes: HierarchyNode[], searchText: string): HierarchyNode[] {
+    const searchLower = searchText.toLowerCase();
+    return this.filterNodesRecursively(nodes, searchLower);
+  }
+  
+  private filterNodesRecursively(nodes: HierarchyNode[], searchText: string): HierarchyNode[] {
+    const results: HierarchyNode[] = [];
+    
+    nodes.forEach(node => {
+      const nodeMatches = 
+        node.name.toLowerCase().includes(searchText) ||
+        (node.partyId && node.partyId.toLowerCase().includes(searchText)) ||
+        (node.type && node.type.toLowerCase().includes(searchText));
+      
+      const filteredChildren = node.children ? this.filterNodesRecursively(node.children, searchText) : [];
+      
+      if (nodeMatches || filteredChildren.length > 0) {
+        const clonedNode = { ...node, children: filteredChildren };
+        results.push(clonedNode);
+      }
+    });
+    
+    return results;
+  }
+
   private sortData(nodes: HierarchyNode[], sortColumn: string, direction: 'asc' | 'desc'): HierarchyNode[] {
     const sortedNodes = [...nodes].sort((a, b) => {
       const aValue = (a as any)[sortColumn];

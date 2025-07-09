@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HierarchyLevel, HierarchyConfig } from '../../models/financial-data.interface';
+import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 
 @Component({
   selector: 'app-hierarchy-selector',
@@ -37,6 +38,8 @@ export class HierarchySelectorComponent implements OnChanges {
   @Output() configChange = new EventEmitter<HierarchyConfig>();
   @Output() openConfiguration = new EventEmitter<void>();
 
+  private hierarchyModalService = inject(HierarchyModalService);
+  
   showFullConfiguration = signal<boolean>(false);
   pendingConfig: HierarchyConfig = { ...this.config };
 
@@ -97,15 +100,13 @@ export class HierarchySelectorComponent implements OnChanges {
 
   onCompactClick(): void {
     if (this.compactMode) {
-      this.showFullConfiguration.set(!this.showFullConfiguration());
-      if (this.showFullConfiguration()) {
-        // Reset pending config to current config when opening
-        this.pendingConfig = {
-          levels: this.config.levels.map(level => ({ ...level })),
-          maxDepth: this.config.maxDepth
-        };
-        this.openConfiguration.emit();
-      }
+      this.hierarchyModalService.openModal({
+        config: this.config,
+        title: 'Hierarchy Configuration',
+        onConfigChange: (newConfig) => {
+          this.configChange.emit(newConfig);
+        }
+      });
     }
   }
 

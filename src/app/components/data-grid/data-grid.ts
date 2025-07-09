@@ -5,12 +5,12 @@ import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrollin
 import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, HierarchyConfig } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
-import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
+import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, HierarchySelectorComponent],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -55,6 +55,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
   };
   
   private mockDataService = inject(MockDataService);
+  private hierarchyModalService = inject(HierarchyModalService);
   
   // Resize properties
   resizing = false;
@@ -315,11 +316,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.nodeForHierarchyChange = node;
-    
     // Set up hierarchy config based on current hierarchy request
+    let hierarchyConfig: HierarchyConfig = this.nodeHierarchyConfig;
+    
     if (this.hierarchyRequest?.filters) {
-      this.nodeHierarchyConfig = {
+      hierarchyConfig = {
         levels: [
           {
             id: 'UPM_L1_NAME',
@@ -344,7 +345,15 @@ export class DataGridComponent implements OnInit, OnDestroy {
       };
     }
     
-    this.showNodeHierarchySelector = true;
+    this.hierarchyModalService.openModal({
+      config: hierarchyConfig,
+      title: 'Change Hierarchy',
+      nodeContext: { name: node.name },
+      onConfigChange: (config) => {
+        this.onNodeHierarchyConfigChange(config, node);
+      }
+    });
+    
     this.hideContextMenu();
   }
   
@@ -353,8 +362,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
     this.nodeForHierarchyChange = null;
   }
   
-  onNodeHierarchyConfigChange(config: HierarchyConfig) {
-    if (!this.nodeForHierarchyChange || !this.nodeForHierarchyChange.partyId) {
+  onNodeHierarchyConfigChange(config: HierarchyConfig, node?: HierarchyNode) {
+    const targetNode = node || this.nodeForHierarchyChange;
+    if (!targetNode || !targetNode.partyId) {
       this.closeNodeHierarchySelector();
       return;
     }
@@ -375,27 +385,27 @@ export class DataGridComponent implements OnInit, OnDestroy {
       filters: newFilters,
       hierarchyTypeCode: this.hierarchyRequest?.hierarchyTypeCode || 'G001',
       maxDepth: config.maxDepth,
-      rootParentId: this.nodeForHierarchyChange.partyId
+      rootParentId: targetNode.partyId
     };
     
     // Load new hierarchy data for this node
     this.loading.set(true);
     this.mockDataService.generateHierarchicalData(nodeHierarchyRequest).subscribe({
       next: (response) => {
-        if (this.nodeForHierarchyChange) {
+        if (targetNode) {
           // Update the node with new children
-          this.nodeForHierarchyChange.children = response.root.children;
-          this.nodeForHierarchyChange.childrenLoaded = true;
-          this.nodeForHierarchyChange.allChildrenLoaded = true;
-          this.nodeForHierarchyChange.childrenCount = response.root.children?.length || 0;
+          targetNode.children = response.root.children;
+          targetNode.childrenLoaded = true;
+          targetNode.allChildrenLoaded = true;
+          targetNode.childrenCount = response.root.children?.length || 0;
           
           // Update the main data signal to trigger re-render
-          this.updateNodeInData(this.nodeForHierarchyChange);
+          this.updateNodeInData(targetNode);
           
           // Expand the node to show new children
           const currentState = this.gridState();
           const newExpandedIds = new Set(currentState.expandedNodeIds);
-          newExpandedIds.add(this.nodeForHierarchyChange.partyId!);
+          newExpandedIds.add(targetNode.partyId!);
           
           this.gridState.set({
             ...currentState,

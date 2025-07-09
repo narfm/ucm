@@ -6,7 +6,9 @@
       "Bash(npm install:*)",
       "Bash(npm start)",
       "Bash(rm:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "mcp__zen__chat"
     ],
     "deny": []
   }

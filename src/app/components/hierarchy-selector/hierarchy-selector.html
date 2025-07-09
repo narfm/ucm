@@ -34,7 +34,7 @@
          cdkDropList 
          (cdkDropListDropped)="onDrop($event)">
       
-      <div *ngFor="let level of config.levels; trackBy: trackByLevel"
+      <div *ngFor="let level of pendingConfig.levels; trackBy: trackByLevel"
            class="hierarchy-level"
            [class.enabled]="level.enabled"
            [class.disabled]="!level.enabled"
@@ -75,15 +75,24 @@
       </div>
     </div>
 
-    <div class="hierarchy-summary" *ngIf="getEnabledLevels().length > 0">
-      <h4>Active Hierarchy:</h4>
+    <div class="hierarchy-summary" *ngIf="getPendingEnabledLevels().length > 0">
+      <h4>Preview Hierarchy:</h4>
       <div class="active-levels">
-        <span *ngFor="let level of getEnabledLevels(); let i = index" 
+        <span *ngFor="let level of getPendingEnabledLevels(); let i = index" 
               class="active-level">
           {{ level.name }}
-          <span *ngIf="i < getEnabledLevels().length - 1" class="separator">→</span>
+          <span *ngIf="i < getPendingEnabledLevels().length - 1" class="separator">→</span>
         </span>
       </div>
+    </div>
+
+    <div class="panel-actions">
+      <button class="action-button cancel-button" (click)="cancelConfiguration()">
+        Cancel
+      </button>
+      <button class="action-button apply-button" (click)="applyConfiguration()">
+        Apply Changes
+      </button>
     </div>
   </div>
 </div>

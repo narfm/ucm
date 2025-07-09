@@ -77,18 +77,29 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     // Generate mock data if none provided
     if (this.data().length === 0 && this.hierarchyRequest) {
-      this.loading.set(true);
-      this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
-        next: (response) => {
-          this.data.set(response.root.children || []);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error loading data:', error);
-          this.loading.set(false);
-        }
-      });
+      this.loadData();
     }
+  }
+
+  loadData(): void {
+    if (!this.hierarchyRequest) return;
+    
+    this.loading.set(true);
+    this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
+      next: (response) => {
+        this.data.set(response.root.children || []);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  reloadWithNewHierarchy(newRequest: HierarchyRequest): void {
+    this.hierarchyRequest = newRequest;
+    this.loadData();
   }
   
   toggleExpand(node: HierarchyNode, event: Event) {

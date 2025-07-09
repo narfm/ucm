@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HierarchyLevel, HierarchyConfig } from '../../models/financial-data.interface';
@@ -10,7 +10,7 @@ import { HierarchyLevel, HierarchyConfig } from '../../models/financial-data.int
   templateUrl: './hierarchy-selector.html',
   styleUrl: './hierarchy-selector.scss'
 })
-export class HierarchySelectorComponent {
+export class HierarchySelectorComponent implements OnChanges {
   @Input() config: HierarchyConfig = {
     levels: [
       {
@@ -36,9 +36,19 @@ export class HierarchySelectorComponent {
   @Output() openConfiguration = new EventEmitter<void>();
 
   showFullConfiguration = signal<boolean>(false);
+  pendingConfig: HierarchyConfig = { ...this.config };
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['config'] && changes['config'].currentValue) {
+      this.pendingConfig = {
+        levels: this.config.levels.map(level => ({ ...level })),
+        maxDepth: this.config.maxDepth
+      };
+    }
+  }
 
   onDrop(event: CdkDragDrop<HierarchyLevel[]>): void {
-    const levels = [...this.config.levels];
+    const levels = [...this.pendingConfig.levels];
     moveItemInArray(levels, event.previousIndex, event.currentIndex);
     
     // Update order property
@@ -46,31 +56,31 @@ export class HierarchySelectorComponent {
       level.order = index;
     });
 
-    const newConfig: HierarchyConfig = {
-      ...this.config,
+    this.pendingConfig = {
+      ...this.pendingConfig,
       levels
     };
-    
-    this.config = newConfig;
-    this.configChange.emit(newConfig);
   }
 
   toggleLevel(levelId: string): void {
-    const levels = this.config.levels.map(level => 
+    const levels = this.pendingConfig.levels.map(level => 
       level.id === levelId ? { ...level, enabled: !level.enabled } : level
     );
 
-    const newConfig: HierarchyConfig = {
-      ...this.config,
+    this.pendingConfig = {
+      ...this.pendingConfig,
       levels
     };
-    
-    this.config = newConfig;
-    this.configChange.emit(newConfig);
   }
 
   getEnabledLevels(): HierarchyLevel[] {
     return this.config.levels
+      .filter(level => level.enabled)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  getPendingEnabledLevels(): HierarchyLevel[] {
+    return this.pendingConfig.levels
       .filter(level => level.enabled)
       .sort((a, b) => a.order - b.order);
   }
@@ -87,9 +97,28 @@ export class HierarchySelectorComponent {
     if (this.compactMode) {
       this.showFullConfiguration.set(!this.showFullConfiguration());
       if (this.showFullConfiguration()) {
+        // Reset pending config to current config when opening
+        this.pendingConfig = {
+          levels: this.config.levels.map(level => ({ ...level })),
+          maxDepth: this.config.maxDepth
+        };
         this.openConfiguration.emit();
       }
     }
+  }
+
+  applyConfiguration(): void {
+    this.configChange.emit({ ...this.pendingConfig });
+    this.closeConfiguration();
+  }
+
+  cancelConfiguration(): void {
+    // Reset pending config to current config
+    this.pendingConfig = {
+      levels: this.config.levels.map(level => ({ ...level })),
+      maxDepth: this.config.maxDepth
+    };
+    this.closeConfiguration();
   }
 
   closeConfiguration(): void {

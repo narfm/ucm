@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
@@ -15,6 +15,8 @@ import { MockDataService } from '../../services/mock-data.service';
 export class DashboardComponent implements OnInit {
   private mockDataService = inject(MockDataService);
   
+  @ViewChild('dataGrid') dataGrid!: DataGridComponent;
+  
   originalData = signal<HierarchyNode[]>([]);
   filteredData = signal<HierarchyNode[]>([]);
   searchText = signal<string>('');
@@ -27,21 +29,7 @@ export class DashboardComponent implements OnInit {
   };
   
   ngOnInit() {
-    this.loadHierarchicalData();
-  }
-  
-  private loadHierarchicalData(): void {
-    this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
-      next: (response: HierarchyResponse) => {
-        this.originalData.set(response.root.children || []);
-        this.filteredData.set(response.root.children || []);
-      },
-      error: (error) => {
-        console.error('Error loading hierarchical data:', error);
-        this.originalData.set([]);
-        this.filteredData.set([]);
-      }
-    });
+    // Data grid will load its own data
   }
   
   onFilterChange(event: FilterEvent): void {
@@ -57,7 +45,9 @@ export class DashboardComponent implements OnInit {
         // Update hierarchy request and reload data
         if (event.value.maxDepth) {
           this.hierarchyRequest.maxDepth = event.value.maxDepth;
-          this.loadHierarchicalData();
+          if (this.dataGrid) {
+            this.dataGrid.reloadWithNewHierarchy(this.hierarchyRequest);
+          }
         }
         break;
       case 'hierarchy-config':
@@ -69,7 +59,10 @@ export class DashboardComponent implements OnInit {
         
         this.hierarchyRequest.filters = enabledLevels.map(level => level.id);
         this.hierarchyRequest.maxDepth = config.maxDepth;
-        this.loadHierarchicalData();
+        
+        if (this.dataGrid) {
+          this.dataGrid.reloadWithNewHierarchy(this.hierarchyRequest);
+        }
         break;
     }
   }

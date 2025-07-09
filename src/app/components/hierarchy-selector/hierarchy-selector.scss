@@ -231,6 +231,48 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.panel-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.action-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.813rem;
+  font-weight: 500;
+  border: 1px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  
+  &.cancel-button {
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    
+    &:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+  }
+  
+  &.apply-button {
+    color: white;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+    border-color: var(--accent-color);
+    
+    &:hover {
+      opacity: 0.9;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+  }
+}
+
 // CDK Drag Drop List styling
 .cdk-drop-list {
   display: block;

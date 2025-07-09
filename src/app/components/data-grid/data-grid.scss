@@ -230,6 +230,18 @@
     font-size: 0.813rem;
   }
   
+  &.filter-ump-type {
+    color: var(--accent-color);
+    font-weight: 600;
+    font-size: 0.813rem;
+  }
+  
+  &.filter-client-type {
+    color: #8b5cf6;
+    font-weight: 600;
+    font-size: 0.813rem;
+  }
+  
   &.org-type {
     color: var(--text-primary);
     font-weight: 500;

@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
-import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterCriteria } from '../../models/financial-data.interface';
+import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterCriteria, HierarchyConfig } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 
 @Component({
@@ -59,6 +59,17 @@ export class DashboardComponent implements OnInit {
           this.hierarchyRequest.maxDepth = event.value.maxDepth;
           this.loadHierarchicalData();
         }
+        break;
+      case 'hierarchy-config':
+        // Update hierarchy configuration and reload data
+        const config = event.value as HierarchyConfig;
+        const enabledLevels = config.levels
+          .filter(level => level.enabled)
+          .sort((a, b) => a.order - b.order);
+        
+        this.hierarchyRequest.filters = enabledLevels.map(level => level.id);
+        this.hierarchyRequest.maxDepth = config.maxDepth;
+        this.loadHierarchicalData();
         break;
     }
   }

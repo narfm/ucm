@@ -72,7 +72,12 @@
             </svg>
           </button>
           
-          <span class="node-name" [class.filter-type]="row.type === 'FILTER'" [class.org-type]="row.type === 'ORG'" [class.person-type]="row.type === 'PERSON'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
+          <span class="node-name" 
+                [class.filter-type]="row.type === 'FILTER'" 
+                [class.filter-ump-type]="row.type === 'FILTER/UPM_L1_NAME'"
+                [class.filter-client-type]="row.type === 'FILTER/CLIENT_OWNER_NAME'"
+                [class.org-type]="row.type === 'ORG'" 
+                [class.person-type]="row.type === 'PERSON'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
         </div>
         
         <!-- Other cells -->

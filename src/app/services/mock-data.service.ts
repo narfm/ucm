@@ -27,6 +27,11 @@ export class MockDataService {
     lastNames: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Miller', 'Davis', 'Garcia', 'Rodriguez', 'Wilson']
   };
 
+  private clientOwners = [
+    'Adam Tessler', 'Sarah Mitchell', 'Michael Chen', 'Emily Rodriguez', 'David Park',
+    'Jessica Thompson', 'Robert Kim', 'Lisa Wang', 'James Anderson', 'Mary Singh'
+  ];
+
   private nodeIdCounter = 0;
 
   generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {
@@ -36,19 +41,116 @@ export class MockDataService {
       }
     };
 
-    // For each filter, create a filter node
-    request.filters.forEach(filter => {
-      if (filter === 'UPM_L1_NAME') {
-        // Create nodes for each filter type
-        this.filterTypes.forEach(filterType => {
-          const filterNode = this.createFilterNode(filterType, filter, request.maxDepth);
-          response.root.children.push(filterNode);
-        });
-      }
-    });
+    // Generate hierarchy based on filter order
+    if (request.filters.length > 0) {
+      response.root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth);
+    }
 
     // Simulate loading delay and return as Observable
     return of(response).pipe(delay(1500));
+  }
+
+  private generateMultiLevelHierarchy(filters: string[], maxDepth: number): HierarchyNode[] {
+    const firstFilter = filters[0];
+    
+    if (firstFilter === 'UPM_L1_NAME') {
+      return this.filterTypes.map(filterType => 
+        this.createUpmFilterNode(filterType, filters, maxDepth, 0)
+      );
+    } else if (firstFilter === 'CLIENT_OWNER_NAME') {
+      return this.clientOwners.map(clientOwner => 
+        this.createClientOwnerFilterNode(clientOwner, filters, maxDepth, 0)
+      );
+    }
+    
+    return [];
+  }
+
+  private createUpmFilterNode(filterType: FilterType, filters: string[], maxDepth: number, currentLevel: number): HierarchyNode {
+    const filterNode: HierarchyNode = {
+      name: filterType,
+      type: `FILTER/${filters[currentLevel]}`,
+      filters: [`${filters[currentLevel]}/${filterType}`],
+      children: [],
+      expanded: false
+    };
+
+    if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
+      // Create next level filters
+      const nextFilter = filters[currentLevel + 1];
+      if (nextFilter === 'CLIENT_OWNER_NAME') {
+        const clientCount = this.randomBetween(2, 4);
+        for (let i = 0; i < clientCount; i++) {
+          const clientOwner = this.getRandomItem(this.clientOwners);
+          const clientNode = this.createClientOwnerFilterNode(
+            clientOwner, 
+            filters, 
+            maxDepth, 
+            currentLevel + 1,
+            [`${filters[currentLevel]}/${filterType}`]
+          );
+          filterNode.children!.push(clientNode);
+        }
+      }
+    } else if (currentLevel + 1 < maxDepth) {
+      // Create organizations and persons
+      const orgCount = this.randomBetween(3, 8);
+      for (let i = 0; i < orgCount; i++) {
+        const orgNode = this.createOrganizationNode(filterType, filterNode, currentLevel + 1, maxDepth);
+        filterNode.children!.push(orgNode);
+      }
+    }
+
+    filterNode.childrenCount = filterNode.children!.length;
+    filterNode.hasChildren = filterNode.children!.length > 0;
+    
+    return filterNode;
+  }
+
+  private createClientOwnerFilterNode(clientOwner: string, filters: string[], maxDepth: number, currentLevel: number, parentFilters?: string[]): HierarchyNode {
+    const allFilters = parentFilters ? 
+      [...parentFilters, `${filters[currentLevel]}/${clientOwner}`] : 
+      [`${filters[currentLevel]}/${clientOwner}`];
+
+    const filterNode: HierarchyNode = {
+      name: clientOwner,
+      type: `FILTER/${filters[currentLevel]}`,
+      filters: allFilters,
+      children: [],
+      expanded: false
+    };
+
+    if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
+      // Create next level filters
+      const nextFilter = filters[currentLevel + 1];
+      if (nextFilter === 'UPM_L1_NAME') {
+        const serviceCount = this.randomBetween(2, 4);
+        const selectedServices = this.getRandomItems(this.filterTypes, serviceCount);
+        for (const filterType of selectedServices) {
+          const serviceNode = this.createUpmFilterNode(
+            filterType, 
+            filters, 
+            maxDepth, 
+            currentLevel + 1
+          );
+          // Update filters to include parent context
+          serviceNode.filters = [...allFilters, `${filters[currentLevel + 1]}/${filterType}`];
+          filterNode.children!.push(serviceNode);
+        }
+      }
+    } else if (currentLevel + 1 < maxDepth) {
+      // Create organizations and persons
+      const orgCount = this.randomBetween(2, 5);
+      for (let i = 0; i < orgCount; i++) {
+        const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth);
+        filterNode.children!.push(orgNode);
+      }
+    }
+
+    filterNode.childrenCount = filterNode.children!.length;
+    filterNode.hasChildren = filterNode.children!.length > 0;
+    
+    return filterNode;
   }
 
   private createFilterNode(filterType: FilterType, filterName: string, maxDepth: number): HierarchyNode {
@@ -214,6 +316,11 @@ export class MockDataService {
   // Utility methods
   private getRandomItem<T>(array: T[]): T {
     return array[Math.floor(Math.random() * array.length)];
+  }
+
+  private getRandomItems<T>(array: T[], count: number): T[] {
+    const shuffled = [...array].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(count, array.length));
   }
 
   private randomBetween(min: number, max: number): number {

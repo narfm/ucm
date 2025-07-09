@@ -1,0 +1,246 @@
+.hierarchy-selector {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.hierarchy-header {
+  margin-bottom: 1rem;
+}
+
+.hierarchy-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.hierarchy-description {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.hierarchy-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 100px;
+}
+
+.hierarchy-level {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: grab;
+
+  &:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &.enabled {
+    border-left: 3px solid var(--accent-color);
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    border-left: 3px solid var(--text-tertiary);
+  }
+
+  &.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  &.cdk-drag-placeholder {
+    opacity: 0;
+  }
+}
+
+.level-content {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  gap: 0.75rem;
+}
+
+.drag-handle {
+  color: var(--text-tertiary);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--accent-color);
+    background: var(--hover-bg);
+  }
+
+  .hierarchy-level.cdk-drag-disabled & {
+    cursor: default;
+    opacity: 0.5;
+  }
+}
+
+.level-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.level-name {
+  font-size: 0.813rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.125rem;
+}
+
+.level-description {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.125rem;
+}
+
+.level-id {
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  background: var(--bg-tertiary);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.level-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.level-order {
+  width: 24px;
+  height: 24px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  display: inline-block;
+  cursor: pointer;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+
+  &:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    top: 2px;
+    background: var(--text-primary);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  input:checked + & {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+
+  input:checked + &:before {
+    transform: translateX(20px);
+    background: white;
+  }
+}
+
+.hierarchy-summary {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+
+  h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.active-levels {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.active-level {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent-color);
+  background: rgba(var(--accent-color-rgb, 102, 126, 234), 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(var(--accent-color-rgb, 102, 126, 234), 0.2);
+}
+
+.separator {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.drag-preview {
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.813rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+// CDK Drag Drop List styling
+.cdk-drop-list {
+  display: block;
+}
+
+.cdk-drag {
+  display: block;
+}
+
+.cdk-drop-list.cdk-drop-list-dragging .hierarchy-level:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+

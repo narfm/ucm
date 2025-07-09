@@ -2,17 +2,18 @@ import { Component, Output, EventEmitter, signal, OnDestroy } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { FilterType, FilterCriteria } from '../../models/financial-data.interface';
+import { FilterType, FilterCriteria, HierarchyConfig } from '../../models/financial-data.interface';
+import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
 
 export interface FilterEvent {
-  type: 'search' | 'filter' | 'hierarchy';
+  type: 'search' | 'filter' | 'hierarchy' | 'hierarchy-config';
   value: any;
 }
 
 @Component({
   selector: 'app-filter-bar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HierarchySelectorComponent],
   templateUrl: './filter-bar.html',
   styleUrl: './filter-bar.scss'
 })
@@ -41,6 +42,27 @@ export class FilterBarComponent implements OnDestroy {
   searchText = '';
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
+  
+  // Hierarchy configuration
+  hierarchyConfig = signal<HierarchyConfig>({
+    levels: [
+      {
+        id: 'UPM_L1_NAME',
+        name: 'Service Area',
+        description: 'Primary business service area',
+        enabled: true,
+        order: 0
+      },
+      {
+        id: 'CLIENT_OWNER_NAME',
+        name: 'Client Owner',
+        description: 'Client relationship owner',
+        enabled: false,
+        order: 1
+      }
+    ],
+    maxDepth: 3
+  });
   
   constructor() {
     this.searchSubject.pipe(
@@ -105,6 +127,14 @@ export class FilterBarComponent implements OnDestroy {
     this.selectedFilterTypes = [];
     this.clearSearch();
     this.applyFilters();
+  }
+
+  onHierarchyConfigChange(config: HierarchyConfig): void {
+    this.hierarchyConfig.set(config);
+    this.filterChange.emit({
+      type: 'hierarchy-config',
+      value: config
+    });
   }
   
   ngOnDestroy(): void {

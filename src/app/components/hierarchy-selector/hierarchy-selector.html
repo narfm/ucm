@@ -1,0 +1,62 @@
+<div class="hierarchy-selector">
+  <div class="hierarchy-header">
+    <h3 class="hierarchy-title">Hierarchy Configuration</h3>
+    <p class="hierarchy-description">Drag to reorder, toggle to enable/disable levels</p>
+  </div>
+
+  <div class="hierarchy-levels" 
+       cdkDropList 
+       (cdkDropListDropped)="onDrop($event)">
+    
+    <div *ngFor="let level of config.levels; trackBy: trackByLevel"
+         class="hierarchy-level"
+         [class.enabled]="level.enabled"
+         [class.disabled]="!level.enabled"
+         cdkDrag>
+      
+      <div class="level-content">
+        <div class="drag-handle" cdkDragHandle>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="9" cy="12" r="1"/>
+            <circle cx="9" cy="5" r="1"/>
+            <circle cx="9" cy="19" r="1"/>
+            <circle cx="15" cy="12" r="1"/>
+            <circle cx="15" cy="5" r="1"/>
+            <circle cx="15" cy="19" r="1"/>
+          </svg>
+        </div>
+
+        <div class="level-info">
+          <div class="level-name">{{ level.name }}</div>
+          <div class="level-description">{{ level.description }}</div>
+          <div class="level-id">{{ level.id }}</div>
+        </div>
+
+        <div class="level-controls">
+          <div class="level-order">{{ level.order + 1 }}</div>
+          <label class="toggle-switch">
+            <input type="checkbox" 
+                   [checked]="level.enabled"
+                   (change)="toggleLevel(level.id)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div *cdkDragPreview class="drag-preview">
+        {{ level.name }}
+      </div>
+    </div>
+  </div>
+
+  <div class="hierarchy-summary" *ngIf="getEnabledLevels().length > 0">
+    <h4>Active Hierarchy:</h4>
+    <div class="active-levels">
+      <span *ngFor="let level of getEnabledLevels(); let i = index" 
+            class="active-level">
+        {{ level.name }}
+        <span *ngIf="i < getEnabledLevels().length - 1" class="separator">→</span>
+      </span>
+    </div>
+  </div>
+</div>

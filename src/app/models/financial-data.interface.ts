@@ -1,6 +1,6 @@
 export interface HierarchyNode {
   name: string;
-  type: 'FILTER' | 'ORG' | 'PERSON';
+  type: 'FILTER' | 'ORG' | 'PERSON' | string; // Allow dynamic filter types like 'FILTER/UPM_L1_NAME'
   filters?: string[];
   partyId?: string;
   childrenCount?: number;
@@ -32,6 +32,19 @@ export type FilterType =
   | 'Markets'
   | 'Other'
   | 'Treasury Services';
+
+export interface HierarchyLevel {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  order: number;
+}
+
+export interface HierarchyConfig {
+  levels: HierarchyLevel[];
+  maxDepth: number;
+}
 
 export interface ColumnDefinition {
   key: keyof HierarchyNode | string;

@@ -41,24 +41,20 @@
   
   <div class="divider"></div>
   
-  <div class="filter-section filter-types">
-    <span class="filter-label">Filter Types:</span>
-    
-    <button 
-      *ngFor="let filterType of filterTypes"
-      class="filter-type-button"
-      [class.active]="isFilterTypeSelected(filterType)"
-      (click)="toggleFilterType(filterType)">
-      {{ filterType }}
-    </button>
-  </div>
-  
-  <div class="divider"></div>
-  
   <button 
     class="clear-all-button" 
     (click)="clearAllFilters()"
     [disabled]="selectedFilterTypes.length === 0 && !searchText">
     Clear All
   </button>
+
+  <div class="divider"></div>
+
+  <!-- Hierarchy Configuration Section -->
+  <div class="hierarchy-section">
+    <app-hierarchy-selector 
+      [config]="hierarchyConfig()"
+      (configChange)="onHierarchyConfigChange($event)">
+    </app-hierarchy-selector>
+  </div>
 </div>

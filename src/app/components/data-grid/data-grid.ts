@@ -23,6 +23,12 @@ export class DataGridComponent implements OnInit, OnDestroy {
   // Loading state
   loading = signal<boolean>(false);
   
+  // Context menu properties
+  contextMenuVisible = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  contextMenuNode: HierarchyNode | null = null;
+  
   private mockDataService = inject(MockDataService);
   
   // Resize properties
@@ -86,6 +92,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
     if (this.data().length === 0 && this.hierarchyRequest) {
       this.loadData();
     }
+    
+    // Add document click listener to close context menu
+    document.addEventListener('click', this.onDocumentClick);
   }
 
   loadData(): void {
@@ -109,14 +118,84 @@ export class DataGridComponent implements OnInit, OnDestroy {
     this.loadData();
   }
   
+  private loadNodeChildren(node: HierarchyNode): void {
+    if (!this.hierarchyRequest || !node.partyId) return;
+    
+    this.loading.set(true);
+    
+    const childRequest: HierarchyRequest = {
+      ...this.hierarchyRequest,
+      rootParentId: node.partyId
+    };
+    
+    this.mockDataService.generateHierarchicalData(childRequest).subscribe({
+      next: (response) => {
+        // Update the node with loaded children
+        node.children = response.root.children;
+        node.childrenLoaded = true;
+        
+        // Mark as all children loaded since we fetched all children in one request
+        node.allChildrenLoaded = true;
+        
+        // Update the main data signal to trigger re-render
+        this.updateNodeInData(node);
+        
+        // Automatically expand the node after loading
+        const currentState = this.gridState();
+        const newExpandedIds = new Set(currentState.expandedNodeIds);
+        const nodeId = node.partyId || node.name;
+        newExpandedIds.add(nodeId);
+        
+        this.gridState.set({
+          ...currentState,
+          expandedNodeIds: newExpandedIds
+        });
+        
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading node children:', error);
+        this.loading.set(false);
+      }
+    });
+  }
+  
+  private updateNodeInData(updatedNode: HierarchyNode): void {
+    const currentData = this.data();
+    const newData = this.updateNodeRecursively(currentData, updatedNode);
+    this.data.set([...newData]);
+  }
+  
+  private updateNodeRecursively(nodes: HierarchyNode[], updatedNode: HierarchyNode): HierarchyNode[] {
+    return nodes.map(node => {
+      if (node.partyId === updatedNode.partyId) {
+        return updatedNode;
+      }
+      if (node.children) {
+        return {
+          ...node,
+          children: this.updateNodeRecursively(node.children, updatedNode)
+        };
+      }
+      return node;
+    });
+  }
+  
   toggleExpand(node: HierarchyNode, event: Event) {
     event.stopPropagation();
-    
-    if (!node.children || node.children.length === 0) return;
     
     const currentState = this.gridState();
     const newExpandedIds = new Set(currentState.expandedNodeIds);
     const nodeId = node.partyId || node.name;
+    
+    // If node has children but not all children are loaded, load them first
+    if (node.hasChildren && !node.allChildrenLoaded && node.partyId) {
+      this.loadNodeChildren(node);
+      return;
+    }
+    
+    // Regular expand/collapse logic
+    if (!node.children || node.children.length === 0) return;
     
     if (newExpandedIds.has(nodeId)) {
       newExpandedIds.delete(nodeId);
@@ -168,6 +247,41 @@ export class DataGridComponent implements OnInit, OnDestroy {
   onCellClick(row: HierarchyNode, column: ColumnDefinition, event: Event) {
     event.stopPropagation();
     this.cellClick.emit({ row, column });
+  }
+  
+  onRowContextMenu(row: HierarchyNode, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.contextMenuNode = row;
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuVisible = true;
+  }
+  
+  hideContextMenu() {
+    this.contextMenuVisible = false;
+    this.contextMenuNode = null;
+  }
+  
+  refreshNodeChildren(node: HierarchyNode) {
+    if (!node.hasChildren || !node.partyId) {
+      this.hideContextMenu();
+      return;
+    }
+    
+    // Reset the node's children state
+    node.children = [];
+    node.childrenLoaded = false;
+    node.allChildrenLoaded = false;
+    
+    // Update the data to reflect the change
+    this.updateNodeInData(node);
+    
+    // Load the children
+    this.loadNodeChildren(node);
+    
+    this.hideContextMenu();
   }
   
   trackByRow(index: number, row: HierarchyNode): string {
@@ -296,9 +410,15 @@ export class DataGridComponent implements OnInit, OnDestroy {
     }, 50);
   };
   
+  private onDocumentClick = (event: Event): void => {
+    // Close context menu when clicking outside
+    this.hideContextMenu();
+  }
+
   ngOnDestroy(): void {
     // Clean up event listeners
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
+    document.removeEventListener('click', this.onDocumentClick);
   }
 }

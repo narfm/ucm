@@ -259,6 +259,20 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
+  
+  &.lazy-load {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    
+    &:hover {
+      background: rgba(245, 158, 11, 0.2);
+    }
+    
+    .lazy-load-icon {
+      animation: pulse 2s infinite;
+    }
+  }
   transition: all 0.2s ease;
   
   &:hover {
@@ -276,6 +290,15 @@
     height: 10px;
     stroke-width: 2.5;
     transition: transform 0.2s ease;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 
@@ -350,5 +373,52 @@
 
 ::-webkit-scrollbar-corner {
   background: var(--bg-secondary);
+}
+
+// Context Menu Styles
+.context-menu {
+  position: fixed;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 160px;
+  padding: 4px 0;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  &:hover:not(.disabled) {
+    background: var(--hover-bg);
+  }
+  
+  &.disabled {
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+  }
+  
+  svg {
+    stroke-width: 2;
+    color: var(--text-secondary);
+  }
+}
+
+.context-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background: transparent;
 }
 

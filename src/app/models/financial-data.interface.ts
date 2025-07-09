@@ -10,12 +10,15 @@ export interface HierarchyNode {
   expanded?: boolean;
   level?: number;
   parent?: HierarchyNode;
+  childrenLoaded?: boolean; // Track if children have been loaded for lazy loading
+  allChildrenLoaded?: boolean; // Track if ALL children have been fully loaded (no more lazy loading needed)
 }
 
 export interface HierarchyRequest {
   filters: string[];
   hierarchyTypeCode: string;
   maxDepth: number;
+  rootParentId?: string; // For lazy loading children of a specific node
 }
 
 export interface HierarchyResponse {

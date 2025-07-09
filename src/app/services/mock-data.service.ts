@@ -41,13 +41,46 @@ export class MockDataService {
       }
     };
 
-    // Generate hierarchy based on filter order
-    if (request.filters.length > 0) {
-      response.root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth);
+    // If rootParentId is provided, generate children for that specific node
+    if (request.rootParentId) {
+      response.root.children = this.generateChildrenForNode(request.rootParentId, request.maxDepth);
+    } else {
+      // Generate hierarchy based on filter order
+      if (request.filters.length > 0) {
+        response.root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth);
+      }
     }
 
     // Simulate loading delay and return as Observable
     return of(response).pipe(delay(1500));
+  }
+
+  private generateChildrenForNode(parentId: string, maxDepth: number): HierarchyNode[] {
+    // Extract filter type from parentId (simplified logic)
+    const filterType = this.extractFilterTypeFromParentId(parentId);
+    
+    // Generate children for the specific node
+    const childrenCount = this.randomBetween(2, 6);
+    const children: HierarchyNode[] = [];
+    
+    for (let i = 0; i < childrenCount; i++) {
+      const childNode = this.createOrganizationNode(filterType, {} as HierarchyNode, 1, maxDepth);
+      children.push(childNode);
+    }
+    
+    return children;
+  }
+  
+  private extractFilterTypeFromParentId(parentId: string): FilterType {
+    // Simple logic to extract filter type from parentId
+    // In a real implementation, this would query the backend
+    if (parentId.includes('Asset')) return 'Asset Servicing';
+    if (parentId.includes('Corporate')) return 'Corporate Trust';
+    if (parentId.includes('Credit')) return 'Credit Services';
+    if (parentId.includes('Depository')) return 'Depository Receipts';
+    if (parentId.includes('Markets')) return 'Markets';
+    if (parentId.includes('Treasury')) return 'Treasury Services';
+    return 'Other';
   }
 
   private generateMultiLevelHierarchy(filters: string[], maxDepth: number): HierarchyNode[] {
@@ -190,15 +223,28 @@ export class MockDataService {
       legalEntity: Math.random() > 0.3,
       children: [],
       expanded: false,
-      parent: parent
+      parent: parent,
+      childrenLoaded: false // Initially children are not loaded
     };
 
-    // Generate children if not at max depth and has children
-    if (hasChildren && childrenCount > 0) {
+    // 30% chance to create nodes with lazy loading (hasChildren=true but empty children)
+    const shouldLazyLoad = Math.random() < 0.3 && hasChildren && childrenCount > 0;
+    
+    if (shouldLazyLoad) {
+      // Leave children array empty for lazy loading
+      orgNode.childrenLoaded = false;
+      orgNode.allChildrenLoaded = false;
+    } else if (hasChildren && childrenCount > 0) {
+      // Generate children immediately
       for (let i = 0; i < childrenCount; i++) {
         const childNode = this.createOrganizationNode(filterType, orgNode, currentDepth + 1, maxDepth);
         orgNode.children!.push(childNode);
       }
+      orgNode.childrenLoaded = true;
+      orgNode.allChildrenLoaded = true; // All children loaded immediately
+    } else {
+      orgNode.childrenLoaded = true; // No children to load
+      orgNode.allChildrenLoaded = true; // No children means all loaded
     }
 
     return orgNode;

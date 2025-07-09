@@ -38,8 +38,8 @@
   height: 100%;
   background: linear-gradient(90deg, var(--accent-color), #8b5cf6);
   border-radius: 3px;
-  animation: progress 1.5s ease-in-out infinite;
-  transform-origin: left;
+  width: 40%;
+  animation: indeterminate 2s ease-in-out infinite;
 }
 
 .loading-text {
@@ -47,16 +47,23 @@
   color: var(--text-secondary);
   font-weight: 500;
   letter-spacing: 0.025em;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes progress {
+@keyframes indeterminate {
   0% {
-    transform: scaleX(0);
-  }
-  50% {
-    transform: scaleX(0.6);
+    transform: translateX(-100%);
   }
   100% {
-    transform: scaleX(1);
+    transform: translateX(350%);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
   }
 }

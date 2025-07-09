@@ -51,8 +51,9 @@ export class MockDataService {
       }
     }
 
-    // Simulate loading delay and return as Observable
-    return of(response).pipe(delay(1500));
+    // Simulate loading delay with random duration between 500ms and 5 seconds
+    const randomDelay = Math.floor(Math.random() * (5000 - 500 + 1)) + 500;
+    return of(response).pipe(delay(randomDelay));
   }
 
   private generateChildrenForNode(parentId: string, maxDepth: number): HierarchyNode[] {

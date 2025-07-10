@@ -51,7 +51,7 @@
          [class.clickable]="true"
          [class.filter-row]="row.type === 'FILTER' || row.type.startsWith('FILTER/')"
          [class.org-row]="row.type === 'ORG'"
-         [class.person-row]="row.type === 'PERSON'"
+         [class.person-row]="row.type === 'PER'"
          [class.row-loading]="isRowLoading(row.partyId || row.name)"
          (click)="onRowClick(row)"
          (contextmenu)="onRowContextMenu(row, $event)">
@@ -131,7 +131,7 @@
             </svg>
             
             <!-- Person icon -->
-            <svg *ngIf="row.type === 'PERSON'" 
+            <svg *ngIf="row.type === 'PER'" 
                  class="type-icon person-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  appTooltip="Person">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -161,7 +161,7 @@
                 [class.filter-ump-type]="row.type === 'FILTER/UPM_L1_NAME'"
                 [class.filter-client-type]="row.type === 'FILTER/CLIENT_OWNER_NAME'"
                 [class.org-type]="row.type === 'ORG'" 
-                [class.person-type]="row.type === 'PERSON'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
+                [class.person-type]="row.type === 'PER'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
         </div>
         
         <!-- Other cells -->

@@ -359,13 +359,13 @@ export class MockDataService {
     this.nodeIdCounter++;
     const hasChildren = currentDepth < maxDepth;
     const childrenCount = hasChildren ? this.randomBetween(0, 5) : 0;
-    const nodeType: 'PERSON' | 'ORG' = Math.random() > 0.8 ? 'PERSON' : 'ORG';
-    const name = nodeType === 'PERSON' ? this.generatePersonName() : this.generateOrganizationName(filterType);
+    const nodeType: 'PER' | 'ORG' = Math.random() > 0.8 ? 'PER' : 'ORG';
+    const name = nodeType === 'PER' ? this.generatePersonName() : this.generateOrganizationName(filterType);
 
     const orgNode: HierarchyNode = {
       name: name,
       type: nodeType,
-      partyId: `${filterType.replace(/\s+/g, '')}${nodeType === 'PERSON' ? 'PER' : 'ACCT'}${this.nodeIdCounter}`,
+      partyId: `${filterType.replace(/\s+/g, '')}${nodeType === 'PER' ? 'PER' : 'ACCT'}${this.nodeIdCounter}`,
       childrenCount: childrenCount,
       hasChildren: childrenCount > 0,
       legalEntity: Math.random() > 0.3,

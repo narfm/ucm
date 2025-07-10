@@ -1,6 +1,6 @@
 export interface HierarchyNode {
   name: string;
-  type: 'FILTER' | 'ORG' | 'PERSON' | string; // Allow dynamic filter types like 'FILTER/UPM_L1_NAME'
+  type: 'FILTER' | 'ORG' | 'PER' | string; // Allow dynamic filter types like 'FILTER/UPM_L1_NAME'
   filters?: string[];
   partyId?: string;
   childrenCount?: number;

@@ -73,7 +73,7 @@ interface HierarchyRequest {
 
 interface HierarchyNode {
   name: string;
-  type: 'FILTER' | 'ORG' | 'PERSON';
+  type: 'FILTER' | 'ORG' | 'PER';
   filters?: string[];       // e.g., ['UPM_L1_NAME/Asset Servicing']
   partyId?: string;
   childrenCount?: number;
@@ -104,7 +104,7 @@ interface HierarchyNode {
 - Self-managed data loading via `loadData()` and `reloadWithNewHierarchy()` methods
 - Column definitions:
   - Name (with hierarchy indentation, type icons, legal entity icons)
-  - Type (FILTER/ORG/PERSON)
+  - Type (FILTER/ORG/PER)
   - Party ID
   - Legal Entity (boolean)
   - Children Count
@@ -182,7 +182,7 @@ interface HierarchyNode {
 - Special styling for different node types:
   - FILTER: Accent color, uppercase, bold
   - ORG: Primary text color
-  - PERSON: Secondary color, italic
+  - PER: Secondary color, italic
 
 ### Color Usage Guidelines
 - **NEVER use hardcoded colors** in CSS/SCSS files (e.g., #ffffff, rgba(0,0,0,0.5), rgb(255,255,255))
@@ -239,7 +239,7 @@ interface HierarchyNode {
 
 ## Development Notes
 1. Always check for undefined values when accessing optional properties
-2. Use type guards when working with union types (FILTER|ORG|PERSON)
+2. Use type guards when working with union types (FILTER|ORG|PER)
 3. Maintain parent references carefully when building hierarchies
 4. Virtual scrolling requires flattened data - use flattenHierarchy method
 5. Column resize functionality properly prevents sorting during resize operations

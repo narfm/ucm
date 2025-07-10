@@ -6,7 +6,7 @@
   height: 70px;
   background: linear-gradient(135deg, var(--header-bg) 0%, var(--bg-secondary) 100%);
   color: var(--header-text);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px var(--shadow-light);
   position: relative;
   z-index: 1000;
   border-bottom: 1px solid var(--border-color);
@@ -18,7 +18,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(var(--accent-color-rgb), 0.1) 0%, rgba(var(--gradient-middle-rgb), 0.1) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -42,7 +42,7 @@
   position: relative;
   
   .logo-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-middle) 50%, var(--gradient-end) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -57,7 +57,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-middle) 50%, var(--gradient-end) 100%);
       border-radius: 8px;
       opacity: 0.1;
       transform: scale(1.2);
@@ -119,10 +119,10 @@
   
   &:hover {
     background: var(--accent-color);
-    color: white;
+    color: var(--bg-primary);
     border-color: var(--accent-color);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px var(--shadow-accent-strong);
     
     &::before {
       left: 100%;
@@ -149,9 +149,9 @@
 }
 
 .user-avatar {
-  background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
   border: 3px solid var(--bg-primary);
-  color: white;
+  color: var(--bg-primary);
   cursor: pointer;
   padding: 0.75rem;
   border-radius: 50%;
@@ -174,7 +174,7 @@
   
   &:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 12px 30px rgba(var(--accent-color-rgb), 0.4);
     border-color: var(--accent-color);
     
     &::before {
@@ -205,7 +205,7 @@
   background: var(--dropdown-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px var(--shadow-dark);
   backdrop-filter: blur(10px);
   opacity: 0;
   transform: translateY(-20px) scale(0.95);

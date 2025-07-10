@@ -31,9 +31,35 @@ html, body {
   --grid-row-hover: #f1f5f9;
   --grid-row-selected: #e6f3ff;
   --accent-color: #667eea;
+  --accent-color-rgb: 102, 126, 234;
   --success-color: #10b981;
+  --success-color-rgb: 16, 185, 129;
   --danger-color: #ef4444;
+  --danger-color-rgb: 239, 68, 68;
+  --danger-color-hover: #dc2626;
   --warning-color: #f59e0b;
+  --warning-color-rgb: 245, 158, 11;
+  
+  // Gradient colors
+  --gradient-start: #667eea;
+  --gradient-middle: #764ba2;
+  --gradient-middle-rgb: 118, 75, 162;
+  --gradient-end: #f093fb;
+  
+  // Additional colors
+  --info-color: #3b82f6;
+  --purple-color: #a855f7;
+  --gray-color: #6b7280;
+  
+  // Shadow colors
+  --shadow-light: rgba(0, 0, 0, 0.06);
+  --shadow-medium: rgba(0, 0, 0, 0.1);
+  --shadow-dark: rgba(0, 0, 0, 0.15);
+  --shadow-overlay: rgba(0, 0, 0, 0.5);
+  --shadow-accent: rgba(102, 126, 234, 0.2);
+  --shadow-accent-strong: rgba(102, 126, 234, 0.3);
+  --shadow-danger: rgba(239, 68, 68, 0.3);
+  --shadow-warning: rgba(245, 158, 11, 0.2);
 }
 
 // Dark theme
@@ -54,9 +80,35 @@ html, body {
   --grid-row-hover: #334155;
   --grid-row-selected: #3730a3;
   --accent-color: #8b5cf6;
+  --accent-color-rgb: 139, 92, 246;
   --success-color: #10b981;
+  --success-color-rgb: 16, 185, 129;
   --danger-color: #ef4444;
+  --danger-color-rgb: 239, 68, 68;
+  --danger-color-hover: #dc2626;
   --warning-color: #f59e0b;
+  --warning-color-rgb: 245, 158, 11;
+  
+  // Gradient colors
+  --gradient-start: #8b5cf6;
+  --gradient-middle: #9333ea;
+  --gradient-middle-rgb: 147, 51, 234;
+  --gradient-end: #ec4899;
+  
+  // Additional colors
+  --info-color: #60a5fa;
+  --purple-color: #c084fc;
+  --gray-color: #9ca3af;
+  
+  // Shadow colors
+  --shadow-light: rgba(0, 0, 0, 0.2);
+  --shadow-medium: rgba(0, 0, 0, 0.3);
+  --shadow-dark: rgba(0, 0, 0, 0.4);
+  --shadow-overlay: rgba(0, 0, 0, 0.7);
+  --shadow-accent: rgba(139, 92, 246, 0.2);
+  --shadow-accent-strong: rgba(139, 92, 246, 0.3);
+  --shadow-danger: rgba(239, 68, 68, 0.3);
+  --shadow-warning: rgba(245, 158, 11, 0.2);
 }
 
 body {

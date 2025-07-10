@@ -8,7 +8,10 @@
       "Bash(rm:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "mcp__zen__chat"
+      "mcp__zen__chat",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(-exec grep -n -E \"(#[0-9a-fA-F]{3,8}|rgb\\(|rgba\\(|hsl\\(|hsla\\(|\\b(red|blue|green|yellow|orange|purple|pink|brown|gray|grey|black|white|cyan|magenta|lime|navy|olive|teal|silver|maroon|aqua|fuchsia)\\b)\" {})"
     ],
     "deny": []
   }

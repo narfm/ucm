@@ -5,7 +5,7 @@
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px var(--shadow-light);
   border: 1px solid var(--border-color);
   
   &.resizing {
@@ -149,10 +149,10 @@
 
   // Row color coding by type
   &.filter-row {
-    background: rgba(102, 126, 234, 0.02);
+    background: rgba(var(--accent-color-rgb), 0.02);
     
     &:hover {
-      background: rgba(102, 126, 234, 0.06);
+      background: rgba(var(--accent-color-rgb), 0.06);
     }
   }
   
@@ -254,24 +254,24 @@
     color: var(--accent-color);
     
     &.ump-filter-icon {
-      color: #3b82f6; // Blue for UMP filter
+      color: var(--info-color); // Blue for UMP filter
     }
     
     &.client-filter-icon {
-      color: #f59e0b; // Orange for client owner filter
+      color: var(--warning-color); // Orange for client owner filter
     }
     
     &.default-filter-icon {
-      color: #6b7280; // Gray for default filter
+      color: var(--gray-color); // Gray for default filter
     }
   }
   
   &.org-icon {
-    color: #22c55e;
+    color: var(--success-color);
   }
   
   &.person-icon {
-    color: #a855f7;
+    color: var(--purple-color);
   }
 }
 
@@ -285,11 +285,11 @@
   stroke-width: 2;
   
   &.legal-yes {
-    color: #10b981;
+    color: var(--success-color);
   }
   
   &.legal-no {
-    color: #ef4444;
+    color: var(--danger-color);
   }
 }
 
@@ -309,12 +309,12 @@
   border-radius: 4px;
   
   &.lazy-load {
-    border-color: #f59e0b;
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+    background: rgba(var(--warning-color-rgb), 0.1);
     
     &:hover {
-      background: rgba(245, 158, 11, 0.2);
+      background: rgba(var(--warning-color-rgb), 0.2);
     }
     
     .lazy-load-icon {
@@ -369,7 +369,7 @@
   }
   
   &.filter-client-type {
-    color: #8b5cf6;
+    color: var(--accent-color);
     font-weight: 600;
     font-size: 0.813rem;
   }
@@ -386,12 +386,12 @@
 }
 
 .boolean-true {
-  color: #10b981;
+  color: var(--success-color);
   font-size: 0.75rem;
 }
 
 .boolean-false {
-  color: #6b7280;
+  color: var(--gray-color);
   font-size: 0.75rem;
 }
 
@@ -429,7 +429,7 @@
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-dark);
   z-index: 1000;
   min-width: 160px;
   padding: 4px 0;
@@ -477,7 +477,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--shadow-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -494,8 +494,8 @@
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px var(--shadow-medium),
+              0 10px 10px -5px var(--shadow-light);
 }
 
 .node-hierarchy-header {

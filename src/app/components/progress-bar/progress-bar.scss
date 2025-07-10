@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(var(--bg-primary-rgb, 15, 23, 42), 0.9);
+  background: rgba(var(--bg-primary-rgb), 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,7 +21,7 @@
   padding: 2rem;
   background: var(--bg-secondary);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-dark);
   border: 1px solid var(--border-color);
 }
 
@@ -36,7 +36,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-color), #8b5cf6);
+  background: linear-gradient(90deg, var(--accent-color), var(--gradient-middle));
   border-radius: 3px;
   width: 40%;
   animation: indeterminate 2s ease-in-out infinite;

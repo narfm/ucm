@@ -42,19 +42,22 @@ npm test           # Run unit tests with Karma/Jasmine
 ```
 src/app/
 ├── components/          
-│   ├── dashboard/      # Main dashboard component
-│   ├── data-grid/      # Hierarchical data grid with virtual scrolling
-│   ├── filter-bar/     # Filter controls
-│   ├── header/         # App header with theme toggle
+│   ├── dashboard/      # Main dashboard component (with tests)
+│   ├── data-grid/      # Hierarchical data grid with virtual scrolling (with tests)
+│   ├── filter-bar/     # Filter controls (with tests)
+│   ├── header/         # App header with theme toggle (with tests)
+│   ├── search-bar/     # Search functionality component (with tests)
 │   ├── hierarchy-selector/ # Hierarchy configuration component
 │   ├── hierarchy-config-modal/ # Root-level modal for hierarchy configuration
-│   └── progress-bar/   # Reusable loading progress bar
+│   ├── progress-bar/   # Reusable loading progress bar
+│   └── tooltip/        # Tooltip directive and component
 ├── services/           
 │   ├── mock-data.service.ts     # Generates hierarchical data (returns Observable)
 │   ├── theme.service.ts         # Theme management
 │   └── hierarchy-modal.service.ts # Global modal state management
 ├── models/             
-│   └── financial-data.interface.ts  # Data structures
+│   ├── financial-data.interface.ts  # Data structures
+│   └── index.ts                     # Barrel export
 └── app.ts              # Root component
 ```
 
@@ -160,6 +163,17 @@ interface HierarchyNode {
 - Supports callback pattern for configuration changes
 - Enables node-specific hierarchy configuration with context
 
+### Search Bar Component
+- Dedicated search functionality component
+- Integrates with filter bar for unified search experience
+- Supports searching by name or party ID
+- Debounced input for performance optimization
+
+### Tooltip Component
+- Reusable tooltip directive and component
+- Provides contextual information on hover
+- Used throughout the application for enhanced UX
+
 ## Styling Approach
 - Uses CSS custom properties for theming
 - Dark/light theme support via ThemeService
@@ -193,8 +207,15 @@ interface HierarchyNode {
 - Implement lazy loading for deep hierarchies
 - Add loading states during data fetching
 - Consider implementing data persistence
-- Add unit tests for new functionality
+- Add unit tests for components without tests:
+  - hierarchy-selector
+  - hierarchy-config-modal
+  - progress-bar
+  - tooltip
+  - All services (mock-data, theme, hierarchy-modal)
 - Optimize performance for very large datasets (100K+ nodes)
+- Configure ESLint/Angular ESLint for code quality
+- Add npm scripts for Prettier formatting
 
 ## Known Issues
 - None currently identified in latest implementation

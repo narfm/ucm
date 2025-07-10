@@ -6,7 +6,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px var(--shadow-light);
   position: relative;
   overflow: hidden;
 }
@@ -58,7 +58,7 @@
   &:focus {
     border-color: var(--accent-color);
     background: var(--hover-bg);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px var(--shadow-medium);
     
     ~ .search-icon {
       color: var(--accent-color);
@@ -129,7 +129,7 @@
   
   &:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 0 0 3px var(--shadow-accent);
   }
 }
 
@@ -151,10 +151,10 @@
   }
   
   &.active {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
+    color: var(--bg-primary);
     border-color: var(--accent-color);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px var(--shadow-accent-strong);
   }
 }
 
@@ -170,10 +170,10 @@
   transition: all 0.2s ease;
   
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border-color: #ef4444;
-    color: white;
-    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-color-hover) 100%);
+    border-color: var(--danger-color);
+    color: var(--bg-primary);
+    box-shadow: 0 8px 20px var(--shadow-danger);
   }
   
   &:disabled {
@@ -212,10 +212,10 @@
   }
   
   &:hover {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
     border-color: var(--accent-color);
-    color: white;
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+    color: var(--bg-primary);
+    box-shadow: 0 12px 30px var(--shadow-accent-strong);
     
     &::before {
       left: 100%;
@@ -271,7 +271,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, var(--hover-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(135deg, var(--hover-bg) 0%, rgba(var(--accent-color-rgb), 0.05) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -279,7 +279,7 @@
   &:hover {
     background: var(--hover-bg);
     border-color: var(--accent-color);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px var(--shadow-medium);
     
     &::before {
       opacity: 1;
@@ -287,17 +287,17 @@
   }
   
   &.active {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
+    color: var(--bg-primary);
     border-color: var(--accent-color);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(var(--accent-color-rgb), 0.4);
     
     &::before {
       opacity: 0;
     }
     
     &:hover {
-      background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
       opacity: 0.9;
     }
   }
@@ -337,7 +337,7 @@
   background: var(--dropdown-bg);
   border: 1px solid var(--border-color);
   border-radius: 18px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 25px 50px var(--shadow-dark);
   backdrop-filter: blur(15px);
   opacity: 0;
   transform: translateY(-15px) scale(0.95);
@@ -389,13 +389,13 @@
     top: 0;
     bottom: 0;
     width: 4px;
-    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
     transform: scaleY(0);
     transition: transform 0.2s ease;
   }
   
   &:hover {
-    background: linear-gradient(90deg, var(--hover-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(90deg, var(--hover-bg) 0%, rgba(var(--accent-color-rgb), 0.05) 100%);
     color: var(--accent-color);
     transform: translateX(12px);
     
@@ -443,15 +443,15 @@
 
 // Enhanced hover effects for the entire container
 .filter-bar-container:hover {
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 35px var(--shadow-medium);
 }
 
 // Active state animations
 .dropdown-trigger.active {
-  background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
+  color: var(--bg-primary);
   
   svg {
-    color: white;
+    color: var(--bg-primary);
   }
 }

@@ -9,7 +9,7 @@
   align-items: center;
   background: var(--bg-primary);
   border-radius: 16px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 25px var(--shadow-light);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   
@@ -20,14 +20,14 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(var(--accent-color-rgb), 0.1) 0%, rgba(var(--gradient-middle-rgb), 0.1) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 12px 35px var(--shadow-medium);
     
     &::before {
       opacity: 1;
@@ -36,7 +36,7 @@
   
   &:focus-within {
     transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 15px 40px var(--shadow-accent);
     
     &::before {
       opacity: 1;
@@ -113,7 +113,7 @@
     background: var(--bg-primary);
     border-color: var(--danger-color);
     transform: scale(1.05) translateX(0);
-    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.2);
+    box-shadow: 0 4px 12px rgba(var(--danger-color-rgb), 0.2);
   }
   
   &:active {
@@ -146,7 +146,7 @@
   background: var(--dropdown-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px var(--shadow-dark);
   backdrop-filter: blur(10px);
   max-height: 300px;
   overflow-y: auto;
@@ -175,7 +175,7 @@
   }
   
   &:hover {
-    background: linear-gradient(90deg, var(--hover-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(90deg, var(--hover-bg) 0%, rgba(var(--accent-color-rgb), 0.05) 100%);
     color: var(--accent-color);
     transform: translateX(8px);
   }
@@ -203,7 +203,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--gradient-middle) 100%);
   border-radius: 18px;
   opacity: 0;
   z-index: -1;

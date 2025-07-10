@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -13,7 +13,7 @@ import { MockDataService } from '../../services/mock-data.service';
   templateUrl: './hierarchy-selector.html',
   styleUrl: './hierarchy-selector.scss'
 })
-export class HierarchySelectorComponent implements OnChanges, OnInit {
+export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewInit {
   @Input() config: HierarchyConfig = {
     levels: [],
     maxDepth: 3
@@ -24,11 +24,16 @@ export class HierarchySelectorComponent implements OnChanges, OnInit {
   @Output() configChange = new EventEmitter<HierarchyConfig>();
   @Output() openConfiguration = new EventEmitter<void>();
 
+  @ViewChild('dragHandle') dragHandle?: ElementRef<HTMLElement>;
+
   private hierarchyModalService = inject(HierarchyModalService);
   private mockDataService = inject(MockDataService);
   
   showFullConfiguration = signal<boolean>(false);
   pendingConfig: HierarchyConfig = { ...this.config };
+  
+  private isDragging = false;
+  private dragOffset = { x: 0, y: 0 };
 
   ngOnInit(): void {
     // If no config is provided, get default levels from mock service
@@ -151,5 +156,68 @@ export class HierarchySelectorComponent implements OnChanges, OnInit {
         maxDepth: depth
       });
     }
+  }
+
+  selectMaxDepth(depth: number): void {
+    if (this.modalMode || this.compactMode) {
+      // In modal or compact mode, update pending config
+      this.pendingConfig = {
+        ...this.pendingConfig,
+        maxDepth: depth
+      };
+    } else {
+      // In full mode, emit change immediately
+      this.configChange.emit({
+        ...this.config,
+        maxDepth: depth
+      });
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.compactMode) {
+      this.setupDragFunctionality();
+    }
+  }
+
+  private setupDragFunctionality(): void {
+    const element = this.dragHandle?.nativeElement;
+    if (!element) return;
+
+    element.addEventListener('mousedown', this.onMouseDown.bind(this));
+  }
+
+  private onMouseDown(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.isDragging = true;
+    const rect = (event.target as HTMLElement).closest('.hierarchy-compact')?.getBoundingClientRect();
+    if (rect) {
+      this.dragOffset.x = event.clientX - rect.left;
+      this.dragOffset.y = event.clientY - rect.top;
+    }
+
+    document.addEventListener('mousemove', this.onMouseMove.bind(this));
+    document.addEventListener('mouseup', this.onMouseUp.bind(this));
+  }
+
+  private onMouseMove(event: MouseEvent): void {
+    if (!this.isDragging) return;
+
+    const panel = this.dragHandle?.nativeElement.closest('.hierarchy-compact') as HTMLElement;
+    if (!panel) return;
+
+    panel.style.position = 'fixed';
+    panel.style.left = (event.clientX - this.dragOffset.x) + 'px';
+    panel.style.top = (event.clientY - this.dragOffset.y) + 'px';
+    panel.style.zIndex = '9999';
+    panel.style.pointerEvents = 'auto';
+  }
+
+  private onMouseUp(): void {
+    this.isDragging = false;
+    document.removeEventListener('mousemove', this.onMouseMove.bind(this));
+    document.removeEventListener('mouseup', this.onMouseUp.bind(this));
   }
 }

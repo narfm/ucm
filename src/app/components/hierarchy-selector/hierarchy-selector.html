@@ -1,20 +1,32 @@
 <!-- Compact mode for header -->
-<div *ngIf="compactMode" class="hierarchy-compact" (click)="onCompactClick()">
-  <div class="hierarchy-label">Hierarchy:</div>
-  <div class="active-hierarchy" *ngIf="getEnabledLevels().length > 0; else noHierarchy">
-    <span *ngFor="let level of getEnabledLevels(); let i = index" 
-          class="active-level-compact">
-      {{ level.name }}
-      <span *ngIf="i < getEnabledLevels().length - 1" class="separator-compact">→</span>
-    </span>
-    <span class="max-depth-compact">(Max: {{ config.maxDepth }})</span>
+<div *ngIf="compactMode" class="hierarchy-compact draggable-panel">
+  <div class="drag-handle-panel" #dragHandle>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="9" cy="12" r="1"/>
+      <circle cx="9" cy="5" r="1"/>
+      <circle cx="9" cy="19" r="1"/>
+      <circle cx="15" cy="12" r="1"/>
+      <circle cx="15" cy="5" r="1"/>
+      <circle cx="15" cy="19" r="1"/>
+    </svg>
   </div>
-  <ng-template #noHierarchy>
-    <span class="no-hierarchy">Click to configure</span>
-  </ng-template>
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="chevron-icon">
-    <path d="M6 9l6 6 6-6"/>
-  </svg>
+  <div class="hierarchy-content" (click)="onCompactClick()">
+    <div class="hierarchy-label">Hierarchy:</div>
+    <div class="active-hierarchy" *ngIf="getEnabledLevels().length > 0; else noHierarchy">
+      <span *ngFor="let level of getEnabledLevels(); let i = index" 
+            class="active-level-compact">
+        {{ level.name }}
+        <span *ngIf="i < getEnabledLevels().length - 1" class="separator-compact">→</span>
+      </span>
+      <span class="max-depth-compact">(Max: {{ config.maxDepth === 0 ? 'ALL' : config.maxDepth }})</span>
+    </div>
+    <ng-template #noHierarchy>
+      <span class="no-hierarchy">Click to configure</span>
+    </ng-template>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="chevron-icon">
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+  </div>
 </div>
 
 <!-- Compact mode now uses modal service - no overlay needed -->
@@ -49,9 +61,11 @@
         </div>
 
         <div class="level-info">
-          <div class="level-name">{{ level.name }}</div>
+          <div class="level-header">
+            <span class="level-name">{{ level.name }}</span>
+            <span class="level-id">{{ level.id }}</span>
+          </div>
           <div class="level-description">{{ level.description }}</div>
-          <div class="level-id">{{ level.id }}</div>
         </div>
 
         <div class="level-controls">
@@ -85,11 +99,20 @@
   <!-- Max Depth Selector -->
   <div class="max-depth-container">
     <label>Max Depth:</label>
-    <select [value]="getCurrentMaxDepth()" 
-            (change)="onMaxDepthChange($event)"
-            class="max-depth-select">
-      <option *ngFor="let depth of [1,2,3,4,5]" [value]="depth">{{ depth }}</option>
-    </select>
+    <div class="depth-circles">
+      <div *ngFor="let depth of [1,2,3,4,5,6,7]"
+           class="depth-circle"
+           [class.selected]="getCurrentMaxDepth() === depth"
+           (click)="selectMaxDepth(depth)">
+        {{ depth }}
+      </div>
+      <div class="depth-circle depth-circle-all"
+           [class.selected]="getCurrentMaxDepth() === 0"
+           (click)="selectMaxDepth(0)"
+           title="All levels">
+        ∞
+      </div>
+    </div>
   </div>
 
   <!-- Apply/Cancel buttons for modal mode -->

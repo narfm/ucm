@@ -6,11 +6,12 @@ import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, Hierarchy
 import { MockDataService } from '../../services/mock-data.service';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -287,7 +288,12 @@ export class DataGridComponent implements OnInit, OnDestroy {
       case 'boolean':
         return value ? 'Yes' : 'No';
       default:
-        return String(value);
+        const stringValue = String(value);
+        // Hide type column value for FILTER rows
+        if (column.key === 'type' && (stringValue === 'FILTER' || stringValue.startsWith('FILTER/'))) {
+          return '';
+        }
+        return stringValue;
     }
   }
   

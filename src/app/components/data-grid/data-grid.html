@@ -17,15 +17,18 @@
         <span class="column-label">{{ column.label }}</span>
         <span *ngIf="column.sortable" class="sort-indicator">
           <svg *ngIf="gridState().sortColumn === column.key && gridState().sortDirection === 'asc'" 
-               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               appTooltip="Sorted ascending - click to sort descending">
             <path d="M18 15l-6-6-6 6"/>
           </svg>
           <svg *ngIf="gridState().sortColumn === column.key && gridState().sortDirection === 'desc'" 
-               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               appTooltip="Sorted descending - click to clear sort">
             <path d="M6 9l6 6 6-6"/>
           </svg>
           <svg *ngIf="gridState().sortColumn !== column.key" 
-               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="sort-icon-inactive">
+               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="sort-icon-inactive"
+               [appTooltip]="'Click to sort by ' + column.label">
             <path d="M7 14l5-5 5 5"/>
             <path d="M7 10l5 5 5-5"/>
           </svg>
@@ -79,13 +82,15 @@
                   (click)="toggleExpand(row, $event)"
                   [attr.aria-label]="gridState().expandedNodeIds.has(row.partyId || row.name) ? 'Collapse' : 'Expand'">
             <!-- Lazy load icon (cloud with arrow) - only show if not all children loaded -->
-            <svg *ngIf="!row.allChildrenLoaded" class="lazy-load-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg *ngIf="!row.allChildrenLoaded" class="lazy-load-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Load children from server">
               <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
               <polyline points="16 14 12 10 8 14"/>
               <line x1="12" y1="10" x2="12" y2="21"/>
             </svg>
             <!-- Regular expand/collapse icons - show when all children loaded -->
-            <svg *ngIf="row.allChildrenLoaded" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg *ngIf="row.allChildrenLoaded" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 [appTooltip]="gridState().expandedNodeIds.has(row.partyId || row.name) ? 'Collapse children' : 'Expand children'">
               <path *ngIf="!gridState().expandedNodeIds.has(row.partyId || row.name)" d="M9 18l6-6-6-6"/>
               <path *ngIf="gridState().expandedNodeIds.has(row.partyId || row.name)" d="M6 9l6 6 6-6"/>
             </svg>
@@ -95,13 +100,15 @@
           <div class="type-icons">
             <!-- UPM_L1_NAME filter icon (funnel) -->
             <svg *ngIf="row.type === 'FILTER/UPM_L1_NAME'" 
-                 class="type-icon filter-icon upm-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                 class="type-icon filter-icon upm-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="UPM Level 1 filter">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
             
             <!-- CLIENT_OWNER_NAME filter icon (user) -->
             <svg *ngIf="row.type === 'FILTER/CLIENT_OWNER_NAME'" 
-                 class="type-icon filter-icon client-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                 class="type-icon filter-icon client-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Client owner filter">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
@@ -116,7 +123,8 @@
             
             <!-- Organization icon -->
             <svg *ngIf="row.type === 'ORG'" 
-                 class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                 class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Organization">
               <path d="M3 21h18"/>
               <path d="M5 21V7l8-4v18"/>
               <path d="M19 21V11l-6-4"/>
@@ -124,7 +132,8 @@
             
             <!-- Person icon -->
             <svg *ngIf="row.type === 'PERSON'" 
-                 class="type-icon person-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                 class="type-icon person-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Person">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
@@ -133,12 +142,14 @@
           <!-- Legal entity icon -->
           <div class="legal-icons" *ngIf="row.legalEntity !== undefined">
             <svg *ngIf="row.legalEntity" 
-                 class="legal-icon legal-yes" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                 class="legal-icon legal-yes" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Legal entity">
               <path d="M9 12l2 2 4-4"/>
               <circle cx="12" cy="12" r="10"/>
             </svg>
             <svg *ngIf="!row.legalEntity" 
-                 class="legal-icon legal-no" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                 class="legal-icon legal-no" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Not a legal entity">
               <circle cx="12" cy="12" r="10"/>
               <line x1="15" y1="9" x2="9" y2="15"/>
               <line x1="9" y1="9" x2="15" y2="15"/>
@@ -169,7 +180,8 @@
     <div class="context-menu-item" 
          (click)="refreshNodeChildren(contextMenuNode!)"
          [class.disabled]="!contextMenuNode?.hasChildren">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           appTooltip="Reload this node's children from server">
         <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
         <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
       </svg>
@@ -178,7 +190,8 @@
     <div class="context-menu-item" 
          (click)="changeNodeHierarchy(contextMenuNode!)"
          [class.disabled]="!contextMenuNode?.hasChildren">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           appTooltip="Configure hierarchy for this node">
         <path d="M3 3v18h18"/>
         <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
       </svg>

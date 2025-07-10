@@ -184,6 +184,20 @@ interface HierarchyNode {
   - ORG: Primary text color
   - PERSON: Secondary color, italic
 
+### Color Usage Guidelines
+- **NEVER use hardcoded colors** in CSS/SCSS files (e.g., #ffffff, rgba(0,0,0,0.5), rgb(255,255,255))
+- **ALWAYS use CSS custom properties** (theme variables) for all colors
+- If a new color is needed:
+  1. Add it to both light and dark themes in `src/styles.scss`
+  2. Use descriptive variable names (e.g., `--info-color`, `--shadow-medium`)
+  3. For colors that need rgba() opacity, also add RGB values (e.g., `--accent-color-rgb: 102, 126, 234`)
+- Available color categories:
+  - Background colors: `--bg-primary`, `--bg-secondary`, `--bg-tertiary`
+  - Text colors: `--text-primary`, `--text-secondary`, `--text-tertiary`
+  - State colors: `--accent-color`, `--success-color`, `--danger-color`, `--warning-color`
+  - Shadow colors: `--shadow-light`, `--shadow-medium`, `--shadow-dark`, `--shadow-overlay`
+  - Gradient colors: `--gradient-start`, `--gradient-middle`, `--gradient-end`
+
 ## Performance Considerations
 - Virtual scrolling implemented for large datasets
 - Computed signals for efficient data transformation
@@ -201,6 +215,9 @@ interface HierarchyNode {
 8. **Node-Specific Hierarchy**: Enabled per-node hierarchy configuration with context information and callback patterns
 9. **Improved Component Architecture**: Separated modal concerns from inline overlays for better maintainability
 10. **Service-Based Modal Management**: Replaced inline modal implementations with centralized service approach
+11. **Color System Refactor**: Eliminated all hardcoded colors across SCSS files and replaced with CSS custom properties
+12. **Theme Variable Expansion**: Added comprehensive color variables including RGB values, shadows, and gradients for consistent theming
+13. **Color Usage Guidelines**: Established strict guidelines for color usage to maintain theme consistency
 
 ## Next Steps/TODO
 - Add error handling for data loading
@@ -241,3 +258,4 @@ interface HierarchyNode {
 18. **Progress Animation**: Use indeterminate animations that don't complete until actual data loading is finished
 19. **Service Patterns**: Prefer service-based state management over component-level state for cross-component communication
 20. **Context Menu**: Right-click context menus should provide relevant actions based on node type and capabilities
+21. **Color Usage**: NEVER hardcode colors in CSS/SCSS. Always use theme variables. If a new color is needed, declare it in the theme first

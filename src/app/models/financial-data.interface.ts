@@ -80,3 +80,8 @@ export interface GridState {
   searchCriteria?: SearchCriteria;
   expandedNodeIds: Set<string>;
 }
+
+export interface HierarchyType {
+  hierarchyTypeCode: string;
+  groupDescText: string;
+}

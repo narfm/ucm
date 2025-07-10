@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay } from 'rxjs';
-import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria, HierarchyLevel } from '../models/financial-data.interface';
+import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria, HierarchyLevel, HierarchyType } from '../models/financial-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -76,6 +76,20 @@ export class MockDataService {
   // Get hierarchy level by ID
   getHierarchyLevelById(id: string): HierarchyLevel | undefined {
     return this.hierarchyLevels.find(level => level.id === id);
+  }
+
+  // Get available hierarchy types
+  getHierarchyTypes(): Observable<HierarchyType[]> {
+    const hierarchyTypes: HierarchyType[] = [
+      { hierarchyTypeCode: "G001", groupDescText: "Standard Client Hierarchy" },
+      { hierarchyTypeCode: "G002", groupDescText: "Regional Client Hierarchy" },
+      { hierarchyTypeCode: "G003", groupDescText: "Service-based Client Hierarchy" },
+      { hierarchyTypeCode: "G004", groupDescText: "Product-based Client Hierarchy" },
+      { hierarchyTypeCode: "G005", groupDescText: "Risk-based Client Hierarchy" }
+    ];
+    
+    const randomDelay = Math.floor(Math.random() * (2000 - 500 + 1)) + 500;
+    return of(hierarchyTypes).pipe(delay(randomDelay));
   }
 
   generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {

@@ -17,6 +17,7 @@
       
       <app-hierarchy-selector
         [config]="modalConfig()?.config || { levels: [], maxDepth: 3 }"
+        [hierarchyTypes]="modalConfig()?.hierarchyTypes || []"
         [compactMode]="false"
         [modalMode]="true"
         (configChange)="onConfigChange($event)">

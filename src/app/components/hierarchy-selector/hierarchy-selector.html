@@ -38,6 +38,24 @@
     <p class="hierarchy-description">Drag to reorder, toggle to enable/disable levels</p>
   </div>
 
+  <!-- Hierarchy Type Selector -->
+  <div class="hierarchy-type-selector">
+    <label for="hierarchyType">Hierarchy Type:</label>
+    <select 
+      id="hierarchyType"
+      [value]="selectedHierarchyType"
+      (change)="onHierarchyTypeChange($event)"
+      [disabled]="hierarchyTypes.length === 0"
+      class="hierarchy-type-select">
+      <option value="" disabled *ngIf="hierarchyTypes.length === 0">Loading...</option>
+      <option 
+        *ngFor="let type of hierarchyTypes" 
+        [value]="type.hierarchyTypeCode">
+        {{ type.groupDescText }} ({{ type.hierarchyTypeCode }})
+      </option>
+    </select>
+  </div>
+
   <div class="hierarchy-levels" 
        cdkDropList 
        (cdkDropListDropped)="onDrop($event)">

@@ -1,4 +1,26 @@
 <div class="filter-bar-container">
+  <!-- Hierarchy Type Display Section - First position -->
+  <div class="hierarchy-type-section">
+    <div class="hierarchy-type-value" 
+         *ngIf="currentHierarchyType(); else loadingHierarchyType"
+         (click)="openHierarchyConfiguration()"
+         tabindex="0"
+         role="button"
+         aria-label="Click to change hierarchy configuration">
+      <span class="hierarchy-type-text">{{ currentHierarchyType()?.groupDescText }}</span>
+      <span class="hierarchy-type-code">{{ currentHierarchyType()?.hierarchyTypeCode }}</span>
+      <svg class="hierarchy-config-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+      </svg>
+    </div>
+    <ng-template #loadingHierarchyType>
+      <div class="hierarchy-type-loading">Loading...</div>
+    </ng-template>
+  </div>
+
+  <div class="divider"></div>
+
   <div class="search-section">
     <div class="search-input-wrapper">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -42,6 +64,7 @@
   <div class="hierarchy-section">
     <app-hierarchy-selector 
       [config]="hierarchyConfig()"
+      [hierarchyTypes]="hierarchyTypes"
       [compactMode]="true"
       (configChange)="onHierarchyConfigChange($event)">
     </app-hierarchy-selector>

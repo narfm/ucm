@@ -1,11 +1,13 @@
-import { Injectable, signal } from '@angular/core';
-import { HierarchyConfig } from '../models/financial-data.interface';
+import { Injectable, signal, inject } from '@angular/core';
+import { HierarchyConfig, HierarchyType } from '../models/financial-data.interface';
+import { MockDataService } from './mock-data.service';
 
 export interface HierarchyModalConfig {
   config: HierarchyConfig;
   title?: string;
   nodeContext?: { name?: string } | null;
   onConfigChange: (config: HierarchyConfig) => void;
+  hierarchyTypes?: HierarchyType[];
 }
 
 @Injectable({

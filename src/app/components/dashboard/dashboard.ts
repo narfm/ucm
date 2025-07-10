@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
-import { HierarchyNode, HierarchyRequest, HierarchyConfig } from '../../models/financial-data.interface';
+import { HierarchyNode, HierarchyRequest, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,8 +14,10 @@ import { HierarchyNode, HierarchyRequest, HierarchyConfig } from '../../models/f
 export class DashboardComponent implements OnInit {
   
   @ViewChild('dataGrid') dataGrid!: DataGridComponent;
+  @ViewChild('filterBar') filterBar!: FilterBarComponent;
   
   searchText = signal<string>('');
+  hierarchyTypes: HierarchyType[] = [];
   
   // Default hierarchy request
   hierarchyRequest: HierarchyRequest = {
@@ -46,9 +48,18 @@ export class DashboardComponent implements OnInit {
         this.hierarchyRequest.filters = enabledLevels.map(level => level.id);
         this.hierarchyRequest.maxDepth = config.maxDepth;
         
+        // Update hierarchy type code if provided
+        if (config.hierarchyTypeCode) {
+          this.hierarchyRequest.hierarchyTypeCode = config.hierarchyTypeCode;
+        }
+        
         if (this.dataGrid) {
           this.dataGrid.reloadWithNewHierarchy(this.hierarchyRequest);
         }
+        break;
+      case 'hierarchy-types-loaded':
+        // Store hierarchy types for use in data grid
+        this.hierarchyTypes = event.value as HierarchyType[];
         break;
     }
   }

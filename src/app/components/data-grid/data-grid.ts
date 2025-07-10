@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, comp
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
-import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, HierarchyConfig } from '../../models/financial-data.interface';
+import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
@@ -19,6 +19,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
   @Input() data = signal<HierarchyNode[]>([]);
   @Input() columns: ColumnDefinition[] = [];
   @Input() hierarchyRequest?: HierarchyRequest;
+  @Input() hierarchyTypes: HierarchyType[] = [];
   @Input() searchText = signal<string>('');
   @Output() rowClick = new EventEmitter<HierarchyNode>();
   @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
@@ -360,6 +361,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
       config: hierarchyConfig,
       title: 'Change Hierarchy',
       nodeContext: { name: node.name },
+      hierarchyTypes: this.hierarchyTypes,
       onConfigChange: (config) => {
         this.onNodeHierarchyConfigChange(config, node);
       }

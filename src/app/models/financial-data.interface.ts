@@ -47,6 +47,7 @@ export interface HierarchyLevel {
 export interface HierarchyConfig {
   levels: HierarchyLevel[];
   maxDepth: number;
+  hierarchyTypeCode?: string;
 }
 
 export interface ColumnDefinition {

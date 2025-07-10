@@ -2,12 +2,13 @@ import { Component, Output, EventEmitter, signal, OnDestroy, inject, OnInit } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { FilterType, FilterCriteria, HierarchyConfig } from '../../models/financial-data.interface';
+import { FilterType, FilterCriteria, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
 import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
 import { MockDataService } from '../../services/mock-data.service';
+import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 
 export interface FilterEvent {
-  type: 'search' | 'filter' | 'hierarchy-config';
+  type: 'search' | 'filter' | 'hierarchy-config' | 'hierarchy-types-loaded';
   value: any;
 }
 
@@ -22,6 +23,7 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   @Output() filterChange = new EventEmitter<FilterEvent>();
   
   private mockDataService = inject(MockDataService);
+  private hierarchyModalService = inject(HierarchyModalService);
   
   // Filter type options
   filterTypes: FilterType[] = [
@@ -46,8 +48,13 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   // Hierarchy configuration
   hierarchyConfig = signal<HierarchyConfig>({
     levels: [],
-    maxDepth: 3
+    maxDepth: 3,
+    hierarchyTypeCode: 'G001'
   });
+  
+  // Hierarchy types for display
+  hierarchyTypes: HierarchyType[] = [];
+  currentHierarchyType = signal<HierarchyType | null>(null);
   
   constructor() {
     this.searchSubject.pipe(
@@ -67,7 +74,31 @@ export class FilterBarComponent implements OnInit, OnDestroy {
     const levels = this.mockDataService.getHierarchyLevels();
     this.hierarchyConfig.set({
       levels: levels,
-      maxDepth: 3
+      maxDepth: 3,
+      hierarchyTypeCode: 'G001'
+    });
+    
+    // Load hierarchy types for display
+    this.loadHierarchyTypes();
+  }
+  
+  private loadHierarchyTypes(): void {
+    this.mockDataService.getHierarchyTypes().subscribe({
+      next: (types) => {
+        this.hierarchyTypes = types;
+        // Set the current hierarchy type based on config
+        const currentType = types.find(t => t.hierarchyTypeCode === this.hierarchyConfig().hierarchyTypeCode);
+        this.currentHierarchyType.set(currentType || null);
+        
+        // Emit hierarchy types to parent component
+        this.filterChange.emit({
+          type: 'hierarchy-types-loaded',
+          value: types
+        });
+      },
+      error: (error) => {
+        console.error('Failed to load hierarchy types:', error);
+      }
     });
   }
   
@@ -118,9 +149,27 @@ export class FilterBarComponent implements OnInit, OnDestroy {
 
   onHierarchyConfigChange(config: HierarchyConfig): void {
     this.hierarchyConfig.set(config);
+    
+    // Update the current hierarchy type display
+    if (config.hierarchyTypeCode && this.hierarchyTypes.length > 0) {
+      const currentType = this.hierarchyTypes.find(t => t.hierarchyTypeCode === config.hierarchyTypeCode);
+      this.currentHierarchyType.set(currentType || null);
+    }
+    
     this.filterChange.emit({
       type: 'hierarchy-config',
       value: config
+    });
+  }
+
+  openHierarchyConfiguration(): void {
+    this.hierarchyModalService.openModal({
+      config: this.hierarchyConfig(),
+      title: 'Change Hierarchy Configuration',
+      hierarchyTypes: this.hierarchyTypes,
+      onConfigChange: (config) => {
+        this.onHierarchyConfigChange(config);
+      }
     });
   }
   

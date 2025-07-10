@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { HierarchyLevel, HierarchyConfig } from '../../models/financial-data.interface';
+import { HierarchyLevel, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 import { MockDataService } from '../../services/mock-data.service';
 
@@ -18,6 +18,7 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
     levels: [],
     maxDepth: 3
   };
+  @Input() hierarchyTypes: HierarchyType[] = [];
 
   @Input() compactMode: boolean = false;
   @Input() modalMode: boolean = false; // New mode for modal usage
@@ -32,6 +33,8 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
   showFullConfiguration = signal<boolean>(false);
   pendingConfig: HierarchyConfig = { ...this.config };
   
+  selectedHierarchyType: string = 'G001'; // Default to G001
+  
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
 
@@ -45,8 +48,12 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
       };
       this.pendingConfig = {
         levels: defaultLevels.map(level => ({ ...level })),
-        maxDepth: this.config.maxDepth
+        maxDepth: this.config.maxDepth,
+        hierarchyTypeCode: this.config.hierarchyTypeCode || 'G001'
       };
+      
+      // Set selected hierarchy type
+      this.selectedHierarchyType = this.config.hierarchyTypeCode || 'G001';
     }
   }
 
@@ -54,8 +61,14 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
     if (changes['config'] && changes['config'].currentValue) {
       this.pendingConfig = {
         levels: this.config.levels.map(level => ({ ...level })),
-        maxDepth: this.config.maxDepth
+        maxDepth: this.config.maxDepth,
+        hierarchyTypeCode: this.config.hierarchyTypeCode
       };
+      
+      // Update selected hierarchy type if provided in config
+      if (this.config.hierarchyTypeCode) {
+        this.selectedHierarchyType = this.config.hierarchyTypeCode;
+      }
     }
   }
 
@@ -110,6 +123,7 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
       this.hierarchyModalService.openModal({
         config: this.config,
         title: 'Hierarchy Configuration',
+        hierarchyTypes: this.hierarchyTypes,
         onConfigChange: (newConfig) => {
           this.configChange.emit(newConfig);
         }
@@ -118,16 +132,29 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
   }
 
   applyConfiguration(): void {
-    this.configChange.emit({ ...this.pendingConfig });
+    this.configChange.emit({ 
+      ...this.pendingConfig,
+      hierarchyTypeCode: this.selectedHierarchyType
+    });
     this.closeConfiguration();
+  }
+
+  onHierarchyTypeChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.selectedHierarchyType = target.value;
   }
 
   cancelConfiguration(): void {
     // Reset pending config to current config
     this.pendingConfig = {
       levels: this.config.levels.map(level => ({ ...level })),
-      maxDepth: this.config.maxDepth
+      maxDepth: this.config.maxDepth,
+      hierarchyTypeCode: this.config.hierarchyTypeCode
     };
+    
+    // Reset selected hierarchy type
+    this.selectedHierarchyType = this.config.hierarchyTypeCode || 'G001';
+    
     this.closeConfiguration();
   }
 

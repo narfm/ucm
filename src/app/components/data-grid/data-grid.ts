@@ -42,6 +42,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
   childSearchHighlightedNode = signal<HierarchyNode | null>(null);
   private childSearchHighlightTimeout?: number;
   
+  // Row focus state for keyboard shortcuts
+  focusedRow = signal<HierarchyNode | null>(null);
+  
   // Context menu properties
   contextMenuVisible = false;
   contextMenuX = 0;
@@ -141,6 +144,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     // Add document click listener to close context menu
     document.addEventListener('click', this.onDocumentClick);
+    
+    // Add global keydown listener for keyboard shortcuts
+    document.addEventListener('keydown', this.onGlobalKeydown);
   }
 
   loadData(): void {
@@ -311,7 +317,30 @@ export class DataGridComponent implements OnInit, OnDestroy {
   }
   
   onRowClick(row: HierarchyNode) {
+    this.focusedRow.set(row);
     this.rowClick.emit(row);
+  }
+  
+  onRowFocus(row: HierarchyNode) {
+    this.focusedRow.set(row);
+  }
+  
+  onRowKeydown(row: HierarchyNode, event: KeyboardEvent) {
+    // Handle Ctrl+F for child search
+    if (event.ctrlKey && event.key.toLowerCase() === 'f') {
+      if (row.hasChildren && !this.childSearchActive()) {
+        event.preventDefault();
+        this.startChildSearch(row);
+      }
+    }
+  }
+  
+  isRowFocused(row: HierarchyNode): boolean {
+    const focusedRow = this.focusedRow();
+    if (!focusedRow) return false;
+    
+    return (focusedRow.partyId && focusedRow.partyId === row.partyId) ||
+           (focusedRow.name === row.name && focusedRow.type === row.type);
   }
   
   onCellClick(row: HierarchyNode, column: ColumnDefinition, event: Event) {
@@ -594,11 +623,28 @@ export class DataGridComponent implements OnInit, OnDestroy {
     this.hideContextMenu();
   }
 
+  private onGlobalKeydown = (event: KeyboardEvent): void => {
+    // Handle Ctrl+F for child search
+    if (event.ctrlKey && event.key.toLowerCase() === 'f') {
+      const focusedRow = this.focusedRow();
+      if (focusedRow && focusedRow.hasChildren && !this.childSearchActive()) {
+        event.preventDefault();
+        this.startChildSearch(focusedRow);
+      }
+    }
+  }
+
   ngOnDestroy(): void {
     // Clean up event listeners
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
     document.removeEventListener('click', this.onDocumentClick);
+    document.removeEventListener('keydown', this.onGlobalKeydown);
+    
+    // Clean up child search timeout
+    if (this.childSearchHighlightTimeout) {
+      clearTimeout(this.childSearchHighlightTimeout);
+    }
   }
 
   // Initialize hierarchy configuration from mock service

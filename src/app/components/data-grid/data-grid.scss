@@ -138,6 +138,8 @@
   height: 32px;
   border-bottom: 1px solid var(--border-color);
   transition: background-color 0.15s ease;
+  cursor: pointer;
+  caret-color: transparent;
   
   &:hover {
     background: var(--hover-bg);
@@ -165,6 +167,32 @@
     .grid-cell {
       opacity: 0.5;
     }
+  }
+  
+  // Row focus state
+  &.row-focused {
+    background: rgba(var(--accent-color-rgb), 0.1);
+    border-left: 2px solid var(--accent-color);
+    outline: none;
+    cursor: pointer;
+    
+    &:hover {
+      background: rgba(var(--accent-color-rgb), 0.15);
+    }
+    
+    &.filter-row {
+      background: rgba(var(--accent-color-rgb), 0.12);
+      
+      &:hover {
+        background: rgba(var(--accent-color-rgb), 0.18);
+      }
+    }
+  }
+  
+  // Remove text cursor from focused rows
+  &:focus {
+    outline: none;
+    cursor: pointer;
   }
 }
 
@@ -215,6 +243,7 @@
   display: flex;
   align-items: center;
   height: 100%;
+  cursor: pointer;
   
   &:last-child {
     border-right: none;
@@ -231,6 +260,12 @@
   &.boolean-true,
   &.boolean-false {
     font-weight: 500;
+  }
+  
+  // Remove text cursor from focused cells
+  &:focus {
+    outline: none;
+    cursor: pointer;
   }
 }
 

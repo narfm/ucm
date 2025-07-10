@@ -203,7 +203,8 @@ export class MockDataService {
       }
     } else if (currentLevel + 1 < maxDepth) {
       // Create organizations and persons
-      const orgCount = this.randomBetween(3, 8);
+      // For level 1, generate at least 500 nodes total (70+ per filter type)
+      const orgCount = currentLevel === 0 ? this.randomBetween(70, 85) : this.randomBetween(3, 8);
       for (let i = 0; i < orgCount; i++) {
         const orgNode = this.createOrganizationNode(filterType, filterNode, currentLevel + 1, maxDepth);
         filterNode.children!.push(orgNode);

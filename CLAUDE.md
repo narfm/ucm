@@ -43,14 +43,45 @@ npm test           # Run unit tests with Karma/Jasmine
 src/app/
 ├── components/          
 │   ├── dashboard/      # Main dashboard component (with tests)
+│   │   ├── dashboard.html
+│   │   ├── dashboard.scss
+│   │   ├── dashboard.spec.ts
+│   │   └── dashboard.ts
 │   ├── data-grid/      # Hierarchical data grid with virtual scrolling (with tests)
+│   │   ├── data-grid.html
+│   │   ├── data-grid.scss
+│   │   ├── data-grid.spec.ts
+│   │   └── data-grid.ts
 │   ├── filter-bar/     # Filter controls (with tests)
+│   │   ├── filter-bar.html
+│   │   ├── filter-bar.scss
+│   │   ├── filter-bar.spec.ts
+│   │   └── filter-bar.ts
 │   ├── header/         # App header with theme toggle (with tests)
+│   │   ├── header.html
+│   │   ├── header.scss
+│   │   ├── header.spec.ts
+│   │   └── header.ts
 │   ├── search-bar/     # Search functionality component (with tests)
-│   ├── hierarchy-selector/ # Hierarchy configuration component
-│   ├── hierarchy-config-modal/ # Root-level modal for hierarchy configuration
-│   ├── progress-bar/   # Reusable loading progress bar
-│   └── tooltip/        # Tooltip directive and component
+│   │   ├── search-bar.html
+│   │   ├── search-bar.scss
+│   │   ├── search-bar.spec.ts
+│   │   └── search-bar.ts
+│   ├── hierarchy-selector/ # Hierarchy configuration component (no tests)
+│   │   ├── hierarchy-selector.html
+│   │   ├── hierarchy-selector.scss
+│   │   └── hierarchy-selector.ts
+│   ├── hierarchy-config-modal/ # Root-level modal for hierarchy configuration (no tests)
+│   │   ├── hierarchy-config-modal.html
+│   │   ├── hierarchy-config-modal.scss
+│   │   └── hierarchy-config-modal.ts
+│   ├── progress-bar/   # Reusable loading progress bar (no tests)
+│   │   ├── progress-bar.html
+│   │   ├── progress-bar.scss
+│   │   └── progress-bar.ts
+│   └── tooltip/        # Tooltip directive and component (no tests)
+│       ├── tooltip.directive.ts
+│       └── tooltip.ts
 ├── services/           
 │   ├── mock-data.service.ts     # Generates hierarchical data (returns Observable)
 │   ├── theme.service.ts         # Theme management
@@ -58,6 +89,11 @@ src/app/
 ├── models/             
 │   ├── financial-data.interface.ts  # Data structures
 │   └── index.ts                     # Barrel export
+├── app.config.ts       # App configuration
+├── app.html            # Root component template
+├── app.routes.ts       # Route configuration
+├── app.scss            # Root component styles
+├── app.spec.ts         # Root component tests
 └── app.ts              # Root component
 ```
 

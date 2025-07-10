@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, computed, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
@@ -24,11 +24,23 @@ export class DataGridComponent implements OnInit, OnDestroy {
   @Output() rowClick = new EventEmitter<HierarchyNode>();
   @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
   
+  // ViewChild for virtual scroll viewport
+  @ViewChild(CdkVirtualScrollViewport) viewportRef!: CdkVirtualScrollViewport;
+  
   // Loading state
   loading = signal<boolean>(false);
   
   // Row-level loading state - tracks which rows are currently loading
   rowLoadingStates = signal<Map<string, boolean>>(new Map());
+  
+  // Child search state
+  childSearchActive = signal<boolean>(false);
+  childSearchParent = signal<HierarchyNode | null>(null);
+  childSearchTerm = signal<string>('');
+  childSearchResults = signal<HierarchyNode[]>([]);
+  childSearchCurrentIndex = signal<number>(-1);
+  childSearchHighlightedNode = signal<HierarchyNode | null>(null);
+  private childSearchHighlightTimeout?: number;
   
   // Context menu properties
   contextMenuVisible = false;
@@ -661,5 +673,243 @@ export class DataGridComponent implements OnInit, OnDestroy {
     // 2. But children are not loaded (childrenLoaded is false or children array is empty)
     return node.hasChildren === true && 
            (!node.childrenLoaded || !node.children || node.children.length === 0);
+  }
+
+  // Child search methods
+  startChildSearch(node: HierarchyNode): void {
+    if (!node.hasChildren) return;
+    
+    this.childSearchParent.set(node);
+    this.childSearchActive.set(true);
+    this.childSearchTerm.set('');
+    this.childSearchResults.set([]);
+    this.childSearchCurrentIndex.set(-1);
+    this.childSearchHighlightedNode.set(null);
+    
+    this.hideContextMenu();
+    
+    // Focus the search input after the view updates
+    setTimeout(() => {
+      const searchInput = document.querySelector('.child-search-bar input') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }, 100);
+  }
+
+  updateChildSearchTerm(event: any): void {
+    const term = event.target.value;
+    this.childSearchTerm.set(term);
+    
+    if (term.trim() === '') {
+      this.childSearchResults.set([]);
+      this.childSearchCurrentIndex.set(-1);
+      this.childSearchHighlightedNode.set(null);
+      return;
+    }
+    
+    this.performChildSearch(term.trim());
+  }
+
+  private performChildSearch(searchTerm: string): void {
+    const parent = this.childSearchParent();
+    if (!parent) return;
+    
+    const results = this.findChildrenMatching(parent, searchTerm);
+    this.childSearchResults.set(results);
+    
+    if (results.length > 0) {
+      this.childSearchCurrentIndex.set(0);
+      this.navigateToChildSearchResult(0);
+    } else {
+      this.childSearchCurrentIndex.set(-1);
+      this.childSearchHighlightedNode.set(null);
+    }
+  }
+
+  private findChildrenMatching(parent: HierarchyNode, searchTerm: string): HierarchyNode[] {
+    const results: HierarchyNode[] = [];
+    const searchLower = searchTerm.toLowerCase();
+    
+    const traverseChildren = (node: HierarchyNode) => {
+      if (node.children) {
+        node.children.forEach(child => {
+          // Check if child matches search term
+          const childMatches = 
+            child.name.toLowerCase().includes(searchLower) ||
+            (child.partyId && child.partyId.toLowerCase().includes(searchLower)) ||
+            (child.type && child.type.toLowerCase().includes(searchLower));
+          
+          if (childMatches) {
+            results.push(child);
+          }
+          
+          // Recursively search in child's children
+          traverseChildren(child);
+        });
+      }
+    };
+    
+    traverseChildren(parent);
+    return results;
+  }
+
+  navigateChildSearchNext(): void {
+    const results = this.childSearchResults();
+    const currentIndex = this.childSearchCurrentIndex();
+    
+    if (results.length === 0 || currentIndex >= results.length - 1) return;
+    
+    const nextIndex = currentIndex + 1;
+    this.childSearchCurrentIndex.set(nextIndex);
+    this.navigateToChildSearchResult(nextIndex);
+  }
+
+  navigateChildSearchPrevious(): void {
+    const results = this.childSearchResults();
+    const currentIndex = this.childSearchCurrentIndex();
+    
+    if (results.length === 0 || currentIndex <= 0) return;
+    
+    const prevIndex = currentIndex - 1;
+    this.childSearchCurrentIndex.set(prevIndex);
+    this.navigateToChildSearchResult(prevIndex);
+  }
+
+  private navigateToChildSearchResult(index: number): void {
+    const results = this.childSearchResults();
+    if (index < 0 || index >= results.length) return;
+    
+    const targetNode = results[index];
+    
+    // First, expand the path to the target node
+    this.expandPathToNode(targetNode);
+    
+    // Wait for the DOM to update, then scroll to the node
+    setTimeout(() => {
+      this.scrollToNode(targetNode);
+      this.highlightNode(targetNode);
+    }, 100);
+  }
+
+  private expandPathToNode(targetNode: HierarchyNode): void {
+    const pathToExpand: string[] = [];
+    
+    // Find the path from root to target node
+    const findPath = (nodes: HierarchyNode[], target: HierarchyNode, path: string[] = []): boolean => {
+      for (const node of nodes) {
+        const nodeId = node.partyId || node.name;
+        const currentPath = [...path, nodeId];
+        
+        if (node === target) {
+          pathToExpand.push(...path); // Don't include the target node itself
+          return true;
+        }
+        
+        if (node.children && findPath(node.children, target, currentPath)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    findPath(this.data(), targetNode);
+    
+    // Expand all nodes in the path
+    const currentState = this.gridState();
+    const newExpandedIds = new Set(currentState.expandedNodeIds);
+    
+    pathToExpand.forEach(nodeId => {
+      newExpandedIds.add(nodeId);
+    });
+    
+    this.gridState.set({
+      ...currentState,
+      expandedNodeIds: newExpandedIds
+    });
+  }
+
+  private scrollToNode(targetNode: HierarchyNode): void {
+    const flattened = this.flattenedData();
+    const targetIndex = flattened.findIndex(node => 
+      (node.partyId && node.partyId === targetNode.partyId) ||
+      (node.name === targetNode.name && node.type === targetNode.type)
+    );
+    
+    if (targetIndex >= 0 && this.viewportRef) {
+      this.viewportRef.scrollToIndex(targetIndex);
+    }
+  }
+
+  private highlightNode(node: HierarchyNode): void {
+    // Clear previous highlight timeout
+    if (this.childSearchHighlightTimeout) {
+      clearTimeout(this.childSearchHighlightTimeout);
+    }
+    
+    // Set the highlighted node
+    this.childSearchHighlightedNode.set(node);
+    
+    // Remove highlight after 2 seconds
+    this.childSearchHighlightTimeout = setTimeout(() => {
+      this.childSearchHighlightedNode.set(null);
+    }, 2000);
+  }
+
+  clearChildSearchTerm(): void {
+    this.childSearchTerm.set('');
+    this.childSearchResults.set([]);
+    this.childSearchCurrentIndex.set(-1);
+    this.childSearchHighlightedNode.set(null);
+  }
+
+  closeChildSearch(): void {
+    this.childSearchActive.set(false);
+    this.childSearchParent.set(null);
+    this.childSearchTerm.set('');
+    this.childSearchResults.set([]);
+    this.childSearchCurrentIndex.set(-1);
+    this.childSearchHighlightedNode.set(null);
+    
+    if (this.childSearchHighlightTimeout) {
+      clearTimeout(this.childSearchHighlightTimeout);
+    }
+  }
+
+  onChildSearchKeydown(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'Escape':
+        event.preventDefault();
+        this.closeChildSearch();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        this.navigateChildSearchNext();
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        this.navigateChildSearchNext();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        this.navigateChildSearchPrevious();
+        break;
+    }
+  }
+
+  isChildSearchResultHighlighted(node: HierarchyNode): boolean {
+    const results = this.childSearchResults();
+    return results.some(result => 
+      (result.partyId && result.partyId === node.partyId) ||
+      (result.name === node.name && result.type === node.type)
+    );
+  }
+
+  isCurrentChildSearchResult(node: HierarchyNode): boolean {
+    const highlightedNode = this.childSearchHighlightedNode();
+    if (!highlightedNode) return false;
+    
+    return (highlightedNode.partyId && highlightedNode.partyId === node.partyId) ||
+           (highlightedNode.name === node.name && highlightedNode.type === node.type);
   }
 }

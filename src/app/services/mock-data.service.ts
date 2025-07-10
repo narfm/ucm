@@ -110,7 +110,7 @@ export class MockDataService {
     }
 
     // Simulate loading delay with random duration between 500ms and 5 seconds
-    const randomDelay = Math.floor(Math.random() * (5000 - 500 + 1)) + 500;
+    const randomDelay = Math.floor(Math.random() * (1000 - 500 + 1)) + 500;
     return of(response).pipe(delay(randomDelay));
   }
 
@@ -204,7 +204,7 @@ export class MockDataService {
     } else if (currentLevel + 1 < maxDepth) {
       // Create organizations and persons
       // For level 1, generate at least 500 nodes total (70+ per filter type)
-      const orgCount = currentLevel === 0 ? this.randomBetween(70, 85) : this.randomBetween(3, 8);
+      const orgCount = currentLevel === 0 ? this.randomBetween(170, 185) : this.randomBetween(3, 8);
       for (let i = 0; i < orgCount; i++) {
         const orgNode = this.createOrganizationNode(filterType, filterNode, currentLevel + 1, maxDepth);
         filterNode.children!.push(orgNode);

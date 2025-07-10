@@ -38,22 +38,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
   showNodeHierarchySelector = false;
   nodeForHierarchyChange: HierarchyNode | null = null;
   nodeHierarchyConfig: HierarchyConfig = {
-    levels: [
-      {
-        id: 'UPM_L1_NAME',
-        name: 'Service Area',
-        description: 'Primary business service area',
-        enabled: true,
-        order: 0
-      },
-      {
-        id: 'CLIENT_OWNER_NAME',
-        name: 'Client Owner',
-        description: 'Client relationship owner',
-        enabled: false,
-        order: 1
-      }
-    ],
+    levels: [],
     maxDepth: 3
   };
   
@@ -131,6 +116,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
     if (!this.columns || this.columns.length === 0) {
       this.columns = this.defaultColumns;
     }
+    
+    // Initialize hierarchy configuration from mock service
+    this.initializeHierarchyConfig();
     
     // Generate mock data if none provided
     if (this.data().length === 0 && this.hierarchyRequest) {
@@ -360,33 +348,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
     }
     
     // Set up hierarchy config based on current hierarchy request
-    let hierarchyConfig: HierarchyConfig = this.nodeHierarchyConfig;
-    
-    if (this.hierarchyRequest?.filters) {
-      hierarchyConfig = {
-        levels: [
-          {
-            id: 'UPM_L1_NAME',
-            name: 'Service Area',
-            description: 'Primary business service area',
-            enabled: this.hierarchyRequest.filters.includes('UPM_L1_NAME'),
-            order: this.hierarchyRequest.filters.indexOf('UPM_L1_NAME') !== -1 
-              ? this.hierarchyRequest.filters.indexOf('UPM_L1_NAME') 
-              : 0
-          },
-          {
-            id: 'CLIENT_OWNER_NAME',
-            name: 'Client Owner',
-            description: 'Client relationship owner',
-            enabled: this.hierarchyRequest.filters.includes('CLIENT_OWNER_NAME'),
-            order: this.hierarchyRequest.filters.indexOf('CLIENT_OWNER_NAME') !== -1 
-              ? this.hierarchyRequest.filters.indexOf('CLIENT_OWNER_NAME') 
-              : 1
-          }
-        ],
-        maxDepth: this.hierarchyRequest.maxDepth || 3
-      };
-    }
+    let hierarchyConfig: HierarchyConfig = this.buildHierarchyConfigFromRequest();
     
     this.hierarchyModalService.openModal({
       config: hierarchyConfig,
@@ -617,6 +579,41 @@ export class DataGridComponent implements OnInit, OnDestroy {
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
     document.removeEventListener('click', this.onDocumentClick);
+  }
+
+  // Initialize hierarchy configuration from mock service
+  private initializeHierarchyConfig(): void {
+    const levels = this.mockDataService.getHierarchyLevels();
+    this.nodeHierarchyConfig = {
+      levels: levels,
+      maxDepth: this.hierarchyRequest?.maxDepth || 3
+    };
+  }
+
+  // Build hierarchy config based on current request
+  private buildHierarchyConfigFromRequest(): HierarchyConfig {
+    const allLevels = this.mockDataService.getHierarchyLevels();
+    
+    if (this.hierarchyRequest?.filters) {
+      // Update enabled state and order based on current filters
+      const updatedLevels = allLevels.map(level => ({
+        ...level,
+        enabled: this.hierarchyRequest!.filters.includes(level.id),
+        order: this.hierarchyRequest!.filters.indexOf(level.id) !== -1 
+          ? this.hierarchyRequest!.filters.indexOf(level.id) 
+          : level.order
+      }));
+      
+      return {
+        levels: updatedLevels,
+        maxDepth: this.hierarchyRequest.maxDepth || 3
+      };
+    }
+    
+    return {
+      levels: allLevels,
+      maxDepth: this.hierarchyRequest?.maxDepth || 3
+    };
   }
 
   // Helper methods for managing childrenLoaded and allChildrenLoaded states

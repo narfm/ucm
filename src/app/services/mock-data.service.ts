@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay } from 'rxjs';
-import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria } from '../models/financial-data.interface';
+import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria, HierarchyLevel } from '../models/financial-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +14,31 @@ export class MockDataService {
     'Markets',
     'Other',
     'Treasury Services'
+  ];
+
+  // Available hierarchy levels configuration
+  private hierarchyLevels: HierarchyLevel[] = [
+    {
+      id: 'UPM_L1_NAME',
+      name: 'Service Area',
+      description: 'Primary business service area',
+      enabled: true,
+      order: 0
+    },
+    {
+      id: 'CLIENT_OWNER_NAME',
+      name: 'Client Owner',
+      description: 'Client relationship owner',
+      enabled: false,
+      order: 1
+    },
+    {
+      id: 'CRM_CLIENT_TYPE',
+      name: 'CRM Client Type',
+      description: 'ECAL/MCAL Client Type',
+      enabled: false,
+      order: 2
+    }
   ];
 
   private organizationNames = [
@@ -32,7 +57,26 @@ export class MockDataService {
     'Jessica Thompson', 'Robert Kim', 'Lisa Wang', 'James Anderson', 'Mary Singh'
   ];
 
+  private crmClientTypes = [
+    'ECAL - Enterprise Client',
+    'ECAL - Strategic Account',
+    'ECAL - Key Account',
+    'MCAL - Mid-Market Client',
+    'MCAL - Growth Account',
+    'MCAL - Standard Account'
+  ];
+
   private nodeIdCounter = 0;
+
+  // Public method to get available hierarchy levels
+  getHierarchyLevels(): HierarchyLevel[] {
+    return [...this.hierarchyLevels];
+  }
+
+  // Get hierarchy level by ID
+  getHierarchyLevelById(id: string): HierarchyLevel | undefined {
+    return this.hierarchyLevels.find(level => level.id === id);
+  }
 
   generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {
     const response: HierarchyResponse = {
@@ -95,6 +139,10 @@ export class MockDataService {
       return this.clientOwners.map(clientOwner => 
         this.createClientOwnerFilterNode(clientOwner, filters, maxDepth, 0)
       );
+    } else if (firstFilter === 'CRM_CLIENT_TYPE') {
+      return this.crmClientTypes.map(clientType => 
+        this.createCrmClientTypeFilterNode(clientType, filters, maxDepth, 0)
+      );
     }
     
     return [];
@@ -124,6 +172,19 @@ export class MockDataService {
             [`${filters[currentLevel]}/${filterType}`]
           );
           filterNode.children!.push(clientNode);
+        }
+      } else if (nextFilter === 'CRM_CLIENT_TYPE') {
+        const crmTypeCount = this.randomBetween(2, 4);
+        for (let i = 0; i < crmTypeCount; i++) {
+          const crmType = this.getRandomItem(this.crmClientTypes);
+          const crmNode = this.createCrmClientTypeFilterNode(
+            crmType, 
+            filters, 
+            maxDepth, 
+            currentLevel + 1,
+            [`${filters[currentLevel]}/${filterType}`]
+          );
+          filterNode.children!.push(crmNode);
         }
       }
     } else if (currentLevel + 1 < maxDepth) {
@@ -171,10 +232,82 @@ export class MockDataService {
           serviceNode.filters = [...allFilters, `${filters[currentLevel + 1]}/${filterType}`];
           filterNode.children!.push(serviceNode);
         }
+      } else if (nextFilter === 'CRM_CLIENT_TYPE') {
+        const crmTypeCount = this.randomBetween(2, 3);
+        const selectedCrmTypes = this.getRandomItems(this.crmClientTypes, crmTypeCount);
+        for (const crmType of selectedCrmTypes) {
+          const crmNode = this.createCrmClientTypeFilterNode(
+            crmType, 
+            filters, 
+            maxDepth, 
+            currentLevel + 1,
+            allFilters
+          );
+          filterNode.children!.push(crmNode);
+        }
       }
     } else if (currentLevel + 1 < maxDepth) {
       // Create organizations and persons
       const orgCount = this.randomBetween(2, 5);
+      for (let i = 0; i < orgCount; i++) {
+        const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth);
+        filterNode.children!.push(orgNode);
+      }
+    }
+
+    filterNode.childrenCount = filterNode.children!.length;
+    filterNode.hasChildren = filterNode.children!.length > 0;
+    
+    return filterNode;
+  }
+
+  private createCrmClientTypeFilterNode(crmClientType: string, filters: string[], maxDepth: number, currentLevel: number, parentFilters?: string[]): HierarchyNode {
+    const allFilters = parentFilters ? 
+      [...parentFilters, `${filters[currentLevel]}/${crmClientType}`] : 
+      [`${filters[currentLevel]}/${crmClientType}`];
+
+    const filterNode: HierarchyNode = {
+      name: crmClientType,
+      type: `FILTER/${filters[currentLevel]}`,
+      filters: allFilters,
+      children: [],
+      expanded: false
+    };
+
+    if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
+      // Create next level filters
+      const nextFilter = filters[currentLevel + 1];
+      if (nextFilter === 'UPM_L1_NAME') {
+        const serviceCount = this.randomBetween(2, 3);
+        const selectedServices = this.getRandomItems(this.filterTypes, serviceCount);
+        for (const filterType of selectedServices) {
+          const serviceNode = this.createUpmFilterNode(
+            filterType, 
+            filters, 
+            maxDepth, 
+            currentLevel + 1
+          );
+          // Update filters to include parent context
+          serviceNode.filters = [...allFilters, `${filters[currentLevel + 1]}/${filterType}`];
+          filterNode.children!.push(serviceNode);
+        }
+      } else if (nextFilter === 'CLIENT_OWNER_NAME') {
+        const clientCount = this.randomBetween(2, 3);
+        const selectedClients = this.getRandomItems(this.clientOwners, clientCount);
+        for (const clientOwner of selectedClients) {
+          const clientNode = this.createClientOwnerFilterNode(
+            clientOwner, 
+            filters, 
+            maxDepth, 
+            currentLevel + 1,
+            allFilters
+          );
+          filterNode.children!.push(clientNode);
+        }
+      }
+    } else if (currentLevel + 1 < maxDepth) {
+      // Create organizations and persons
+      const orgCount = this.randomBetween(3, 6);
       for (let i = 0; i < orgCount; i++) {
         const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth);
         filterNode.children!.push(orgNode);

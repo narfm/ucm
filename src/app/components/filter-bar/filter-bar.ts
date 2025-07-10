@@ -1,9 +1,10 @@
-import { Component, Output, EventEmitter, signal, OnDestroy } from '@angular/core';
+import { Component, Output, EventEmitter, signal, OnDestroy, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { FilterType, FilterCriteria, HierarchyConfig } from '../../models/financial-data.interface';
 import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
+import { MockDataService } from '../../services/mock-data.service';
 
 export interface FilterEvent {
   type: 'search' | 'filter' | 'hierarchy-config';
@@ -17,8 +18,10 @@ export interface FilterEvent {
   templateUrl: './filter-bar.html',
   styleUrl: './filter-bar.scss'
 })
-export class FilterBarComponent implements OnDestroy {
+export class FilterBarComponent implements OnInit, OnDestroy {
   @Output() filterChange = new EventEmitter<FilterEvent>();
+  
+  private mockDataService = inject(MockDataService);
   
   // Filter type options
   filterTypes: FilterType[] = [
@@ -42,22 +45,7 @@ export class FilterBarComponent implements OnDestroy {
   
   // Hierarchy configuration
   hierarchyConfig = signal<HierarchyConfig>({
-    levels: [
-      {
-        id: 'UPM_L1_NAME',
-        name: 'Service Area',
-        description: 'Primary business service area',
-        enabled: true,
-        order: 0
-      },
-      {
-        id: 'CLIENT_OWNER_NAME',
-        name: 'Client Owner',
-        description: 'Client relationship owner',
-        enabled: false,
-        order: 1
-      }
-    ],
+    levels: [],
     maxDepth: 3
   });
   
@@ -71,6 +59,15 @@ export class FilterBarComponent implements OnDestroy {
         type: 'search',
         value: searchText
       });
+    });
+  }
+
+  ngOnInit(): void {
+    // Initialize hierarchy configuration from mock service
+    const levels = this.mockDataService.getHierarchyLevels();
+    this.hierarchyConfig.set({
+      levels: levels,
+      maxDepth: 3
     });
   }
   

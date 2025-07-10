@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HierarchyLevel, HierarchyConfig } from '../../models/financial-data.interface';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
+import { MockDataService } from '../../services/mock-data.service';
 
 @Component({
   selector: 'app-hierarchy-selector',
@@ -12,24 +13,9 @@ import { HierarchyModalService } from '../../services/hierarchy-modal.service';
   templateUrl: './hierarchy-selector.html',
   styleUrl: './hierarchy-selector.scss'
 })
-export class HierarchySelectorComponent implements OnChanges {
+export class HierarchySelectorComponent implements OnChanges, OnInit {
   @Input() config: HierarchyConfig = {
-    levels: [
-      {
-        id: 'UPM_L1_NAME',
-        name: 'Service Area',
-        description: 'Primary business service area',
-        enabled: true,
-        order: 0
-      },
-      {
-        id: 'CLIENT_OWNER_NAME',
-        name: 'Client Owner',
-        description: 'Client relationship owner',
-        enabled: false,
-        order: 1
-      }
-    ],
+    levels: [],
     maxDepth: 3
   };
 
@@ -39,9 +25,25 @@ export class HierarchySelectorComponent implements OnChanges {
   @Output() openConfiguration = new EventEmitter<void>();
 
   private hierarchyModalService = inject(HierarchyModalService);
+  private mockDataService = inject(MockDataService);
   
   showFullConfiguration = signal<boolean>(false);
   pendingConfig: HierarchyConfig = { ...this.config };
+
+  ngOnInit(): void {
+    // If no config is provided, get default levels from mock service
+    if (!this.config.levels || this.config.levels.length === 0) {
+      const defaultLevels = this.mockDataService.getHierarchyLevels();
+      this.config = {
+        levels: defaultLevels,
+        maxDepth: this.config.maxDepth || 3
+      };
+      this.pendingConfig = {
+        levels: defaultLevels.map(level => ({ ...level })),
+        maxDepth: this.config.maxDepth
+      };
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['config'] && changes['config'].currentValue) {

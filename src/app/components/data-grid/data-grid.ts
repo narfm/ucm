@@ -147,7 +147,10 @@ export class DataGridComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
       next: (response) => {
-        this.data.set(response.root.children || []);
+        const nodes = response.root.children || [];
+        // Set childrenLoaded and allChildrenLoaded for each node
+        this.updateNodeLoadedStates(nodes);
+        this.data.set(nodes);
         this.loading.set(false);
       },
       error: (error) => {
@@ -172,17 +175,21 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     const childRequest: HierarchyRequest = {
       ...this.hierarchyRequest,
-      rootParentId: node.partyId
+      rootPartyId: node.partyId
     };
     
     this.mockDataService.generateHierarchicalData(childRequest).subscribe({
       next: (response) => {
         // Update the node with loaded children
         node.children = response.root.children;
-        node.childrenLoaded = true;
         
-        // Mark as all children loaded since we fetched all children in one request
-        node.allChildrenLoaded = true;
+        // Update loaded states for the children
+        if (node.children) {
+          this.updateNodeLoadedStates(node.children);
+        }
+        
+        // Update the node's loaded states based on hasChildren and children array
+        this.updateSingleNodeLoadedState(node);
         
         // Update the main data signal to trigger re-render
         this.updateNodeInData(node);
@@ -241,8 +248,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
     const newExpandedIds = new Set(currentState.expandedNodeIds);
     const nodeId = node.partyId || node.name;
     
-    // If node has children but not all children are loaded, load them first
-    if (node.hasChildren && !node.allChildrenLoaded && node.partyId) {
+    // Check if we need to load children
+    const needsLoading = this.nodeNeedsChildrenLoading(node);
+    
+    // If node has children but they're not loaded, load them first
+    if (needsLoading && node.partyId) {
       this.loadNodeChildren(node);
       return;
     }
@@ -330,8 +340,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     // Reset the node's children state
     node.children = [];
-    node.childrenLoaded = false;
-    node.allChildrenLoaded = false;
+    
+    // Update the node's loaded states
+    this.updateSingleNodeLoadedState(node);
     
     // Update the data to reflect the change
     this.updateNodeInData(node);
@@ -417,7 +428,7 @@ export class DataGridComponent implements OnInit, OnDestroy {
       filters: newFilters,
       hierarchyTypeCode: this.hierarchyRequest?.hierarchyTypeCode || 'G001',
       maxDepth: config.maxDepth,
-      rootParentId: targetNode.partyId
+      rootPartyId: targetNode.partyId
     };
     
     // Load new hierarchy data for this node
@@ -429,9 +440,15 @@ export class DataGridComponent implements OnInit, OnDestroy {
         if (targetNode) {
           // Update the node with new children
           targetNode.children = response.root.children;
-          targetNode.childrenLoaded = true;
-          targetNode.allChildrenLoaded = true;
           targetNode.childrenCount = response.root.children?.length || 0;
+          
+          // Update loaded states for the children
+          if (targetNode.children) {
+            this.updateNodeLoadedStates(targetNode.children);
+          }
+          
+          // Update the node's loaded states
+          this.updateSingleNodeLoadedState(targetNode);
           
           // Update the main data signal to trigger re-render
           this.updateNodeInData(targetNode);
@@ -600,5 +617,44 @@ export class DataGridComponent implements OnInit, OnDestroy {
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
     document.removeEventListener('click', this.onDocumentClick);
+  }
+
+  // Helper methods for managing childrenLoaded and allChildrenLoaded states
+  private updateNodeLoadedStates(nodes: HierarchyNode[]): void {
+    nodes.forEach(node => {
+      this.updateSingleNodeLoadedState(node);
+      if (node.children && node.children.length > 0) {
+        this.updateNodeLoadedStates(node.children);
+      }
+    });
+  }
+
+  private updateSingleNodeLoadedState(node: HierarchyNode): void {
+    // If node doesn't have children (hasChildren is false), then all children are loaded
+    if (!node.hasChildren) {
+      node.childrenLoaded = true;
+      node.allChildrenLoaded = true;
+      return;
+    }
+
+    // If node has children (hasChildren is true)
+    if (node.children && node.children.length > 0) {
+      // Children array exists and has elements - children are loaded
+      node.childrenLoaded = true;
+      // Since we load all children at once in our implementation, allChildrenLoaded is also true
+      node.allChildrenLoaded = true;
+    } else {
+      // Children array is empty or undefined - children are not loaded yet
+      node.childrenLoaded = false;
+      node.allChildrenLoaded = false;
+    }
+  }
+
+  private nodeNeedsChildrenLoading(node: HierarchyNode): boolean {
+    // Node needs loading if:
+    // 1. It has children (hasChildren is true)
+    // 2. But children are not loaded (childrenLoaded is false or children array is empty)
+    return node.hasChildren === true && 
+           (!node.childrenLoaded || !node.children || node.children.length === 0);
   }
 }

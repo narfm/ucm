@@ -18,7 +18,7 @@ export interface HierarchyRequest {
   filters: string[];
   hierarchyTypeCode: string;
   maxDepth: number;
-  rootParentId?: string; // For lazy loading children of a specific node
+  rootPartyId?: string; // For lazy loading children of a specific node
 }
 
 export interface HierarchyResponse {

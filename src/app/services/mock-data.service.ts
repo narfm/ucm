@@ -41,9 +41,9 @@ export class MockDataService {
       }
     };
 
-    // If rootParentId is provided, generate children for that specific node
-    if (request.rootParentId) {
-      response.root.children = this.generateChildrenForNode(request.rootParentId, request.maxDepth);
+    // If rootPartyId is provided, generate children for that specific node
+    if (request.rootPartyId) {
+      response.root.children = this.generateChildrenForNode(request.rootPartyId, request.maxDepth);
     } else {
       // Generate hierarchy based on filter order
       if (request.filters.length > 0) {
@@ -224,8 +224,7 @@ export class MockDataService {
       legalEntity: Math.random() > 0.3,
       children: [],
       expanded: false,
-      parent: parent,
-      childrenLoaded: false // Initially children are not loaded
+      parent: parent
     };
 
     // 30% chance to create nodes with lazy loading (hasChildren=true but empty children)
@@ -233,19 +232,12 @@ export class MockDataService {
     
     if (shouldLazyLoad) {
       // Leave children array empty for lazy loading
-      orgNode.childrenLoaded = false;
-      orgNode.allChildrenLoaded = false;
     } else if (hasChildren && childrenCount > 0) {
       // Generate children immediately
       for (let i = 0; i < childrenCount; i++) {
         const childNode = this.createOrganizationNode(filterType, orgNode, currentDepth + 1, maxDepth);
         orgNode.children!.push(childNode);
       }
-      orgNode.childrenLoaded = true;
-      orgNode.allChildrenLoaded = true; // All children loaded immediately
-    } else {
-      orgNode.childrenLoaded = true; // No children to load
-      orgNode.allChildrenLoaded = true; // No children means all loaded
     }
 
     return orgNode;

@@ -48,9 +48,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   // Row focus state for keyboard shortcuts
   focusedRow = signal<HierarchyNode | null>(null);
   
-  // Sticky parent tracking
-  stickyParentNode = signal<HierarchyNode | null>(null);
-  stickyParentLevel = signal<number>(0);
+  // Sticky parent tracking - now supports multiple parent levels
+  stickyParentNodes = signal<HierarchyNode[]>([]);
+  maxStickyParentLevel = signal<number>(0);
   
   // Context menu properties
   contextMenuVisible = false;
@@ -88,8 +88,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     const currentData = this.data();
     const searchTerm = this.searchText();
     
+    console.log('flattenedData computed - currentData:', currentData, 'length:', currentData?.length);
+    
     // Ensure we have data before processing
     if (!currentData || currentData.length === 0) {
+      console.log('No data available for flattening');
       return [];
     }
     
@@ -106,7 +109,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     // Then flatten for virtual scrolling
-    return this.flattenData(processedData, state.expandedNodeIds);
+    const flattened = this.flattenData(processedData, state.expandedNodeIds);
+    console.log('Flattened data:', flattened, 'length:', flattened.length);
+    return flattened;
   });
   
   // Effect to update sticky parent when data changes
@@ -114,7 +119,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       const flattened = this.flattenedData();
       if (flattened.length === 0) {
-        this.stickyParentNode.set(null);
+        this.stickyParentNodes.set([]);
       } else if (this.viewportRef) {
         // Trigger sticky parent update when data changes
         requestAnimationFrame(() => this.updateStickyParentOnScroll());
@@ -535,6 +540,34 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   trackByColumn(index: number, column: ColumnDefinition): string {
     return column.key;
+  }
+
+  // Track by function for sticky parent nodes
+  trackByParent(index: number, parent: HierarchyNode): string {
+    return parent.partyId || parent.name;
+  }
+
+  // Calculate top position for sticky parent rows
+  getStickyParentTop(index: number): number {
+    const headerHeight = 36; // Grid header height
+    const rowHeight = 32; // Sticky row height
+    const childSearchHeight = this.childSearchActive() ? 52 : 0; // Child search bar height
+    
+    return headerHeight + childSearchHeight + (index * rowHeight);
+  }
+
+  // Calculate z-index for sticky parent rows (higher index = higher z-index)
+  getStickyParentZIndex(index: number): number {
+    return 11 + index; // Start at 11 (above header) and increase for each level
+  }
+
+  // Calculate top position for child search bar (after header + all sticky rows)
+  getChildSearchTop(): number {
+    const headerHeight = 36; // Grid header height
+    const rowHeight = 32; // Sticky row height
+    const stickyRowsCount = this.stickyParentNodes().length;
+    
+    return headerHeight + (stickyRowsCount * rowHeight);
   }
   
   onColumnSort(column: ColumnDefinition): void {
@@ -964,7 +997,38 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     );
     
     if (targetIndex >= 0 && this.viewportRef) {
-      this.viewportRef.scrollToIndex(targetIndex);
+      // Calculate all sticky elements that block the view
+      const stickyParentCount = this.stickyParentNodes().length;
+      const childSearchHeight = this.childSearchActive() ? 52 : 0; // Child search bar height
+      const stickyRowHeight = 32; // Height of each sticky row
+      const gridHeaderHeight = 36; // Grid header height
+      
+      // Total height that blocks the view at the top
+      const totalBlockingHeight = gridHeaderHeight + (stickyParentCount * stickyRowHeight) + childSearchHeight;
+      
+      // Add extra padding to ensure the row is clearly visible
+      const extraPadding = 8;
+      const totalOffsetHeight = totalBlockingHeight + extraPadding;
+      
+      // Calculate target scroll position in pixels
+      const targetPixelPosition = targetIndex * this.rowHeight;
+      const desiredScrollTop = Math.max(0, targetPixelPosition - totalOffsetHeight);
+      
+      // Use pixel-based scrolling for more precise positioning
+      this.viewportRef.scrollToOffset(desiredScrollTop);
+      
+      // Double-check positioning after a brief delay
+      setTimeout(() => {
+        const currentScrollTop = this.viewportRef.measureScrollOffset('top');
+        const visibleTop = currentScrollTop + totalOffsetHeight;
+        const targetTop = targetIndex * this.rowHeight;
+        
+        // If the target is still not visible, adjust
+        if (targetTop < visibleTop) {
+          const correctedScrollTop = Math.max(0, targetTop - totalOffsetHeight);
+          this.viewportRef.scrollToOffset(correctedScrollTop);
+        }
+      }, 100); // Slightly longer delay for more reliable positioning
     }
   }
 
@@ -1001,6 +1065,97 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.childSearchHighlightTimeout) {
       clearTimeout(this.childSearchHighlightTimeout);
     }
+  }
+
+  // Get hierarchy path for the current search context (either parent or current result)
+  getSearchParentHierarchyPath(): string {
+    const searchResults = this.childSearchResults();
+    const currentIndex = this.childSearchCurrentIndex();
+    
+    // If we have search results and are viewing a specific result, show its path
+    if (searchResults.length > 0 && currentIndex >= 0 && currentIndex < searchResults.length) {
+      const currentResult = searchResults[currentIndex];
+      return this.getNodeHierarchyPath(currentResult);
+    }
+    
+    // Otherwise show the search parent's path
+    const searchParent = this.childSearchParent();
+    if (!searchParent) return '';
+    
+    return this.getNodeHierarchyPath(searchParent);
+  }
+  
+  // Get appropriate tooltip text based on current search state
+  getHierarchyTooltipText(): string {
+    const searchResults = this.childSearchResults();
+    const currentIndex = this.childSearchCurrentIndex();
+    
+    // If we're viewing a specific search result
+    if (searchResults.length > 0 && currentIndex >= 0 && currentIndex < searchResults.length) {
+      const currentResult = searchResults[currentIndex];
+      return `Current result location: ${this.getNodeHierarchyPath(currentResult)}`;
+    }
+    
+    // Otherwise show search scope
+    const searchParent = this.childSearchParent();
+    if (searchParent) {
+      return `Searching within: ${this.getNodeHierarchyPath(searchParent)}`;
+    }
+    
+    return 'Search hierarchy location';
+  }
+  
+  // Get hierarchy path for any specific node
+  private getNodeHierarchyPath(targetNode: HierarchyNode): string {
+    const flattened = this.flattenedData();
+    
+    // Find the target node in flattened data to get its index and level
+    const targetIndex = flattened.findIndex(node => 
+      (node.partyId && node.partyId === targetNode.partyId) ||
+      (node.name === targetNode.name && node.type === targetNode.type)
+    );
+    
+    if (targetIndex === -1) return targetNode.name;
+    
+    const targetLevel = flattened[targetIndex].level || 0;
+    const path: string[] = [];
+    
+    // Build path by working backwards from target node
+    for (let level = 0; level <= targetLevel; level++) {
+      // Find the ancestor at this specific level by looking backwards from target
+      for (let i = targetIndex; i >= 0; i--) {
+        const node = flattened[i];
+        const nodeLevel = node.level || 0;
+        
+        if (nodeLevel === level) {
+          // Found a node at the required level
+          // Check if it's an ancestor by ensuring it comes before target
+          // and there's no other node at same or higher level between them
+          let isAncestor = true;
+          
+          if (level < targetLevel) {
+            // Check if there's a break in hierarchy between this node and target
+            for (let j = i + 1; j < targetIndex; j++) {
+              const intermediateNode = flattened[j];
+              const intermediateLevel = intermediateNode.level || 0;
+              
+              // If we find a node at same or higher level, this breaks the ancestry
+              if (intermediateLevel <= level) {
+                isAncestor = false;
+                break;
+              }
+            }
+          }
+          
+          if (isAncestor) {
+            path.push(node.name);
+            break; // Found the ancestor at this level, move to next level
+          }
+        }
+      }
+    }
+    
+    return path.length > 0 ? path.join(' > ') : targetNode.name;
   }
 
   onChildSearchKeydown(event: KeyboardEvent): void {
@@ -1041,7 +1196,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   
-  // Update sticky parent on scroll
+  // Update sticky parent on scroll - now builds full parent chain
   private updateStickyParentOnScroll(): void {
     if (!this.viewportRef) return;
     
@@ -1049,8 +1204,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     const flattened = this.flattenedData();
     
     if (flattened.length === 0) {
-      this.stickyParentNode.set(null);
-      this.stickyParentLevel.set(0);
+      this.stickyParentNodes.set([]);
+      this.maxStickyParentLevel.set(0);
       return;
     }
     
@@ -1059,16 +1214,16 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // If we're at the very top, no sticky parent needed
     if (topIndex <= 0) {
-      this.stickyParentNode.set(null);
-      this.stickyParentLevel.set(0);
+      this.stickyParentNodes.set([]);
+      this.maxStickyParentLevel.set(0);
       return;
     }
     
-    // Look for a parent that should be sticky
-    let stickyParent: HierarchyNode | null = null;
+    // Build the full parent chain for sticky display
+    const stickyParentChain: HierarchyNode[] = [];
     let checkIndex = Math.min(topIndex, flattened.length - 1);
     
-    // Start from the top visible item and work backwards to find a parent
+    // Start from the top visible item and work backwards to find all parents
     for (let i = checkIndex; i >= 0; i--) {
       const node = flattened[i];
       if (!node) continue;
@@ -1083,16 +1238,26 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
           const hasVisibleChildren = this.checkChildrenVisible(node, flattened, topIndex);
           
           if (hasVisibleChildren && i < topIndex) {
-            stickyParent = node;
-            break;
+            // Add this parent to the chain if it's not already there
+            const alreadyInChain = stickyParentChain.some(parent => 
+              (parent.partyId || parent.name) === nodeId
+            );
+            
+            if (!alreadyInChain) {
+              stickyParentChain.push(node);
+            }
           }
         }
       }
     }
     
-    // Set the sticky parent
-    this.stickyParentNode.set(stickyParent);
-    this.stickyParentLevel.set(stickyParent ? (stickyParent.level || 0) : 0);
+    // Sort the parent chain by level (lowest level first - root to deepest)
+    stickyParentChain.sort((a, b) => (a.level || 0) - (b.level || 0));
+    
+    // Set the sticky parent chain
+    this.stickyParentNodes.set(stickyParentChain);
+    this.maxStickyParentLevel.set(stickyParentChain.length > 0 ? 
+      Math.max(...stickyParentChain.map(node => node.level || 0)) : 0);
   }
   
   // Check if a node's children are visible
@@ -1124,12 +1289,14 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   
-  // Check if the current sticky parent is still valid
+  // Check if the current node is one of the sticky parents
   isStickyParentNode(node: HierarchyNode): boolean {
-    const stickyParent = this.stickyParentNode();
-    if (!stickyParent) return false;
+    const stickyParents = this.stickyParentNodes();
+    if (stickyParents.length === 0) return false;
     
-    return (stickyParent.partyId && stickyParent.partyId === node.partyId) ||
-           (stickyParent.name === node.name && stickyParent.type === node.type);
+    return stickyParents.some(stickyParent => 
+      (stickyParent.partyId && stickyParent.partyId === node.partyId) ||
+      (stickyParent.name === node.name && stickyParent.type === node.type)
+    );
   }
 }

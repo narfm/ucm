@@ -575,42 +575,54 @@
   padding: 1.5rem;
 }
 
-// Sticky Parent Row Styles
-.sticky-parent-row {
+// Sticky Parent Rows Styles - Now supports multiple levels
+.sticky-parent-container {
   position: absolute;
-  top: 36px; // Below header
   left: 0;
   right: 0;
-  z-index: 11; // Above header (10) and child search (9)
-  background: var(--bg-primary);
-  border-bottom: 2px solid var(--accent-color);
-  box-shadow: 0 2px 8px var(--shadow-medium);
+  pointer-events: none; // Allow clicks to pass through to content below
+  z-index: 12; // Above viewport content but below modals
   
-  // Adjust position when child search is active
-  &.with-child-search {
-    top: 88px; // Below header (36px) + child search (~52px with padding)
-  }
-  
-  .sticky-row {
-    background: var(--bg-secondary);
-    border-bottom: none;
-    cursor: default;
-    height: 32px; // Match row height
+  .sticky-parent-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border-bottom: 2px solid var(--accent-color);
+    box-shadow: 0 2px 8px var(--shadow-medium);
+    pointer-events: all; // Re-enable clicks on sticky rows
     
-    &:hover {
+    .sticky-row {
       background: var(--bg-secondary);
-    }
-    
-    &.filter-row {
-      background: rgba(var(--accent-color-rgb), 0.08);
+      border-bottom: none;
+      cursor: default;
+      height: 32px; // Match row height
       
       &:hover {
+        background: var(--bg-secondary);
+      }
+      
+      &.filter-row {
         background: rgba(var(--accent-color-rgb), 0.08);
+        
+        &:hover {
+          background: rgba(var(--accent-color-rgb), 0.08);
+        }
+      }
+      
+      .grid-cell {
+        font-weight: 600;
       }
     }
     
-    .grid-cell {
-      font-weight: 600;
+    // Add visual separation for multiple sticky rows
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    // Add subtle shadow for depth
+    &:nth-child(n+2) {
+      box-shadow: 0 1px 4px var(--shadow-light);
     }
   }
 }
@@ -634,8 +646,38 @@
     width: 100%;
   }
   
+  .search-hierarchy-path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(var(--success-color-rgb), 0.08), rgba(var(--info-color-rgb), 0.08));
+    border: 1px solid rgba(var(--info-color-rgb), 0.25);
+    border-radius: 6px;
+    flex: 0 1 auto;
+    max-width: 50vw;
+    min-width: 200px;
+    box-shadow: 0 1px 3px rgba(var(--shadow-light-rgb), 0.1);
+    
+    .hierarchy-icon {
+      color: var(--info-color);
+      flex-shrink: 0;
+    }
+    
+    .hierarchy-text {
+      font-size: 0.75rem;
+      color: var(--info-color);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      text-shadow: 0 1px 1px rgba(var(--bg-primary-rgb), 0.5);
+    }
+  }
+  
   .search-input-container {
-    flex: 1;
+    flex: 0 0 250px;
     position: relative;
     display: flex;
     align-items: center;

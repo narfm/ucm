@@ -40,125 +40,140 @@
     </div>
   </div>
   
-  <!-- Sticky Parent Row -->
-  <div *ngIf="stickyParentNode()" class="sticky-parent-row" [class.with-child-search]="childSearchActive()">
-    <div class="grid-row sticky-row"
-         [class.filter-row]="stickyParentNode()!.type === 'FILTER' || stickyParentNode()!.type.startsWith('FILTER/')"
-         [class.org-row]="stickyParentNode()!.type === 'ORG'"
-         [class.person-row]="stickyParentNode()!.type === 'PER'">
-      
-      <div *ngFor="let column of columns; trackBy: trackByColumn"
-           class="grid-cell"
-           [style.width]="column.width"
-           [style.min-width]="column.minWidth"
-           [class.text-right]="column.align === 'right'"
-           [class.text-center]="column.align === 'center'"
-           [class.boolean-true]="column.dataType === 'boolean' && getCellValue(stickyParentNode()!, column) === true"
-           [class.boolean-false]="column.dataType === 'boolean' && getCellValue(stickyParentNode()!, column) === false">
+  <!-- Sticky Parent Rows - Multiple levels support -->
+  <div *ngIf="stickyParentNodes().length > 0" class="sticky-parent-container">
+    <div *ngFor="let stickyParent of stickyParentNodes(); let i = index; trackBy: trackByParent"
+         class="sticky-parent-row"
+         [style.top.px]="getStickyParentTop(i)"
+         [style.z-index]="getStickyParentZIndex(i)">
+      <div class="grid-row sticky-row"
+           [class.filter-row]="stickyParent.type === 'FILTER' || stickyParent.type.startsWith('FILTER/')"
+           [class.org-row]="stickyParent.type === 'ORG'"
+           [class.person-row]="stickyParent.type === 'PER'">
         
-        <!-- Name with expand/collapse -->
-        <div *ngIf="column.key === 'name'" class="name-cell">
-          <span class="indent" [style.padding-left.px]="(stickyParentNode()!.level || 0) * 20"></span>
+        <div *ngFor="let column of columns; trackBy: trackByColumn"
+             class="grid-cell"
+             [style.width]="column.width"
+             [style.min-width]="column.minWidth"
+             [class.text-right]="column.align === 'right'"
+             [class.text-center]="column.align === 'center'"
+             [class.boolean-true]="column.dataType === 'boolean' && getCellValue(stickyParent, column) === true"
+             [class.boolean-false]="column.dataType === 'boolean' && getCellValue(stickyParent, column) === false">
           
-          <button *ngIf="stickyParentNode()!.hasChildren"
-                  class="expand-button"
-                  [class.lazy-load]="!stickyParentNode()!.allChildrenLoaded"
-                  (click)="toggleExpand(stickyParentNode()!, $event)"
-                  [attr.aria-label]="gridState().expandedNodeIds.has(stickyParentNode()!.partyId || stickyParentNode()!.name) ? 'Collapse' : 'Expand'">
-            <!-- Lazy load icon (cloud with arrow) - only show if not all children loaded -->
-            <svg *ngIf="!stickyParentNode()!.allChildrenLoaded" class="lazy-load-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="Load children from server">
-              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
-              <polyline points="16 14 12 10 8 14"/>
-              <line x1="12" y1="10" x2="12" y2="21"/>
-            </svg>
-            <!-- Regular expand/collapse icons - show when all children loaded -->
-            <svg *ngIf="stickyParentNode()!.allChildrenLoaded" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 [appTooltip]="gridState().expandedNodeIds.has(stickyParentNode()!.partyId || stickyParentNode()!.name) ? 'Collapse children' : 'Expand children'">
-              <path *ngIf="!gridState().expandedNodeIds.has(stickyParentNode()!.partyId || stickyParentNode()!.name)" d="M9 18l6-6-6-6"/>
-              <path *ngIf="gridState().expandedNodeIds.has(stickyParentNode()!.partyId || stickyParentNode()!.name)" d="M6 9l6 6 6-6"/>
-            </svg>
-          </button>
+          <!-- Name with expand/collapse -->
+          <div *ngIf="column.key === 'name'" class="name-cell">
+            <span class="indent" [style.padding-left.px]="(stickyParent.level || 0) * 20"></span>
+            
+            <button *ngIf="stickyParent.hasChildren"
+                    class="expand-button"
+                    [class.lazy-load]="!stickyParent.allChildrenLoaded"
+                    (click)="toggleExpand(stickyParent, $event)"
+                    [attr.aria-label]="gridState().expandedNodeIds.has(stickyParent.partyId || stickyParent.name) ? 'Collapse' : 'Expand'">
+              <!-- Lazy load icon (cloud with arrow) - only show if not all children loaded -->
+              <svg *ngIf="!stickyParent.allChildrenLoaded" class="lazy-load-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Load children from server">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+                <polyline points="16 14 12 10 8 14"/>
+                <line x1="12" y1="10" x2="12" y2="21"/>
+              </svg>
+              <!-- Regular expand/collapse icons - show when all children loaded -->
+              <svg *ngIf="stickyParent.allChildrenLoaded" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   [appTooltip]="gridState().expandedNodeIds.has(stickyParent.partyId || stickyParent.name) ? 'Collapse children' : 'Expand children'">
+                <path *ngIf="!gridState().expandedNodeIds.has(stickyParent.partyId || stickyParent.name)" d="M9 18l6-6-6-6"/>
+                <path *ngIf="gridState().expandedNodeIds.has(stickyParent.partyId || stickyParent.name)" d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
 
-          <!-- Type icons -->
-          <div class="type-icons">
-            <!-- UPM_L1_NAME filter icon (funnel) -->
-            <svg *ngIf="stickyParentNode()!.type === 'FILTER/UPM_L1_NAME'" 
-                 class="type-icon filter-icon upm-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="UPM Level 1 filter">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            
-            <!-- CLIENT_OWNER_NAME filter icon (user) -->
-            <svg *ngIf="stickyParentNode()!.type === 'FILTER/CLIENT_OWNER_NAME'" 
-                 class="type-icon filter-icon client-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="Client owner filter">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-            
-            <!-- Default filter icon (for other filter types) -->
-            <svg *ngIf="stickyParentNode()!.type === 'FILTER' || (stickyParentNode()!.type.startsWith('FILTER/') && stickyParentNode()!.type !== 'FILTER/UPM_L1_NAME' && stickyParentNode()!.type !== 'FILTER/CLIENT_OWNER_NAME')" 
-                 class="type-icon filter-icon default-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v6"/>
-              <path d="m21 12-6-6-6 6"/>
-            </svg>
-            
-            <!-- Organization icon -->
-            <svg *ngIf="stickyParentNode()!.type === 'ORG'" 
-                 class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="Organization">
-              <path d="M3 21h18"/>
-              <path d="M5 21V7l8-4v18"/>
-              <path d="M19 21V11l-6-4"/>
-            </svg>
-            
-            <!-- Person icon -->
-            <svg *ngIf="stickyParentNode()!.type === 'PER'" 
-                 class="type-icon person-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="Person">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
+            <!-- Type icons -->
+            <div class="type-icons">
+              <!-- UMP_L1_NAME filter icon (funnel) -->
+              <svg *ngIf="stickyParent.type === 'FILTER/UMP_L1_NAME'" 
+                   class="type-icon filter-icon ump-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="UMP Level 1 filter">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              
+              <!-- CLIENT_OWNER_NAME filter icon (user) -->
+              <svg *ngIf="stickyParent.type === 'FILTER/CLIENT_OWNER_NAME'" 
+                   class="type-icon filter-icon client-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Client owner filter">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              
+              <!-- Default filter icon (for other filter types) -->
+              <svg *ngIf="stickyParent.type === 'FILTER' || (stickyParent.type.startsWith('FILTER/') && stickyParent.type !== 'FILTER/UMP_L1_NAME' && stickyParent.type !== 'FILTER/CLIENT_OWNER_NAME')" 
+                   class="type-icon filter-icon default-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6"/>
+                <path d="m21 12-6-6-6 6"/>
+              </svg>
+              
+              <!-- Organization icon -->
+              <svg *ngIf="stickyParent.type === 'ORG'" 
+                   class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Organization">
+                <path d="M3 21h18"/>
+                <path d="M5 21V7l8-4v18"/>
+                <path d="M19 21V11l-6-4"/>
+              </svg>
+              
+              <!-- Person icon -->
+              <svg *ngIf="stickyParent.type === 'PER'" 
+                   class="type-icon person-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Person">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
 
-          <!-- Legal entity icon -->
-          <div class="legal-icons" *ngIf="stickyParentNode()!.legalEntity !== undefined">
-            <svg *ngIf="stickyParentNode()!.legalEntity" 
-                 class="legal-icon legal-yes" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="Legal entity">
-              <path d="M9 12l2 2 4-4"/>
-              <circle cx="12" cy="12" r="10"/>
-            </svg>
-            <svg *ngIf="!stickyParentNode()!.legalEntity" 
-                 class="legal-icon legal-no" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="Not a legal entity">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="15" y1="9" x2="9" y2="15"/>
-              <line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
+            <!-- Legal entity icon -->
+            <div class="legal-icons" *ngIf="stickyParent.legalEntity !== undefined">
+              <svg *ngIf="stickyParent.legalEntity" 
+                   class="legal-icon legal-yes" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Legal entity">
+                <path d="M9 12l2 2 4-4"/>
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+              <svg *ngIf="!stickyParent.legalEntity" 
+                   class="legal-icon legal-no" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Not a legal entity">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            
+            <span class="node-name" 
+                  [class.filter-type]="stickyParent.type === 'FILTER'" 
+                  [class.filter-ump-type]="stickyParent.type === 'FILTER/UMP_L1_NAME'"
+                  [class.filter-client-type]="stickyParent.type === 'FILTER/CLIENT_OWNER_NAME'"
+                  [class.org-type]="stickyParent.type === 'ORG'" 
+                  [class.person-type]="stickyParent.type === 'PER'">{{ formatCellValue(getCellValue(stickyParent, column), column) }}</span>
           </div>
           
-          <span class="node-name" 
-                [class.filter-type]="stickyParentNode()!.type === 'FILTER'" 
-                [class.filter-ump-type]="stickyParentNode()!.type === 'FILTER/UPM_L1_NAME'"
-                [class.filter-client-type]="stickyParentNode()!.type === 'FILTER/CLIENT_OWNER_NAME'"
-                [class.org-type]="stickyParentNode()!.type === 'ORG'" 
-                [class.person-type]="stickyParentNode()!.type === 'PER'">{{ formatCellValue(getCellValue(stickyParentNode()!, column), column) }}</span>
+          <!-- Other cells -->
+          <span *ngIf="column.key !== 'name'">
+            {{ formatCellValue(getCellValue(stickyParent, column), column) }}
+          </span>
         </div>
-        
-        <!-- Other cells -->
-        <span *ngIf="column.key !== 'name'">
-          {{ formatCellValue(getCellValue(stickyParentNode()!, column), column) }}
-        </span>
       </div>
     </div>
   </div>
   
   <!-- Child Search Bar -->
-  <div *ngIf="childSearchActive()" class="child-search-bar" [style.top.px]="36">
+  <div *ngIf="childSearchActive()" class="child-search-bar" >
     <div class="search-content">
+      <!-- Hierarchy Path Display -->
+      <div class="search-hierarchy-path" *ngIf="getSearchParentHierarchyPath()" 
+           [appTooltip]="getHierarchyTooltipText()">
+        <svg class="hierarchy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 3v18h18"/>
+          <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+        </svg>
+        <span class="hierarchy-text">{{ getSearchParentHierarchyPath() }}</span>
+      </div>
+      
       <div class="search-input-container">
         <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="11" cy="11" r="8"/>
@@ -169,7 +184,7 @@
                [value]="childSearchTerm()"
                (input)="updateChildSearchTerm($event)"
                (keydown)="onChildSearchKeydown($event)"
-               placeholder="Search within {{childSearchParent()?.name}} children..."
+               placeholder="Search children..."
                #childSearchInput>
         <button class="clear-search" 
                 *ngIf="childSearchTerm()"
@@ -285,10 +300,10 @@
 
           <!-- Type icons -->
           <div class="type-icons">
-            <!-- UPM_L1_NAME filter icon (funnel) -->
-            <svg *ngIf="row.type === 'FILTER/UPM_L1_NAME'" 
-                 class="type-icon filter-icon upm-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 appTooltip="UPM Level 1 filter">
+            <!-- UMP_L1_NAME filter icon (funnel) -->
+            <svg *ngIf="row.type === 'FILTER/UMP_L1_NAME'" 
+                 class="type-icon filter-icon ump-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="UMP Level 1 filter">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
             
@@ -301,7 +316,7 @@
             </svg>
             
             <!-- Default filter icon (for other filter types) -->
-            <svg *ngIf="row.type === 'FILTER' || (row.type.startsWith('FILTER/') && row.type !== 'FILTER/UPM_L1_NAME' && row.type !== 'FILTER/CLIENT_OWNER_NAME')" 
+            <svg *ngIf="row.type === 'FILTER' || (row.type.startsWith('FILTER/') && row.type !== 'FILTER/UMP_L1_NAME' && row.type !== 'FILTER/CLIENT_OWNER_NAME')" 
                  class="type-icon filter-icon default-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="3"/>
               <path d="M12 1v6m0 6v6"/>
@@ -345,7 +360,7 @@
           
           <span class="node-name" 
                 [class.filter-type]="row.type === 'FILTER'" 
-                [class.filter-ump-type]="row.type === 'FILTER/UPM_L1_NAME'"
+                [class.filter-ump-type]="row.type === 'FILTER/UMP_L1_NAME'"
                 [class.filter-client-type]="row.type === 'FILTER/CLIENT_OWNER_NAME'"
                 [class.org-type]="row.type === 'ORG'" 
                 [class.person-type]="row.type === 'PER'">{{ formatCellValue(getCellValue(row, column), column) }}</span>

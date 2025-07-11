@@ -111,6 +111,55 @@ html, body {
   --shadow-warning: rgba(245, 158, 11, 0.2);
 }
 
+// Vibrant theme
+.vibrant-theme {
+  --bg-primary: #ffffff;
+  --bg-primary-rgb: 255, 255, 255;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #6bcf7f;
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+  --border-color: #ff9ff3;
+  --header-bg: rgba(20, 184, 166, 0.9);
+  --header-text: #ffffff;
+  --dropdown-bg: rgba(255, 255, 255, 0.95);
+  --hover-bg: #ff8787;
+  --grid-header-bg: #ff6b6b;
+  --grid-row-hover: #f1f5f9;
+  --grid-row-selected: #4ecdc4;
+  --accent-color: #ff6b6b;
+  --accent-color-rgb: 255, 107, 107;
+  --success-color: #6bcf7f;
+  --success-color-rgb: 107, 207, 127;
+  --danger-color: #ff5722;
+  --danger-color-rgb: 255, 87, 34;
+  --danger-color-hover: #e64a19;
+  --warning-color: #ffb74d;
+  --warning-color-rgb: 255, 183, 77;
+  
+  // Gradient colors
+  --gradient-start: #ff6b6b;
+  --gradient-middle: #ff9ff3;
+  --gradient-middle-rgb: 255, 159, 243;
+  --gradient-end: #6bcf7f;
+  
+  // Additional colors
+  --info-color: #29b6f6;
+  --purple-color: #ab47bc;
+  --gray-color: #78909c;
+  
+  // Shadow colors
+  --shadow-light: rgba(255, 107, 107, 0.1);
+  --shadow-medium: rgba(255, 107, 107, 0.2);
+  --shadow-dark: rgba(255, 107, 107, 0.3);
+  --shadow-overlay: rgba(0, 0, 0, 0.5);
+  --shadow-accent: rgba(255, 107, 107, 0.2);
+  --shadow-accent-strong: rgba(255, 107, 107, 0.3);
+  --shadow-danger: rgba(255, 87, 34, 0.3);
+  --shadow-warning: rgba(255, 183, 77, 0.2);
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);

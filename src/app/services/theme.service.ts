@@ -1,6 +1,6 @@
 import { Injectable, signal, effect } from '@angular/core';
 
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'vibrant';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +25,9 @@ export class ThemeService {
   }
 
   toggleTheme(): void {
-    const newTheme = this.themeSignal() === 'light' ? 'dark' : 'light';
+    const currentTheme = this.themeSignal();
+    const newTheme = currentTheme === 'light' ? 'dark' : 
+                     currentTheme === 'dark' ? 'vibrant' : 'light';
     this.themeSignal.set(newTheme);
     localStorage.setItem('theme', newTheme);
   }
@@ -36,7 +38,7 @@ export class ThemeService {
   }
 
   private applyTheme(theme: Theme): void {
-    document.body.classList.remove('light-theme', 'dark-theme');
+    document.body.classList.remove('light-theme', 'dark-theme', 'vibrant-theme');
     document.body.classList.add(`${theme}-theme`);
   }
 }

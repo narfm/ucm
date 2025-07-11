@@ -7,7 +7,7 @@
   
   <div class="header-right">
     <button class="theme-toggle" (click)="toggleTheme()" 
-            [attr.aria-label]="'Switch to ' + (themeService.theme() === 'light' ? 'dark' : 'light') + ' theme'">
+            [attr.aria-label]="'Switch to next theme'">
       <svg *ngIf="themeService.theme() === 'light'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
       </svg>
@@ -21,6 +21,11 @@
         <line x1="21" y1="12" x2="23" y2="12"></line>
         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <svg *ngIf="themeService.theme() === 'vibrant'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor">
+        <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z"></path>
+        <path d="M19 11L20.09 15.26L24 16L20.09 16.74L19 21L17.91 16.74L14 16L17.91 15.26L19 11Z"></path>
+        <path d="M5 11L6.09 15.26L10 16L6.09 16.74L5 21L3.91 16.74L0 16L3.91 15.26L5 11Z"></path>
       </svg>
     </button>
     

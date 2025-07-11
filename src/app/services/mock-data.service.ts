@@ -371,8 +371,7 @@ export class MockDataService {
       hasChildren: childrenCount > 0,
       legalEntity: Math.random() > 0.3,
       children: [],
-      expanded: false,
-      parent: parent
+      expanded: false
     };
 
     // 30% chance to create nodes with lazy loading (hasChildren=true but empty children)

@@ -156,6 +156,8 @@ export class DataGridComponent implements OnInit, OnDestroy {
     this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
       next: (response) => {
         const nodes = response.root.children || [];
+        // Assign parent references after data is loaded
+        this.assignParentReferences(nodes);
         // Set childrenLoaded and allChildrenLoaded for each node
         this.updateNodeLoadedStates(nodes);
         this.data.set(nodes);
@@ -183,13 +185,20 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     const childRequest: HierarchyRequest = {
       ...this.hierarchyRequest,
-      rootPartyId: node.partyId
+      rootPartyId: node.partyId,
+      maxDepth: this.hierarchyRequest.maxDepth,
+      filters: node.parent?.filters || []
     };
     
     this.mockDataService.generateHierarchicalData(childRequest).subscribe({
       next: (response) => {
         // Update the node with loaded children
         node.children = response.root.children;
+        
+        // Assign parent references for the newly loaded children
+        if (node.children) {
+          this.assignParentReferences(node.children, node);
+        }
         
         // Update loaded states for the children
         if (node.children) {
@@ -453,6 +462,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
           targetNode.children = response.root.children;
           targetNode.childrenCount = response.root.children?.length || 0;
           
+          // Assign parent references for the newly loaded children
+          if (targetNode.children) {
+            this.assignParentReferences(targetNode.children, targetNode);
+          }
+          
           // Update loaded states for the children
           if (targetNode.children) {
             this.updateNodeLoadedStates(targetNode.children);
@@ -680,6 +694,18 @@ export class DataGridComponent implements OnInit, OnDestroy {
       levels: allLevels,
       maxDepth: this.hierarchyRequest?.maxDepth || 3
     };
+  }
+
+  // Helper method to assign parent references
+  private assignParentReferences(nodes: HierarchyNode[], parent?: HierarchyNode): void {
+    nodes.forEach(node => {
+      if (parent) {
+        node.parent = parent;
+      }
+      if (node.children && node.children.length > 0) {
+        this.assignParentReferences(node.children, node);
+      }
+    });
   }
 
   // Helper methods for managing childrenLoaded and allChildrenLoaded states

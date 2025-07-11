@@ -147,9 +147,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '250px', minWidth: '200px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '120px', minWidth: '120px' },
-    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '120px', minWidth: '120px' },
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '550px', minWidth: '200px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '220px', minWidth: '120px' },
+    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '220px', minWidth: '120px' },
     { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '120px', minWidth: '120px' },
     { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '120px', minWidth: '120px' }
   ];
@@ -1299,4 +1299,5 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       (stickyParent.name === node.name && stickyParent.type === node.type)
     );
   }
+
 }

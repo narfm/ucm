@@ -12,6 +12,7 @@ export interface HierarchyNode {
   parent?: HierarchyNode;
   childrenLoaded?: boolean; // Track if children have been loaded for lazy loading
   allChildrenLoaded?: boolean; // Track if ALL children have been fully loaded (no more lazy loading needed)
+  maxDepthWalkReached?: boolean; // It means that the max depth has been reached for this node but there can be more children 
 }
 
 export interface HierarchyRequest {

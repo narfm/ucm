@@ -6,6 +6,8 @@
   <div class="controls-section">
     <app-filter-bar 
       #filterBar
+      [data]="dataGrid.data()"
+      [columns]="dataGrid.columns"
       (filterChange)="onFilterChange($event)"></app-filter-bar>
   </div>
   

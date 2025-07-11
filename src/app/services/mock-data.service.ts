@@ -81,10 +81,10 @@ export class MockDataService {
   // Get available hierarchy types
   getHierarchyTypes(): Observable<HierarchyType[]> {
     const hierarchyTypes: HierarchyType[] = [
-      { hierarchyTypeCode: "G001", groupDescText: "Standard Client Hierarchy" },
+      { hierarchyTypeCode: "G004", groupDescText: "Standard Client Hierarchy" },
       { hierarchyTypeCode: "G002", groupDescText: "Regional Client Hierarchy" },
       { hierarchyTypeCode: "G003", groupDescText: "Service-based Client Hierarchy" },
-      { hierarchyTypeCode: "G004", groupDescText: "Product-based Client Hierarchy" },
+      { hierarchyTypeCode: "G001", groupDescText: "Product-based Client Hierarchy" },
       { hierarchyTypeCode: "G005", groupDescText: "Risk-based Client Hierarchy" }
     ];
     

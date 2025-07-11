@@ -43,8 +43,7 @@
     <label for="hierarchyType">Hierarchy Type:</label>
     <select 
       id="hierarchyType"
-      [value]="selectedHierarchyType"
-      (change)="onHierarchyTypeChange($event)"
+      [(ngModel)]="selectedHierarchyType"
       [disabled]="hierarchyTypes.length === 0"
       class="hierarchy-type-select">
       <option value="" disabled *ngIf="hierarchyTypes.length === 0">Loading...</option>

@@ -686,13 +686,15 @@ export class DataGridComponent implements OnInit, OnDestroy {
       
       return {
         levels: updatedLevels,
-        maxDepth: this.hierarchyRequest.maxDepth || 3
+        maxDepth: this.hierarchyRequest.maxDepth || 3,
+        hierarchyTypeCode: this.hierarchyRequest.hierarchyTypeCode || 'G001'
       };
     }
     
     return {
       levels: allLevels,
-      maxDepth: this.hierarchyRequest?.maxDepth || 3
+      maxDepth: this.hierarchyRequest?.maxDepth || 3,
+      hierarchyTypeCode: this.hierarchyRequest?.hierarchyTypeCode || 'G001'
     };
   }
 

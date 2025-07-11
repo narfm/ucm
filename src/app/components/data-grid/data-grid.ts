@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, computed, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, inject, computed, signal, ViewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
@@ -15,7 +15,7 @@ import { TooltipDirective } from '../tooltip/tooltip.directive';
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
-export class DataGridComponent implements OnInit, OnDestroy {
+export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() data = signal<HierarchyNode[]>([]);
   @Input() columns: ColumnDefinition[] = [];
   @Input() hierarchyRequest?: HierarchyRequest;
@@ -42,8 +42,15 @@ export class DataGridComponent implements OnInit, OnDestroy {
   childSearchHighlightedNode = signal<HierarchyNode | null>(null);
   private childSearchHighlightTimeout?: number;
   
+  // Scroll timeout for sticky parent updates
+  private scrollTimeout?: any;
+  
   // Row focus state for keyboard shortcuts
   focusedRow = signal<HierarchyNode | null>(null);
+  
+  // Sticky parent tracking
+  stickyParentNode = signal<HierarchyNode | null>(null);
+  stickyParentLevel = signal<number>(0);
   
   // Context menu properties
   contextMenuVisible = false;
@@ -101,6 +108,19 @@ export class DataGridComponent implements OnInit, OnDestroy {
     // Then flatten for virtual scrolling
     return this.flattenData(processedData, state.expandedNodeIds);
   });
+  
+  // Effect to update sticky parent when data changes
+  constructor() {
+    effect(() => {
+      const flattened = this.flattenedData();
+      if (flattened.length === 0) {
+        this.stickyParentNode.set(null);
+      } else if (this.viewportRef) {
+        // Trigger sticky parent update when data changes
+        requestAnimationFrame(() => this.updateStickyParentOnScroll());
+      }
+    });
+  }
   
   // Row height for virtual scrolling
   rowHeight = 32;
@@ -287,6 +307,9 @@ export class DataGridComponent implements OnInit, OnDestroy {
       ...currentState,
       expandedNodeIds: newExpandedIds
     });
+    
+    // Update sticky parent after expand/collapse
+    requestAnimationFrame(() => this.updateStickyParentOnScroll());
   }
   
   private flattenData(nodes: HierarchyNode[], expandedIds: Set<string>, result: HierarchyNode[] = [], level: number = 0): HierarchyNode[] {
@@ -648,6 +671,31 @@ export class DataGridComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit(): void {
+    // Add scroll listener for sticky parent updates after view is initialized
+    if (this.viewportRef) {
+      // Listen to scroll events with throttling for performance
+      this.viewportRef.elementScrolled().subscribe(() => {
+        // Immediate update
+        this.updateStickyParentOnScroll();
+        
+        // Debounced update for accuracy
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout(() => {
+          this.updateStickyParentOnScroll();
+        }, 50);
+      });
+      
+      // Also update on index change
+      this.viewportRef.scrolledIndexChange.subscribe(() => {
+        this.updateStickyParentOnScroll();
+      });
+      
+      // Initial check
+      setTimeout(() => this.updateStickyParentOnScroll(), 100);
+    }
+  }
+
   ngOnDestroy(): void {
     // Clean up event listeners
     document.removeEventListener('mousemove', this.onMouseMove);
@@ -658,6 +706,11 @@ export class DataGridComponent implements OnInit, OnDestroy {
     // Clean up child search timeout
     if (this.childSearchHighlightTimeout) {
       clearTimeout(this.childSearchHighlightTimeout);
+    }
+    
+    // Clean up scroll timeout
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
     }
   }
 
@@ -985,5 +1038,98 @@ export class DataGridComponent implements OnInit, OnDestroy {
     
     return (highlightedNode.partyId && highlightedNode.partyId === node.partyId) ||
            (highlightedNode.name === node.name && highlightedNode.type === node.type);
+  }
+  
+  
+  // Update sticky parent on scroll
+  private updateStickyParentOnScroll(): void {
+    if (!this.viewportRef) return;
+    
+    const scrollTop = this.viewportRef.measureScrollOffset('top');
+    const flattened = this.flattenedData();
+    
+    if (flattened.length === 0) {
+      this.stickyParentNode.set(null);
+      this.stickyParentLevel.set(0);
+      return;
+    }
+    
+    // Calculate which item index is at the top of the viewport
+    const topIndex = Math.floor(scrollTop / this.rowHeight);
+    
+    // If we're at the very top, no sticky parent needed
+    if (topIndex <= 0) {
+      this.stickyParentNode.set(null);
+      this.stickyParentLevel.set(0);
+      return;
+    }
+    
+    // Look for a parent that should be sticky
+    let stickyParent: HierarchyNode | null = null;
+    let checkIndex = Math.min(topIndex, flattened.length - 1);
+    
+    // Start from the top visible item and work backwards to find a parent
+    for (let i = checkIndex; i >= 0; i--) {
+      const node = flattened[i];
+      if (!node) continue;
+      
+      // If this is a parent node (has children and is expanded)
+      if (node.hasChildren && node.children && node.children.length > 0) {
+        const nodeId = node.partyId || node.name;
+        const isExpanded = this.gridState().expandedNodeIds.has(nodeId);
+        
+        if (isExpanded) {
+          // Check if any of its children are visible
+          const hasVisibleChildren = this.checkChildrenVisible(node, flattened, topIndex);
+          
+          if (hasVisibleChildren && i < topIndex) {
+            stickyParent = node;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Set the sticky parent
+    this.stickyParentNode.set(stickyParent);
+    this.stickyParentLevel.set(stickyParent ? (stickyParent.level || 0) : 0);
+  }
+  
+  // Check if a node's children are visible
+  private checkChildrenVisible(parent: HierarchyNode, flattened: HierarchyNode[], topIndex: number): boolean {
+    const parentId = parent.partyId || parent.name;
+    const parentLevel = parent.level || 0;
+    
+    // Look ahead from the top index to see if any children are visible
+    for (let i = topIndex; i < flattened.length && i < topIndex + 20; i++) {
+      const node = flattened[i];
+      if (!node) continue;
+      
+      // If we hit a node at the same level or higher, we're done checking
+      if ((node.level || 0) <= parentLevel) {
+        break;
+      }
+      
+      // Check if this node is a descendant of the parent
+      let current = node;
+      while (current.parent) {
+        if ((current.parent.partyId || current.parent.name) === parentId) {
+          return true;
+        }
+        current = current.parent;
+      }
+    }
+    
+    return false;
+  }
+  
+  
+  // Check if the current sticky parent is still valid
+  isStickyParentNode(node: HierarchyNode): boolean {
+    const stickyParent = this.stickyParentNode();
+    if (!stickyParent) return false;
+    
+    return (stickyParent.partyId && stickyParent.partyId === node.partyId) ||
+           (stickyParent.name === node.name && stickyParent.type === node.type);
   }
 }

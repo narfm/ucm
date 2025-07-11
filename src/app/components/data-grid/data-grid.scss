@@ -7,6 +7,7 @@
   background: var(--bg-primary);
   box-shadow: 0 2px 8px var(--shadow-light);
   border: 1px solid var(--border-color);
+  position: relative;
   
   &.resizing {
     user-select: none;
@@ -130,6 +131,7 @@
   flex: 1;
   overflow: auto;
   background: var(--bg-primary);
+  position: relative;
 }
 
 .grid-row {
@@ -573,6 +575,46 @@
   padding: 1.5rem;
 }
 
+// Sticky Parent Row Styles
+.sticky-parent-row {
+  position: absolute;
+  top: 36px; // Below header
+  left: 0;
+  right: 0;
+  z-index: 11; // Above header (10) and child search (9)
+  background: var(--bg-primary);
+  border-bottom: 2px solid var(--accent-color);
+  box-shadow: 0 2px 8px var(--shadow-medium);
+  
+  // Adjust position when child search is active
+  &.with-child-search {
+    top: 88px; // Below header (36px) + child search (~52px with padding)
+  }
+  
+  .sticky-row {
+    background: var(--bg-secondary);
+    border-bottom: none;
+    cursor: default;
+    height: 32px; // Match row height
+    
+    &:hover {
+      background: var(--bg-secondary);
+    }
+    
+    &.filter-row {
+      background: rgba(var(--accent-color-rgb), 0.08);
+      
+      &:hover {
+        background: rgba(var(--accent-color-rgb), 0.08);
+      }
+    }
+    
+    .grid-cell {
+      font-weight: 600;
+    }
+  }
+}
+
 // Child Search Styles
 .child-search-bar {
   background: var(--bg-secondary);
@@ -583,7 +625,6 @@
   gap: 12px;
   flex-shrink: 0;
   position: sticky;
-  top: 36px; // Below header
   z-index: 9;
   
   .search-content {

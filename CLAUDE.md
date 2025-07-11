@@ -146,11 +146,22 @@ interface HierarchyNode {
   - Children Count
 - Supports sorting and column resizing (resize doesn't trigger sort)
 - Row/cell click events
-- Context menu with "Refresh Children" and "Change Hierarchy" options
+- Context menu with "Refresh Children", "Change Hierarchy", and "Search Children" options
 - Visual differentiation: filter rows have subtle background coloring
 - Iconography: type icons (filter/org/person) and legal entity status (checkmark/X)
 - Loading states during hierarchy configuration changes
 - Node-specific hierarchy configuration via modal service
+- **Child Search Feature**: 
+  - Right-click context menu "Search Children" option
+  - Ctrl+F keyboard shortcut when focused on a row with children
+  - Inline search bar with input, navigation buttons, and result counter
+  - Recursive search through all descendants of selected node
+  - Automatic path expansion to show search results
+  - Scroll-to-result with virtual scrolling integration
+  - Highlight animation (2 seconds) for found results
+  - Next/Previous navigation through search results
+  - Keyboard navigation (Enter/Arrow keys for navigation, Escape to close)
+  - Search by name, party ID, or type across all child nodes
 
 ### Filter Bar Component
 - Search by name or party ID
@@ -254,6 +265,8 @@ interface HierarchyNode {
 11. **Color System Refactor**: Eliminated all hardcoded colors across SCSS files and replaced with CSS custom properties
 12. **Theme Variable Expansion**: Added comprehensive color variables including RGB values, shadows, and gradients for consistent theming
 13. **Color Usage Guidelines**: Established strict guidelines for color usage to maintain theme consistency
+14. **Child Search Feature**: Implemented comprehensive child search functionality with context menu integration, keyboard shortcuts, and virtual scrolling navigation
+15. **UI Polish**: Fixed blinking cursor issue on focusable grid rows using `caret-color: transparent` while maintaining keyboard functionality
 
 ## Next Steps/TODO
 - Add error handling for data loading
@@ -295,3 +308,8 @@ interface HierarchyNode {
 19. **Service Patterns**: Prefer service-based state management over component-level state for cross-component communication
 20. **Context Menu**: Right-click context menus should provide relevant actions based on node type and capabilities
 21. **Color Usage**: NEVER hardcode colors in CSS/SCSS. Always use theme variables. If a new color is needed, declare it in the theme first
+22. **Child Search Implementation**: Use signal-based reactive state management for search functionality with proper cleanup of timeouts
+23. **Virtual Scrolling Navigation**: Use `viewportRef.scrollToIndex()` for programmatic scrolling to specific nodes in search results
+24. **Focus Management**: Use `caret-color: transparent` to hide text cursor on focusable elements while maintaining keyboard functionality
+25. **Path Expansion**: Implement recursive path finding to expand parent nodes when navigating to search results
+26. **Search Algorithms**: Use recursive traversal for comprehensive child node searching across all descendant levels

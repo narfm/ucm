@@ -122,7 +122,6 @@
          [class.search-result-current]="isCurrentChildSearchResult(row)"
          [class.row-focused]="isRowFocused(row)"
          tabindex="0"
-         [appTooltip]="row.hasChildren ? 'Right-click for options or press Ctrl+F to search children' : ''"
          (click)="onRowClick(row)"
          (focus)="onRowFocus(row)"
          (keydown)="onRowKeydown(row, $event)"

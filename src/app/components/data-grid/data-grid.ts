@@ -365,7 +365,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   onRowKeydown(row: HierarchyNode, event: KeyboardEvent) {
     // Handle Ctrl+F for child search
     if (event.ctrlKey && event.key.toLowerCase() === 'f') {
-      if (row.hasChildren && !this.childSearchActive()) {
+      if (this.nodeHasActualChildren(row) && !this.childSearchActive()) {
         event.preventDefault();
         this.startChildSearch(row);
       }
@@ -401,7 +401,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   refreshNodeChildren(node: HierarchyNode) {
-    if (!node.hasChildren || !node.partyId) {
+    if (!this.nodeHasActualChildren(node) || !node.partyId) {
       this.hideContextMenu();
       return;
     }
@@ -427,7 +427,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   changeNodeHierarchy(node: HierarchyNode) {
-    if (!node.hasChildren || !node.partyId) {
+    if (!this.nodeHasActualChildren(node) || !node.partyId) {
       this.hideContextMenu();
       return;
     }
@@ -697,7 +697,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     // Handle Ctrl+F for child search
     if (event.ctrlKey && event.key.toLowerCase() === 'f') {
       const focusedRow = this.focusedRow();
-      if (focusedRow && focusedRow.hasChildren && !this.childSearchActive()) {
+      if (focusedRow && this.nodeHasActualChildren(focusedRow) && !this.childSearchActive()) {
         event.preventDefault();
         this.startChildSearch(focusedRow);
       }
@@ -1298,6 +1298,12 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       (stickyParent.partyId && stickyParent.partyId === node.partyId) ||
       (stickyParent.name === node.name && stickyParent.type === node.type)
     );
+  }
+
+  // Check if a node actually has children (not just hasChildren flag)
+  nodeHasActualChildren(node: HierarchyNode | null): boolean {
+    if (!node) return false;
+    return node.children != null && node.children.length > 0;
   }
 
 }

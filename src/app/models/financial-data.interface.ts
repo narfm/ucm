@@ -13,6 +13,7 @@ export interface HierarchyNode {
   childrenLoaded?: boolean; // Track if children have been loaded for lazy loading
   allChildrenLoaded?: boolean; // Track if ALL children have been fully loaded (no more lazy loading needed)
   maxDepthWalkReached?: boolean; // It means that the max depth has been reached for this node but there can be more children 
+  metrics?: Record<string, any>; // Dynamic metric values for this node
 }
 
 export interface HierarchyRequest {
@@ -25,6 +26,7 @@ export interface HierarchyRequest {
 export interface HierarchyResponse {
   root: {
     children: HierarchyNode[];
+    metricKeys?: string[]; // Available metric column names
   };
 }
 

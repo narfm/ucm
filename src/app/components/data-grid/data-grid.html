@@ -278,7 +278,7 @@
         <div *ngIf="column.key === 'name'" class="name-cell">
           <span class="indent" [style.padding-left.px]="(row.level || 0) * 20"></span>
           
-          <button *ngIf="row.hasChildren"
+          <button *ngIf="(row.hasChildren && row.maxDepthWalkReached) || (row.children && row.children.length > 0)"
                   class="expand-button"
                   [class.lazy-load]="!row.allChildrenLoaded"
                   (click)="toggleExpand(row, $event)"

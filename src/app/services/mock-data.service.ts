@@ -16,6 +16,20 @@ export class MockDataService {
     'Treasury Services'
   ];
 
+  // Available metric keys that can be generated
+  private availableMetricKeys = [
+    'Revenue',
+    'Profit Margin %',
+    'Risk Score',
+    'Compliance Rate %',
+    'Growth %',
+    'Operating Costs',
+    'Net Income',
+    'ROE %',
+    'Customer Count',
+    'Market Share %'
+  ];
+
   // Available hierarchy levels configuration
   private hierarchyLevels: HierarchyLevel[] = [
     {
@@ -93,19 +107,24 @@ export class MockDataService {
   }
 
   generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {
+    // Randomly select 3-5 metrics for this data set
+    const metricCount = this.randomBetween(3, 5);
+    const selectedMetrics = this.getRandomItems(this.availableMetricKeys, metricCount);
+    
     const response: HierarchyResponse = {
       root: {
-        children: []
+        children: [],
+        metricKeys: selectedMetrics
       }
     };
 
     // If rootPartyId is provided, generate children for that specific node
     if (request.rootPartyId) {
-      response.root.children = this.generateChildrenForNode(request.rootPartyId, request.maxDepth);
+      response.root.children = this.generateChildrenForNode(request.rootPartyId, request.maxDepth, selectedMetrics);
     } else {
       // Generate hierarchy based on filter order
       if (request.filters.length > 0) {
-        response.root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth);
+        response.root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth, selectedMetrics);
       }
     }
 
@@ -114,7 +133,7 @@ export class MockDataService {
     return of(response).pipe(delay(randomDelay));
   }
 
-  private generateChildrenForNode(parentId: string, maxDepth: number): HierarchyNode[] {
+  private generateChildrenForNode(parentId: string, maxDepth: number, metricKeys: string[]): HierarchyNode[] {
     // Extract filter type from parentId (simplified logic)
     const filterType = this.extractFilterTypeFromParentId(parentId);
     
@@ -123,7 +142,7 @@ export class MockDataService {
     const children: HierarchyNode[] = [];
     
     for (let i = 0; i < childrenCount; i++) {
-      const childNode = this.createOrganizationNode(filterType, {} as HierarchyNode, 1, maxDepth);
+      const childNode = this.createOrganizationNode(filterType, {} as HierarchyNode, 1, maxDepth, metricKeys);
       children.push(childNode);
     }
     
@@ -142,33 +161,34 @@ export class MockDataService {
     return 'Other';
   }
 
-  private generateMultiLevelHierarchy(filters: string[], maxDepth: number): HierarchyNode[] {
+  private generateMultiLevelHierarchy(filters: string[], maxDepth: number, metricKeys: string[]): HierarchyNode[] {
     const firstFilter = filters[0];
     
     if (firstFilter === 'UPM_L1_NAME') {
       return this.filterTypes.map(filterType => 
-        this.createUpmFilterNode(filterType, filters, maxDepth, 0)
+        this.createUpmFilterNode(filterType, filters, maxDepth, 0, metricKeys)
       );
     } else if (firstFilter === 'CLIENT_OWNER_NAME') {
       return this.clientOwners.map(clientOwner => 
-        this.createClientOwnerFilterNode(clientOwner, filters, maxDepth, 0)
+        this.createClientOwnerFilterNode(clientOwner, filters, maxDepth, 0, metricKeys)
       );
     } else if (firstFilter === 'CRM_CLIENT_TYPE') {
       return this.crmClientTypes.map(clientType => 
-        this.createCrmClientTypeFilterNode(clientType, filters, maxDepth, 0)
+        this.createCrmClientTypeFilterNode(clientType, filters, maxDepth, 0, metricKeys)
       );
     }
     
     return [];
   }
 
-  private createUpmFilterNode(filterType: FilterType, filters: string[], maxDepth: number, currentLevel: number): HierarchyNode {
+  private createUpmFilterNode(filterType: FilterType, filters: string[], maxDepth: number, currentLevel: number, metricKeys: string[]): HierarchyNode {
     const filterNode: HierarchyNode = {
       name: filterType,
       type: `FILTER/${filters[currentLevel]}`,
       filters: [`${filters[currentLevel]}/${filterType}`],
       children: [],
-      expanded: false
+      expanded: false,
+      metrics: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -183,6 +203,7 @@ export class MockDataService {
             filters, 
             maxDepth, 
             currentLevel + 1,
+            metricKeys,
             [`${filters[currentLevel]}/${filterType}`]
           );
           filterNode.children!.push(clientNode);
@@ -196,6 +217,7 @@ export class MockDataService {
             filters, 
             maxDepth, 
             currentLevel + 1,
+            metricKeys,
             [`${filters[currentLevel]}/${filterType}`]
           );
           filterNode.children!.push(crmNode);
@@ -206,7 +228,7 @@ export class MockDataService {
       // For level 1, generate at least 500 nodes total (70+ per filter type)
       const orgCount = currentLevel === 0 ? this.randomBetween(170, 185) : this.randomBetween(3, 8);
       for (let i = 0; i < orgCount; i++) {
-        const orgNode = this.createOrganizationNode(filterType, filterNode, currentLevel + 1, maxDepth);
+        const orgNode = this.createOrganizationNode(filterType, filterNode, currentLevel + 1, maxDepth, metricKeys);
         filterNode.children!.push(orgNode);
       }
     }
@@ -217,7 +239,7 @@ export class MockDataService {
     return filterNode;
   }
 
-  private createClientOwnerFilterNode(clientOwner: string, filters: string[], maxDepth: number, currentLevel: number, parentFilters?: string[]): HierarchyNode {
+  private createClientOwnerFilterNode(clientOwner: string, filters: string[], maxDepth: number, currentLevel: number, metricKeys: string[], parentFilters?: string[]): HierarchyNode {
     const allFilters = parentFilters ? 
       [...parentFilters, `${filters[currentLevel]}/${clientOwner}`] : 
       [`${filters[currentLevel]}/${clientOwner}`];
@@ -227,7 +249,8 @@ export class MockDataService {
       type: `FILTER/${filters[currentLevel]}`,
       filters: allFilters,
       children: [],
-      expanded: false
+      expanded: false,
+      metrics: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -241,7 +264,8 @@ export class MockDataService {
             filterType, 
             filters, 
             maxDepth, 
-            currentLevel + 1
+            currentLevel + 1,
+            metricKeys
           );
           // Update filters to include parent context
           serviceNode.filters = [...allFilters, `${filters[currentLevel + 1]}/${filterType}`];
@@ -265,7 +289,7 @@ export class MockDataService {
       // Create organizations and persons
       const orgCount = this.randomBetween(2, 5);
       for (let i = 0; i < orgCount; i++) {
-        const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth);
+        const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth, metricKeys);
         filterNode.children!.push(orgNode);
       }
     }
@@ -276,7 +300,7 @@ export class MockDataService {
     return filterNode;
   }
 
-  private createCrmClientTypeFilterNode(crmClientType: string, filters: string[], maxDepth: number, currentLevel: number, parentFilters?: string[]): HierarchyNode {
+  private createCrmClientTypeFilterNode(crmClientType: string, filters: string[], maxDepth: number, currentLevel: number, metricKeys: string[], parentFilters?: string[]): HierarchyNode {
     const allFilters = parentFilters ? 
       [...parentFilters, `${filters[currentLevel]}/${crmClientType}`] : 
       [`${filters[currentLevel]}/${crmClientType}`];
@@ -286,7 +310,8 @@ export class MockDataService {
       type: `FILTER/${filters[currentLevel]}`,
       filters: allFilters,
       children: [],
-      expanded: false
+      expanded: false,
+      metrics: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -300,7 +325,8 @@ export class MockDataService {
             filterType, 
             filters, 
             maxDepth, 
-            currentLevel + 1
+            currentLevel + 1,
+            metricKeys
           );
           // Update filters to include parent context
           serviceNode.filters = [...allFilters, `${filters[currentLevel + 1]}/${filterType}`];
@@ -315,6 +341,7 @@ export class MockDataService {
             filters, 
             maxDepth, 
             currentLevel + 1,
+            metricKeys,
             allFilters
           );
           filterNode.children!.push(clientNode);
@@ -324,7 +351,7 @@ export class MockDataService {
       // Create organizations and persons
       const orgCount = this.randomBetween(3, 6);
       for (let i = 0; i < orgCount; i++) {
-        const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth);
+        const orgNode = this.createOrganizationNode('Asset Servicing', filterNode, currentLevel + 1, maxDepth, metricKeys);
         filterNode.children!.push(orgNode);
       }
     }
@@ -335,20 +362,21 @@ export class MockDataService {
     return filterNode;
   }
 
-  private createFilterNode(filterType: FilterType, filterName: string, maxDepth: number): HierarchyNode {
+  private createFilterNode(filterType: FilterType, filterName: string, maxDepth: number, metricKeys: string[]): HierarchyNode {
     const filterNode: HierarchyNode = {
       name: filterType,
       type: 'FILTER',
       filters: [`${filterName}/${filterType}`],
       children: [],
-      expanded: false
+      expanded: false,
+      metrics: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (maxDepth > 1) {
       // Generate organization nodes under each filter
       const orgCount = this.randomBetween(3, 8);
       for (let i = 0; i < orgCount; i++) {
-        const orgNode = this.createOrganizationNode(filterType, filterNode, 1, maxDepth);
+        const orgNode = this.createOrganizationNode(filterType, filterNode, 1, maxDepth, metricKeys);
         filterNode.children!.push(orgNode);
       }
     }
@@ -356,7 +384,7 @@ export class MockDataService {
     return filterNode;
   }
 
-  private createOrganizationNode(filterType: FilterType, parent: HierarchyNode, currentDepth: number, maxDepth: number): HierarchyNode {
+  private createOrganizationNode(filterType: FilterType, parent: HierarchyNode, currentDepth: number, maxDepth: number, metricKeys: string[]): HierarchyNode {
     this.nodeIdCounter++;
     const hasChildren = currentDepth < maxDepth;
     const childrenCount = hasChildren ? this.randomBetween(0, 5) : 0;
@@ -371,7 +399,8 @@ export class MockDataService {
       hasChildren: childrenCount > 0,
       legalEntity: Math.random() > 0.3,
       children: [],
-      expanded: false
+      expanded: false,
+      metrics: this.generateMetrics(metricKeys, nodeType)
     };
 
     // 30% chance to create nodes with lazy loading (hasChildren=true but empty children)
@@ -382,7 +411,7 @@ export class MockDataService {
     } else if (hasChildren && childrenCount > 0) {
       // Generate children immediately
       for (let i = 0; i < childrenCount; i++) {
-        const childNode = this.createOrganizationNode(filterType, orgNode, currentDepth + 1, maxDepth);
+        const childNode = this.createOrganizationNode(filterType, orgNode, currentDepth + 1, maxDepth, metricKeys);
         orgNode.children!.push(childNode);
       }
     }
@@ -511,5 +540,33 @@ export class MockDataService {
 
   private randomBetween(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  private generateMetrics(metricKeys: string[], nodeType: string): Record<string, any> {
+    const metrics: Record<string, any> = {};
+    
+    metricKeys.forEach(key => {
+      if (key.includes('%')) {
+        // Percentage values
+        metrics[key] = Math.round(Math.random() * 100 * 10) / 10; // 0.0 to 100.0
+      } else if (key.includes('Revenue') || key.includes('Income') || key.includes('Costs')) {
+        // Financial values - higher for organizations, lower for persons
+        const base = nodeType === 'PER' ? 100000 : 1000000;
+        const multiplier = nodeType === 'FILTER' ? 10 : 1;
+        metrics[key] = Math.round(Math.random() * base * multiplier);
+      } else if (key.includes('Score')) {
+        // Score values (0-100)
+        metrics[key] = Math.round(Math.random() * 100);
+      } else if (key.includes('Count')) {
+        // Count values
+        const max = nodeType === 'FILTER' ? 10000 : nodeType === 'ORG' ? 1000 : 100;
+        metrics[key] = Math.round(Math.random() * max);
+      } else {
+        // Default numeric value
+        metrics[key] = Math.round(Math.random() * 1000 * 10) / 10;
+      }
+    });
+    
+    return metrics;
   }
 }

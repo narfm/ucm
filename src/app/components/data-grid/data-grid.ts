@@ -185,6 +185,12 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
         this.assignParentReferences(nodes);
         // Set childrenLoaded and allChildrenLoaded for each node
         this.updateNodeLoadedStates(nodes);
+        
+        // Update columns with metric columns if available
+        if (response.root.metricKeys && response.root.metricKeys.length > 0) {
+          this.updateColumnsWithMetrics(response.root.metricKeys);
+        }
+        
         this.data.set(nodes);
         this.loading.set(false);
       },
@@ -198,6 +204,25 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   reloadWithNewHierarchy(newRequest: HierarchyRequest): void {
     this.hierarchyRequest = newRequest;
     this.loadData();
+  }
+
+  private updateColumnsWithMetrics(metricKeys: string[]): void {
+    // Start with default columns (excluding metrics)
+    const baseColumns = this.defaultColumns.slice();
+    
+    // Add metric columns
+    const metricColumns: ColumnDefinition[] = metricKeys.map(key => ({
+      key: `metrics.${key}`,
+      label: key,
+      sortable: true,
+      dataType: 'number',
+      align: 'right' as const,
+      width: '150px',
+      minWidth: '100px'
+    }));
+    
+    // Update the columns array
+    this.columns = [...baseColumns, ...metricColumns];
   }
   
   private loadNodeChildren(node: HierarchyNode): void {
@@ -332,6 +357,12 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   getCellValue(row: HierarchyNode, column: ColumnDefinition): any {
+    // Handle metric columns (e.g., "metrics.Revenue")
+    if (column.key.startsWith('metrics.')) {
+      const metricKey = column.key.substring(8); // Remove "metrics." prefix
+      return row.metrics ? row.metrics[metricKey] : null;
+    }
+    
     return (row as any)[column.key];
   }
   
@@ -340,6 +371,21 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     switch (column.dataType) {
       case 'number':
+        // Special formatting for metric columns
+        if (column.key.startsWith('metrics.')) {
+          const metricKey = column.key.substring(8);
+          
+          // Format based on metric type
+          if (metricKey.includes('%')) {
+            return `${value.toFixed(1)}%`;
+          } else if (metricKey.includes('Revenue') || metricKey.includes('Income') || metricKey.includes('Costs')) {
+            return `$${new Intl.NumberFormat('en-US').format(value)}`;
+          } else if (metricKey.includes('Count')) {
+            return new Intl.NumberFormat('en-US').format(value);
+          } else {
+            return new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
+          }
+        }
         return new Intl.NumberFormat('en-US').format(value);
       case 'boolean':
         return value ? 'Yes' : 'No';

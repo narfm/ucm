@@ -1,6 +1,6 @@
-<div class="filter-bar-container">
-  <!-- Hierarchy Type Display Section - First position -->
-  <div class="hierarchy-type-section">
+<div class="filter-bar-container" [class.embed-mode]="embedMode">
+  <!-- Hierarchy Type Display Section - First position - Hidden in embed mode -->
+  <div class="hierarchy-type-section" *ngIf="!embedMode">
     <div class="hierarchy-type-value" 
          *ngIf="currentHierarchyType(); else loadingHierarchyType"
          (click)="openHierarchyConfiguration()"
@@ -19,7 +19,7 @@
     </ng-template>
   </div>
 
-  <div class="divider"></div>
+  <div class="divider" *ngIf="!embedMode"></div>
 
   <div class="search-section">
     <div class="search-input-wrapper">
@@ -49,19 +49,20 @@
     </div>
   </div>
   
-  <div class="divider"></div>
+  <div class="divider" *ngIf="!embedMode"></div>
   
   <button 
     class="clear-all-button" 
+    *ngIf="!embedMode"
     (click)="clearAllFilters()"
     [disabled]="selectedFilterTypes.length === 0 && !searchText">
     Clear All
   </button>
 
-  <div class="divider"></div>
+  <div class="divider" *ngIf="!embedMode"></div>
 
-  <!-- Hierarchy Configuration Section -->
-  <div class="hierarchy-section">
+  <!-- Hierarchy Configuration Section - Hidden in embed mode -->
+  <div class="hierarchy-section" *ngIf="!embedMode">
     <app-hierarchy-selector 
       [config]="hierarchyConfig()"
       [hierarchyTypes]="hierarchyTypes"
@@ -70,10 +71,10 @@
     </app-hierarchy-selector>
   </div>
 
-  <div class="divider"></div>
+  <div class="divider" *ngIf="!embedMode"></div>
 
-  <!-- Export Section -->
-  <div class="export-section">
+  <!-- Export Section - Hidden in embed mode -->
+  <div class="export-section" *ngIf="!embedMode">
     <button class="export-button" 
             (click)="exportToExcel()"
             [disabled]="!data || data.length === 0"

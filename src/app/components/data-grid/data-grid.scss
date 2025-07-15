@@ -17,6 +17,159 @@
       background: var(--accent-color) !important;
     }
   }
+  
+  // Embed mode styling
+  &.embed-mode {
+    border-radius: 4px;
+    box-shadow: 0 1px 3px var(--shadow-light);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    
+    .grid-header {
+      .header-row {
+        min-width: 100%;
+      }
+      
+      .header-cell {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        height: 32px;
+        min-width: 0;
+        flex-shrink: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        
+        // Responsive column widths
+        &:first-child {
+          width: 50% !important;
+          min-width: 120px !important;
+        }
+        
+        &:nth-child(2) {
+          width: 25% !important;
+          min-width: 60px !important;
+        }
+        
+        &:nth-child(3) {
+          width: 25% !important;
+          min-width: 60px !important;
+        }
+        
+        // Hide resize handles in embed mode
+        .resize-handle {
+          display: none;
+        }
+      }
+    }
+    
+    .grid-row {
+      height: 28px;
+      min-width: 100%;
+      
+      .grid-cell {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        min-width: 0;
+        flex-shrink: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        
+        // Match header responsive widths
+        &:first-child {
+          width: 50% !important;
+          min-width: 120px !important;
+        }
+        
+        &:nth-child(2) {
+          width: 25% !important;
+          min-width: 60px !important;
+        }
+        
+        &:nth-child(3) {
+          width: 25% !important;
+          min-width: 60px !important;
+        }
+      }
+      
+      .name-cell {
+        .indent {
+          // Allow normal indentation to work in embed mode
+          // Don't override the dynamic padding-left set in the template
+        }
+        
+        .type-icons, .legal-icons {
+          display: none; // Hide icons in embed mode to save space
+        }
+        
+        .expand-button {
+          width: 16px;
+          height: 16px;
+          margin-right: 4px;
+          
+          svg {
+            width: 10px;
+            height: 10px;
+          }
+        }
+      }
+    }
+    
+    .sticky-parent-container {
+      .sticky-row {
+        height: 28px;
+        min-width: 100%;
+        
+        .grid-cell {
+          padding: 0.25rem 0.5rem;
+          font-size: 0.875rem;
+          min-width: 0;
+          flex-shrink: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          
+          // Match responsive widths
+          &:first-child {
+            width: 50% !important;
+            min-width: 120px !important;
+          }
+          
+          &:nth-child(2) {
+            width: 25% !important;
+            min-width: 60px !important;
+          }
+          
+          &:nth-child(3) {
+            width: 25% !important;
+            min-width: 60px !important;
+          }
+        }
+        
+        .name-cell {
+          .indent {
+            // Allow normal indentation to work in embed mode for sticky rows
+            // Don't override the dynamic padding-left set in the template
+          }
+          
+          .type-icons, .legal-icons {
+            display: none; // Hide icons in embed mode to save space
+          }
+        }
+      }
+    }
+    
+    .grid-viewport {
+      width: 100%;
+      
+      .cdk-virtual-scroll-content-wrapper {
+        width: 100%;
+        min-width: 100%;
+      }
+    }
+  }
 }
 
 .grid-header {

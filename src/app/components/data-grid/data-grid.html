@@ -1,4 +1,4 @@
-<div class="data-grid-container" [class.resizing]="resizing">
+<div class="data-grid-container" [class.resizing]="resizing" [class.embed-mode]="embedMode">
   <!-- Global loading progress bar (only for initial data loading) -->
   <app-progress-bar [show]="loading()" message="Loading data..."></app-progress-bar>
 
@@ -62,7 +62,7 @@
           
           <!-- Name with expand/collapse -->
           <div *ngIf="column.key === 'name'" class="name-cell">
-            <span class="indent" [style.padding-left.px]="(stickyParent.level || 0) * 20"></span>
+            <span class="indent" [style.padding-left.px]="getIndentationPixels(stickyParent.level || 0)"></span>
             
             <button *ngIf="stickyParent.hasChildren"
                     class="expand-button"
@@ -276,7 +276,7 @@
         
         <!-- Name with expand/collapse -->
         <div *ngIf="column.key === 'name'" class="name-cell">
-          <span class="indent" [style.padding-left.px]="(row.level || 0) * 20"></span>
+          <span class="indent" [style.padding-left.px]="getIndentationPixels(row.level || 0)"></span>
           
           <button *ngIf="(row.hasChildren && row.maxDepthWalkReached) || (row.children && row.children.length > 0)"
                   class="expand-button"

@@ -21,6 +21,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() hierarchyRequest?: HierarchyRequest;
   @Input() hierarchyTypes: HierarchyType[] = [];
   @Input() searchText = signal<string>('');
+  @Input() embedMode: boolean = false;
   @Output() rowClick = new EventEmitter<HierarchyNode>();
   @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
   
@@ -153,10 +154,17 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '120px', minWidth: '120px' },
     { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '120px', minWidth: '120px' }
   ];
+
+  // Embed mode columns (reduced set with responsive widths)
+  embedColumns: ColumnDefinition[] = [
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '50%', minWidth: '120px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '25%', minWidth: '60px' },
+    { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '25%', minWidth: '60px' }
+  ];
   
   ngOnInit() {
     if (!this.columns || this.columns.length === 0) {
-      this.columns = this.defaultColumns;
+      this.columns = this.embedMode ? this.embedColumns : this.defaultColumns;
     }
     
     // Initialize hierarchy configuration from mock service
@@ -207,19 +215,28 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateColumnsWithMetrics(metricKeys: string[]): void {
-    // Start with default columns (excluding metrics)
-    const baseColumns = this.defaultColumns.slice();
+    // Start with base columns (default or embed mode)
+    const baseColumns = this.embedMode ? this.embedColumns.slice() : this.defaultColumns.slice();
     
-    // Add metric columns
-    const metricColumns: ColumnDefinition[] = metricKeys.map(key => ({
+    // Add metric columns (limit to 1 in embed mode to maintain responsiveness)
+    const limitedMetricKeys = this.embedMode ? metricKeys.slice(0, 1) : metricKeys;
+    const metricColumns: ColumnDefinition[] = limitedMetricKeys.map((key, index) => ({
       key: `metrics.${key}`,
       label: key,
       sortable: true,
       dataType: 'number',
       align: 'right' as const,
-      width: '150px',
-      minWidth: '100px'
+      width: this.embedMode ? '25%' : '150px',
+      minWidth: this.embedMode ? '60px' : '100px'
     }));
+    
+    // In embed mode, adjust base column widths to accommodate metrics
+    if (this.embedMode && metricColumns.length > 0) {
+      // Adjust widths to fit: Name (40%), Type (20%), Children (20%), Metric (20%)
+      baseColumns[0].width = '40%'; // Name
+      baseColumns[1].width = '20%'; // Type
+      baseColumns[2].width = '20%'; // Children
+    }
     
     // Update the columns array
     this.columns = [...baseColumns, ...metricColumns];
@@ -364,6 +381,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     return (row as any)[column.key];
+  }
+
+  getIndentationPixels(level: number): number {
+    // Use smaller indentation in embed mode to save space
+    return level * (this.embedMode ? 12 : 20);
   }
   
   formatCellValue(value: any, column: ColumnDefinition): string {

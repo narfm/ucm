@@ -25,6 +25,7 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   @Output() filterChange = new EventEmitter<FilterEvent>();
   @Input() data: HierarchyNode[] = [];
   @Input() columns: ColumnDefinition[] = [];
+  @Input() embedMode: boolean = false;
   
   private mockDataService = inject(MockDataService);
   private hierarchyModalService = inject(HierarchyModalService);

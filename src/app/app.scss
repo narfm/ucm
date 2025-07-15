@@ -8,4 +8,15 @@
   flex: 1;
   overflow: hidden;
   background-color: var(--bg-secondary);
+  
+  // Embed mode styling
+  &.embed-mode {
+    height: 100vh;
+    // max-width: 500px;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-primary);
+    box-shadow: none;
+    border: none;
+  }
 }

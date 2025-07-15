@@ -9,6 +9,34 @@
   box-shadow: 0 2px 8px var(--shadow-light);
   position: relative;
   overflow: hidden;
+  
+  // Embed mode styling
+  &.embed-mode {
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px var(--shadow-light);
+    
+    .search-section {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .search-input-wrapper {
+      max-width: none;
+    }
+    
+    .search-input {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+      padding-left: 2rem;
+    }
+    
+    .search-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
 }
 
 .hierarchy-section {

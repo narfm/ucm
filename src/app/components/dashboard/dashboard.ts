@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
 import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
 import { HierarchyNode, HierarchyRequest, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
+import { EmbedModeService } from '../../services/embed-mode.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,6 +19,9 @@ export class DashboardComponent implements OnInit {
   
   searchText = signal<string>('');
   hierarchyTypes: HierarchyType[] = [];
+  
+  // Embed mode service
+  protected embedModeService = inject(EmbedModeService);
   
   // Default hierarchy request
   hierarchyRequest: HierarchyRequest = {

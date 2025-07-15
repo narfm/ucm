@@ -1,6 +1,15 @@
 <div class="data-grid-container" [class.resizing]="resizing" [class.embed-mode]="embedMode">
   <!-- Global loading progress bar (only for initial data loading) -->
   <app-progress-bar [show]="loading()" message="Loading data..."></app-progress-bar>
+  
+  <!-- Error display -->
+  <app-error-display 
+    *ngIf="hasError() && currentError()"
+    [error]="currentError()"
+    [compact]="embedMode"
+    (retry)="retryLastOperation()"
+    (dismiss)="clearError()">
+  </app-error-display>
 
   <div class="grid-header">
     <div class="header-row">

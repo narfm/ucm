@@ -7,11 +7,13 @@ import { MockDataService } from '../../services/mock-data.service';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
+import { ErrorHandlerService, AppError } from '../../services/error-handler.service';
+import { ErrorDisplayComponent } from '../error-display/error-display';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective, ErrorDisplayComponent],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -33,6 +35,10 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // Row-level loading state - tracks which rows are currently loading
   rowLoadingStates = signal<Map<string, boolean>>(new Map());
+  
+  // Error state
+  currentError = signal<AppError | null>(null);
+  hasError = signal<boolean>(false);
   
   // Child search state
   childSearchActive = signal<boolean>(false);
@@ -69,6 +75,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   private mockDataService = inject(MockDataService);
   private hierarchyModalService = inject(HierarchyModalService);
+  private errorHandlerService = inject(ErrorHandlerService);
   
   // Resize properties
   resizing = false;
@@ -186,6 +193,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.hierarchyRequest) return;
     
     this.loading.set(true);
+    this.clearError();
+    
     this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
       next: (response) => {
         const nodes = response.root.children || [];
@@ -205,6 +214,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       error: (error) => {
         console.error('Error loading data:', error);
         this.loading.set(false);
+        this.handleError(error, 'Loading data');
       }
     });
   }
@@ -300,6 +310,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
         if (node.partyId) {
           this.setRowLoading(node.partyId, false);
         }
+        this.handleError(error, `Loading children for ${node.name}`);
       }
     });
   }
@@ -597,7 +608,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
         if (targetNode.partyId) {
           this.setRowLoading(targetNode.partyId, false);
         }
-        alert('Failed to load new hierarchy. Please try again.');
+        this.handleError(error, `Loading hierarchy for ${targetNode.name}`);
       }
     });
   }
@@ -770,6 +781,41 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
         this.startChildSearch(focusedRow);
       }
     }
+  }
+
+  // Error handling methods
+  private handleError(error: any, context: string): void {
+    const appError = this.errorHandlerService.handleError(error, context);
+    this.currentError.set(appError);
+    this.hasError.set(true);
+  }
+
+  clearError(): void {
+    this.currentError.set(null);
+    this.hasError.set(false);
+  }
+
+  retryLastOperation(): void {
+    this.clearError();
+    // Retry the last operation based on current state
+    if (this.data().length === 0) {
+      this.loadData();
+    }
+  }
+
+  // Development/testing methods
+  enableErrorSimulation(enabled: boolean = true): void {
+    this.mockDataService.enableErrorSimulation(enabled);
+  }
+
+  setErrorRate(rate: number): void {
+    this.mockDataService.setErrorRate(rate);
+  }
+
+  simulateError(type: 'network' | 'server' | 'timeout' = 'server'): void {
+    this.mockDataService.forceError(type).subscribe({
+      error: (error) => this.handleError(error, 'Simulated error')
+    });
   }
 
   ngAfterViewInit(): void {

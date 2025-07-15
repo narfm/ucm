@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of, delay, throwError } from 'rxjs';
 import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria, HierarchyLevel, HierarchyType } from '../models/financial-data.interface';
 
 @Injectable({
@@ -29,6 +29,10 @@ export class MockDataService {
     'Customer Count',
     'Market Share %'
   ];
+
+  // Error simulation settings (for testing purposes)
+  private errorSimulationEnabled = false;
+  private errorRate = 0.2; // 20% chance of error when enabled
 
   // Available hierarchy levels configuration
   private hierarchyLevels: HierarchyLevel[] = [
@@ -107,6 +111,11 @@ export class MockDataService {
   }
 
   generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {
+    // Simulate API errors if enabled
+    if (this.errorSimulationEnabled && Math.random() < this.errorRate) {
+      return this.simulateApiError().pipe(delay(1000));
+    }
+
     // Randomly select 3-5 metrics for this data set
     const metricCount = this.randomBetween(3, 5);
     const selectedMetrics = this.getRandomItems(this.availableMetricKeys, metricCount);
@@ -568,5 +577,53 @@ export class MockDataService {
     });
     
     return metrics;
+  }
+
+  // Error simulation methods
+  private simulateApiError(): Observable<never> {
+    const errorTypes = [
+      { status: 500, message: 'Internal Server Error' },
+      { status: 503, message: 'Service Unavailable' },
+      { status: 0, message: 'Network Error' },
+      { status: 408, message: 'Request Timeout' },
+      { status: 502, message: 'Bad Gateway' }
+    ];
+
+    const randomError = errorTypes[Math.floor(Math.random() * errorTypes.length)];
+    return throwError(() => randomError);
+  }
+
+  // Public methods for controlling error simulation (for testing/development)
+  enableErrorSimulation(enabled: boolean = true): void {
+    this.errorSimulationEnabled = enabled;
+  }
+
+  setErrorRate(rate: number): void {
+    this.errorRate = Math.max(0, Math.min(1, rate)); // Clamp between 0 and 1
+  }
+
+  isErrorSimulationEnabled(): boolean {
+    return this.errorSimulationEnabled;
+  }
+
+  getErrorRate(): number {
+    return this.errorRate;
+  }
+
+  // Force an error for testing
+  forceError(errorType: 'network' | 'server' | 'timeout' = 'server'): Observable<never> {
+    let error: any;
+    switch (errorType) {
+      case 'network':
+        error = { status: 0, message: 'Network Error' };
+        break;
+      case 'server':
+        error = { status: 500, message: 'Internal Server Error' };
+        break;
+      case 'timeout':
+        error = { status: 408, message: 'Request Timeout' };
+        break;
+    }
+    return throwError(() => error).pipe(delay(1000));
   }
 }

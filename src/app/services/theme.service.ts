@@ -6,7 +6,7 @@ export type Theme = 'light' | 'dark' | 'vibrant';
   providedIn: 'root'
 })
 export class ThemeService {
-  private themeSignal = signal<Theme>('light');
+  private themeSignal = signal<Theme>('dark');
   
   theme = this.themeSignal.asReadonly();
 

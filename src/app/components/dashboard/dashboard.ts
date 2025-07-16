@@ -83,7 +83,12 @@ export class DashboardComponent implements OnInit {
         }
         break;
       case 'update':
-        if (event.searchTerm) {
+        if (event.searchTerm !== undefined) {
+          // Ensure the parent is set in data grid before updating search
+          const filterBarParent = this.filterBar?.childSearchParent();
+          if (filterBarParent && !this.dataGrid.childSearchParent()) {
+            this.dataGrid.startChildSearch(filterBarParent);
+          }
           // Update search in data grid
           this.dataGrid.updateChildSearchFromExternal(event.searchTerm);
         }
@@ -104,9 +109,16 @@ export class DashboardComponent implements OnInit {
   }
   
   // Handle child search request from data grid
-  onChildSearchRequest(node: HierarchyNode): void {
+  onChildSearchRequest(node: HierarchyNode | null): void {
     if (this.filterBar) {
-      this.filterBar.startChildSearch(node);
+      // Focus the search input
+      this.filterBar.focusSearchInput();
+      
+      // Update search parent if a specific node was provided
+      if (node) {
+        this.filterBar.updateSearchParent(node);
+      }
+      // If no node provided, filter-bar will use its current parent (root by default)
     }
   }
 }

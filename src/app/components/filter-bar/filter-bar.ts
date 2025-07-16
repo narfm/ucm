@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, signal, OnDestroy, inject, OnInit, Input } from '@angular/core';
+import { Component, Output, EventEmitter, signal, OnDestroy, inject, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
@@ -27,13 +27,16 @@ export interface ChildSearchEvent {
   templateUrl: './filter-bar.html',
   styleUrl: './filter-bar.scss'
 })
-export class FilterBarComponent implements OnInit, OnDestroy {
+export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
   @Output() filterChange = new EventEmitter<FilterEvent>();
   @Output() childSearchEvent = new EventEmitter<ChildSearchEvent>();
   @Input() data: HierarchyNode[] = [];
   @Input() columns: ColumnDefinition[] = [];
   @Input() embedMode: boolean = false;
   @Input() flattenedData: HierarchyNode[] = [];
+  @Input() searchResults: HierarchyNode[] = [];
+  @Input() searchCurrentIndex: number = -1;
+  @Input() focusedRow: HierarchyNode | null = null;
   
   private mockDataService = inject(MockDataService);
   private hierarchyModalService = inject(HierarchyModalService);
@@ -88,6 +91,57 @@ export class FilterBarComponent implements OnInit, OnDestroy {
     
     // Load hierarchy types for display
     this.loadHierarchyTypes();
+    
+    // Initialize child search with root node as default
+    this.initializeDefaultChildSearch();
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    // When data changes, update the root node for child search
+    if (changes['data'] && this.data && this.data.length > 0) {
+      // Check if child search parent is still the default/placeholder root
+      const currentParent = this.childSearchParent();
+      if (currentParent && currentParent.name === 'root' && (!currentParent.children || currentParent.children.length === 0)) {
+        // Update with the actual root node from data
+        const actualRootNode = this.data[0]; // Root node is the first element
+        if (actualRootNode) {
+          this.childSearchParent.set(actualRootNode);
+          
+          // Emit start event to sync with data-grid
+          this.childSearchEvent.emit({
+            type: 'start',
+            parent: actualRootNode
+          });
+          
+          // Clear any existing search to refresh with new data
+          if (this.childSearchTerm()) {
+            this.performChildSearch(this.childSearchTerm());
+          }
+        }
+      }
+    }
+    
+    // When focused row changes, update search parent if needed
+    if (changes['focusedRow'] && this.focusedRow && this.nodeHasActualChildren(this.focusedRow)) {
+      const currentParent = this.childSearchParent();
+      // Only update if it's a different node
+      if (!currentParent || 
+          (currentParent.partyId !== this.focusedRow.partyId) || 
+          (currentParent.name !== this.focusedRow.name)) {
+        this.childSearchParent.set(this.focusedRow);
+        
+        // Clear previous search when changing parent
+        this.childSearchTerm.set('');
+        this.childSearchResults.set([]);
+        this.childSearchCurrentIndex.set(-1);
+        
+        // Emit start event to sync with data-grid
+        this.childSearchEvent.emit({
+          type: 'start',
+          parent: this.focusedRow
+        });
+      }
+    }
   }
   
   private loadHierarchyTypes(): void {
@@ -108,6 +162,26 @@ export class FilterBarComponent implements OnInit, OnDestroy {
         console.error('Failed to load hierarchy types:', error);
       }
     });
+  }
+  
+  private initializeDefaultChildSearch(): void {
+    // Set child search as active by default
+    this.childSearchActive.set(true);
+    
+    // We'll set the root node when data is available
+    // For now, create a placeholder root node
+    const rootNode: HierarchyNode = {
+      name: 'root',
+      type: 'ROOT',
+      hasChildren: true,
+      children: [], // Will be populated when data loads
+      level: 0
+    };
+    
+    this.childSearchParent.set(rootNode);
+    this.childSearchTerm.set('');
+    this.childSearchResults.set([]);
+    this.childSearchCurrentIndex.set(-1);
   }
   
   
@@ -188,11 +262,21 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   startChildSearch(node: HierarchyNode): void {
     if (!this.nodeHasActualChildren(node)) return;
     
-    this.childSearchParent.set(node);
+    // Only update if it's a different node from the current parent
+    const currentParent = this.childSearchParent();
+    const isDifferentNode = !currentParent || 
+      (currentParent.partyId !== node.partyId) || 
+      (currentParent.name !== node.name);
+    
+    if (isDifferentNode) {
+      this.childSearchParent.set(node);
+      this.childSearchTerm.set('');
+      this.childSearchResults.set([]);
+      this.childSearchCurrentIndex.set(-1);
+    }
+    
+    // Ensure child search is active
     this.childSearchActive.set(true);
-    this.childSearchTerm.set('');
-    this.childSearchResults.set([]);
-    this.childSearchCurrentIndex.set(-1);
     
     this.childSearchEvent.emit({
       type: 'start',
@@ -223,10 +307,14 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   }
 
   private performChildSearch(searchTerm: string): void {
-    const parent = this.childSearchParent();
-    if (!parent) return;
+    // Update search parent to effective parent if needed
+    this.updateSearchParentToEffective();
     
-    const results = this.findChildrenMatching(parent, searchTerm);
+    // Use the current search parent
+    const searchParent = this.childSearchParent();
+    if (!searchParent) return;
+    
+    const results = this.findChildrenMatching(searchParent, searchTerm);
     this.childSearchResults.set(results);
     
     if (results.length > 0) {
@@ -238,6 +326,28 @@ export class FilterBarComponent implements OnInit, OnDestroy {
     } else {
       this.childSearchCurrentIndex.set(-1);
     }
+  }
+  
+  private updateSearchParentToEffective(): void {
+    // If there's a focused row that has children, use it as search parent
+    if (this.focusedRow && this.nodeHasActualChildren(this.focusedRow)) {
+      const currentParent = this.childSearchParent();
+      if (!currentParent || 
+          (currentParent.partyId !== this.focusedRow.partyId) || 
+          (currentParent.name !== this.focusedRow.name)) {
+        this.childSearchParent.set(this.focusedRow);
+      }
+    }
+  }
+  
+  private getEffectiveSearchParent(): HierarchyNode | null {
+    // If there's a focused row that has children, use it as search parent
+    if (this.focusedRow && this.nodeHasActualChildren(this.focusedRow)) {
+      return this.focusedRow;
+    }
+    
+    // Otherwise use the current search parent (root by default)
+    return this.childSearchParent();
   }
 
   private findChildrenMatching(parent: HierarchyNode, searchTerm: string): HierarchyNode[] {
@@ -268,26 +378,12 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   }
 
   navigateChildSearchNext(): void {
-    const results = this.childSearchResults();
-    const currentIndex = this.childSearchCurrentIndex();
-    
-    if (results.length === 0 || currentIndex >= results.length - 1) return;
-    
-    const nextIndex = currentIndex + 1;
-    this.childSearchCurrentIndex.set(nextIndex);
-    
+    // Just emit the event, let data-grid handle the navigation
     this.childSearchEvent.emit({ type: 'navigate-next' });
   }
 
   navigateChildSearchPrevious(): void {
-    const results = this.childSearchResults();
-    const currentIndex = this.childSearchCurrentIndex();
-    
-    if (results.length === 0 || currentIndex <= 0) return;
-    
-    const prevIndex = currentIndex - 1;
-    this.childSearchCurrentIndex.set(prevIndex);
-    
+    // Just emit the event, let data-grid handle the navigation
     this.childSearchEvent.emit({ type: 'navigate-previous' });
   }
 
@@ -296,21 +392,21 @@ export class FilterBarComponent implements OnInit, OnDestroy {
     this.childSearchResults.set([]);
     this.childSearchCurrentIndex.set(-1);
     
+    // Emit clear event to sync with data-grid
     this.childSearchEvent.emit({ type: 'clear' });
+    
+    // Focus back on the search input after clearing
+    setTimeout(() => {
+      const searchInput = document.querySelector('.child-search-section input') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }, 50);
   }
 
   closeChildSearch(): void {
-    this.childSearchActive.set(false);
-    this.childSearchParent.set(null);
-    this.childSearchTerm.set('');
-    this.childSearchResults.set([]);
-    this.childSearchCurrentIndex.set(-1);
-    
-    if (this.childSearchHighlightTimeout) {
-      clearTimeout(this.childSearchHighlightTimeout);
-    }
-    
-    this.childSearchEvent.emit({ type: 'close' });
+    // Don't hide the search section, just clear the search
+    this.clearChildSearchTerm();
   }
 
   // Get hierarchy path for the current search context (either parent or current result)
@@ -324,8 +420,8 @@ export class FilterBarComponent implements OnInit, OnDestroy {
       return this.getNodeHierarchyPath(currentResult);
     }
     
-    // Otherwise show the search parent's path
-    const searchParent = this.childSearchParent();
+    // Otherwise show the effective search parent's path (focused row or current parent)
+    const searchParent = this.getEffectiveSearchParent();
     if (!searchParent) return '';
     
     return this.getNodeHierarchyPath(searchParent);
@@ -342,10 +438,14 @@ export class FilterBarComponent implements OnInit, OnDestroy {
       return `Current result location: ${this.getNodeHierarchyPath(currentResult)}`;
     }
     
-    // Otherwise show search scope
-    const searchParent = this.childSearchParent();
+    // Otherwise show search scope based on effective search parent
+    const searchParent = this.getEffectiveSearchParent();
     if (searchParent) {
-      return `Searching within: ${this.getNodeHierarchyPath(searchParent)}`;
+      if (this.focusedRow && this.nodeHasActualChildren(this.focusedRow)) {
+        return `Searching within selected node: ${this.getNodeHierarchyPath(searchParent)}`;
+      } else {
+        return `Searching within: ${this.getNodeHierarchyPath(searchParent)}`;
+      }
     }
     
     return 'Search hierarchy location';
@@ -408,7 +508,7 @@ export class FilterBarComponent implements OnInit, OnDestroy {
     switch (event.key) {
       case 'Escape':
         event.preventDefault();
-        this.closeChildSearch();
+        this.clearChildSearchTerm();
         break;
       case 'Enter':
         event.preventDefault();
@@ -429,6 +529,47 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   private nodeHasActualChildren(node: HierarchyNode | null): boolean {
     if (!node) return false;
     return node.children != null && node.children.length > 0;
+  }
+  
+  // Focus the search input
+  focusSearchInput(): void {
+    setTimeout(() => {
+      const searchInput = document.querySelector('.child-search-section input') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select(); // Select existing text for easy replacement
+      }
+    }, 100);
+  }
+  
+  // Update search parent to a specific node
+  updateSearchParent(node: HierarchyNode): void {
+    if (!node) return;
+    
+    // If node has children, use it as search parent
+    if (this.nodeHasActualChildren(node)) {
+      const currentParent = this.childSearchParent();
+      const isDifferentNode = !currentParent || 
+        (currentParent.partyId !== node.partyId) || 
+        (currentParent.name !== node.name);
+      
+      if (isDifferentNode) {
+        this.childSearchParent.set(node);
+        
+        // Clear previous search when changing parent
+        this.childSearchTerm.set('');
+        this.childSearchResults.set([]);
+        this.childSearchCurrentIndex.set(-1);
+        
+        // Emit start event to sync with data-grid
+        this.childSearchEvent.emit({
+          type: 'start',
+          parent: node
+        });
+      }
+    }
+    // If node doesn't have children, search parent remains as current (root by default)
+    // The getEffectiveSearchParent() method will handle the fallback logic
   }
   
   ngOnDestroy(): void {

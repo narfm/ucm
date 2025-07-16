@@ -62,17 +62,17 @@
       </div>
       
       <div class="search-controls">
-        <span class="search-results-count" *ngIf="childSearchResults().length > 0">
-          {{childSearchCurrentIndex() + 1}} of {{childSearchResults().length}}
+        <span class="search-results-count" *ngIf="searchResults.length > 0">
+          {{searchCurrentIndex + 1}} of {{searchResults.length}}
         </span>
-        <span class="search-no-results" *ngIf="childSearchTerm() && childSearchResults().length === 0">
+        <span class="search-no-results" *ngIf="childSearchTerm() && searchResults.length === 0">
           No results found
         </span>
         
         <div class="search-navigation">
           <button class="nav-button" 
                   (click)="navigateChildSearchPrevious()"
-                  [disabled]="childSearchResults().length === 0 || childSearchCurrentIndex() <= 0"
+                  [disabled]="searchResults.length === 0 || searchCurrentIndex <= 0"
                   appTooltip="Previous result">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M15 18l-6-6 6-6"/>
@@ -80,22 +80,13 @@
           </button>
           <button class="nav-button" 
                   (click)="navigateChildSearchNext()"
-                  [disabled]="childSearchResults().length === 0 || childSearchCurrentIndex() >= childSearchResults().length - 1"
+                  [disabled]="searchResults.length === 0 || searchCurrentIndex >= searchResults.length - 1"
                   appTooltip="Next result">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M9 18l6-6-6-6"/>
             </svg>
           </button>
         </div>
-        
-        <button class="close-search" 
-                (click)="closeChildSearch()"
-                appTooltip="Close search">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
       </div>
       
       <!-- Hierarchy Path Display - moved after search controls -->

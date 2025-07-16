@@ -10,6 +10,9 @@
       [columns]="dataGrid.columns"
       [flattenedData]="dataGrid.flattenedData()"
       [embedMode]="embedModeService.isEmbedMode()()"
+      [searchResults]="dataGrid.childSearchResults()"
+      [searchCurrentIndex]="dataGrid.childSearchCurrentIndex()"
+      [focusedRow]="dataGrid.focusedRow()"
       (filterChange)="onFilterChange($event)"
       (childSearchEvent)="onChildSearchEvent($event)"></app-filter-bar>
   </div>

@@ -454,12 +454,13 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   onRowKeydown(row: HierarchyNode, event: KeyboardEvent) {
-    // Handle Ctrl+F for child search
+    // Handle Ctrl+F to focus search input
     if (event.ctrlKey && event.key.toLowerCase() === 'f') {
-      if (this.nodeHasActualChildren(row) && !this.childSearchActive()) {
-        event.preventDefault();
-        this.requestChildSearch(row);
-      }
+      event.preventDefault();
+      // Update focused row which will be used as search parent
+      this.focusedRow.set(row);
+      // Request to focus the search input
+      this.childSearchRequest.emit(row);
     }
   }
   
@@ -776,12 +777,15 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private onGlobalKeydown = (event: KeyboardEvent): void => {
-    // Handle Ctrl+F for child search
+    // Handle Ctrl+F to focus search input
     if (event.ctrlKey && event.key.toLowerCase() === 'f') {
+      event.preventDefault();
       const focusedRow = this.focusedRow();
-      if (focusedRow && this.nodeHasActualChildren(focusedRow) && !this.childSearchActive()) {
-        event.preventDefault();
-        this.requestChildSearch(focusedRow);
+      if (focusedRow) {
+        this.childSearchRequest.emit(focusedRow);
+      } else {
+        // If no row is focused, emit with null to use root
+        this.childSearchRequest.emit(null as any);
       }
     }
   }
@@ -962,7 +966,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // External interface for child search
   startChildSearch(node: HierarchyNode): void {
-    if (!node.hasChildren) return;
+    // Check if node has children (either hasChildren flag or actual children array)
+    if (!node.hasChildren && (!node.children || node.children.length === 0)) return;
     
     this.childSearchParent.set(node);
     this.childSearchActive.set(true);
@@ -980,7 +985,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private performChildSearch(searchTerm: string): void {
     const parent = this.childSearchParent();
-    if (!parent) return;
+    if (!parent) {
+      return;
+    }
     
     const results = this.findChildrenMatching(parent, searchTerm);
     this.childSearchResults.set(results);

@@ -10,6 +10,7 @@
   position: relative;
   overflow: visible;
   flex-wrap: wrap;
+  align-items: center;
   
   // Embed mode styling
   &.embed-mode {
@@ -200,7 +201,7 @@
 
 
 .hierarchy-section {
-  flex: 1;
+  // flex: 1;
   gap: 1rem;
 }
 

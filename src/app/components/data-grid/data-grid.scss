@@ -325,22 +325,25 @@
     }
   }
   
-  // Row focus state
+  // Row focus state - Enhanced visibility
   &.row-focused {
-    background: rgba(var(--accent-color-rgb), 0.1);
-    border-left: 2px solid var(--accent-color);
+    background: var(--row-focused-bg);
+    border-left: 3px solid var(--row-focused-border);
     outline: none;
     cursor: pointer;
+    box-shadow: 0 0 0 1px var(--row-focused-border), 0 1px 3px var(--shadow-accent);
+    position: relative;
     
     &:hover {
-      background: rgba(var(--accent-color-rgb), 0.15);
+      background: var(--row-focused-hover-bg);
+      box-shadow: 0 0 0 1px var(--row-focused-border), 0 2px 6px var(--shadow-accent-strong);
     }
     
     &.filter-row {
-      background: rgba(var(--accent-color-rgb), 0.12);
+      background: var(--row-focused-bg);
       
       &:hover {
-        background: rgba(var(--accent-color-rgb), 0.18);
+        background: var(--row-focused-hover-bg);
       }
     }
   }

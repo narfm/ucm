@@ -50,6 +50,12 @@ html, body {
   --info-color: #3b82f6;
   --purple-color: #a855f7;
   --gray-color: #6b7280;
+  --primary-color: #2563eb;
+  
+  // Row highlighting colors
+  --row-focused-bg: rgba(102, 126, 234, 0.12);
+  --row-focused-hover-bg: rgba(102, 126, 234, 0.18);
+  --row-focused-border: #667eea;
   
   // Shadow colors
   --shadow-light: rgba(0, 0, 0, 0.06);
@@ -99,6 +105,12 @@ html, body {
   --info-color: #60a5fa;
   --purple-color: #c084fc;
   --gray-color: #9ca3af;
+  --primary-color: #60a5fa;
+  
+  // Row highlighting colors
+  --row-focused-bg: rgba(16, 185, 129, 0.15);
+  --row-focused-hover-bg: rgba(16, 185, 129, 0.22);
+  --row-focused-border: #10b981;
   
   // Shadow colors
   --shadow-light: rgba(0, 0, 0, 0.2);
@@ -148,6 +160,12 @@ html, body {
   --info-color: #fb923c;
   --purple-color: #f97316;
   --gray-color: #a3a3a3;
+  --primary-color: #ea580c;
+  
+  // Row highlighting colors
+  --row-focused-bg: rgba(249, 115, 22, 0.15);
+  --row-focused-hover-bg: rgba(249, 115, 22, 0.22);
+  --row-focused-border: #f97316;
   
   // Shadow colors - Warm glow
   --shadow-light: rgba(249, 115, 22, 0.1);

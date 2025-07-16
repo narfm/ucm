@@ -79,13 +79,23 @@ src/app/
 │   │   ├── progress-bar.html
 │   │   ├── progress-bar.scss
 │   │   └── progress-bar.ts
-│   └── tooltip/        # Tooltip directive and component (no tests)
-│       ├── tooltip.directive.ts
-│       └── tooltip.ts
+│   ├── tooltip/        # Tooltip directive and component (no tests)
+│   │   ├── tooltip.directive.ts
+│   │   └── tooltip.ts
+│   ├── error-display/  # Reusable error display component (no tests)
+│   │   ├── error-display.html
+│   │   ├── error-display.scss
+│   │   └── error-display.ts
+│   └── global-error-display/ # Global error notifications (no tests)
+│       ├── global-error-display.html
+│       ├── global-error-display.scss
+│       └── global-error-display.ts
 ├── services/           
 │   ├── mock-data.service.ts     # Generates hierarchical data (returns Observable)
 │   ├── theme.service.ts         # Theme management
-│   └── hierarchy-modal.service.ts # Global modal state management
+│   ├── hierarchy-modal.service.ts # Global modal state management
+│   ├── embed-mode.service.ts    # Embed mode state management
+│   └── error-handler.service.ts # Global error handling and management
 ├── models/             
 │   ├── financial-data.interface.ts  # Data structures
 │   └── index.ts                     # Barrel export
@@ -119,6 +129,14 @@ interface HierarchyNode {
   expanded?: boolean;
   level?: number;
   parent?: HierarchyNode;
+  metrics?: Record<string, any>; // Dynamic metric values for additional columns
+}
+
+interface HierarchyResponse {
+  root: {
+    children: HierarchyNode[];
+    metricKeys?: string[]; // Available metric column names
+  };
 }
 ```
 
@@ -144,6 +162,7 @@ interface HierarchyNode {
   - Party ID
   - Legal Entity (boolean)
   - Children Count
+  - **Dynamic Metric Columns**: Additional columns based on `metricKeys` from HierarchyResponse
 - Supports sorting and column resizing (resize doesn't trigger sort)
 - Row/cell click events
 - Context menu with "Refresh Children", "Change Hierarchy", and "Search Children" options
@@ -151,6 +170,12 @@ interface HierarchyNode {
 - Iconography: type icons (filter/org/person) and legal entity status (checkmark/X)
 - Loading states during hierarchy configuration changes
 - Node-specific hierarchy configuration via modal service
+- **Embed Mode Support**: 
+  - Accessible via `/dashboard/embedmode` route
+  - Hides header and shows compact filter bar
+  - Responsive design optimized for half-screen width (500px)
+  - Reduced column set and adjusted indentation (12px vs 20px per level)
+  - Limited to 1 metric column in embed mode for responsiveness
 - **Child Search Feature**: 
   - Right-click context menu "Search Children" option
   - Ctrl+F keyboard shortcut when focused on a row with children
@@ -169,6 +194,7 @@ interface HierarchyNode {
 - Compact hierarchy selector in header with click-to-expand configuration
 - Shows current selected hierarchy and max depth in header
 - Uses modal service for hierarchy configuration
+- **Embed Mode Support**: Shows simplified interface with search-only functionality
 
 ### Hierarchy Selector Component
 - Dual-mode display: compact in header, full configuration in modal
@@ -188,6 +214,10 @@ interface HierarchyNode {
 - Supports search and filtering
 - Maintains parent-child relationships
 - Simulates random network delay (500ms-5s) for realistic loading experience
+- **Dynamic Metric Generation**: Creates random metric values based on metricKeys parameter
+- Available metric types: Revenue, Profit Margin %, Risk Score, Compliance Rate %, Growth %, etc.
+- **Error Simulation**: Configurable error simulation for testing (network, server, timeout errors)
+- **Development Controls**: Methods to enable/disable errors and set error rates for testing
 
 ### Progress Bar Component
 - Reusable loading component
@@ -220,6 +250,38 @@ interface HierarchyNode {
 - Reusable tooltip directive and component
 - Provides contextual information on hover
 - Used throughout the application for enhanced UX
+
+### Embed Mode Service
+- Global service for managing embed mode state
+- Signal-based reactive state management
+- Detects embed mode from URL route (`/dashboard/embedmode`)
+- Provides `isEmbedMode()` signal for components to react to embed mode
+- Enables components to conditionally render based on embed mode state
+
+### Error Handler Service
+- Centralized error management and handling service
+- Categorizes errors by type (network, server, timeout, validation, unknown)
+- Provides user-friendly error messages with retry capability indicators
+- Signal-based reactive state management for error tracking
+- Structured error objects with timestamps, context, and severity levels
+- Integration with mock service for error simulation during development
+
+### Error Display Component
+- Reusable error display component for contextual error messages
+- Supports different error types with appropriate icons and styling
+- Configurable retry and dismiss actions
+- Compact mode for embedded/constrained layouts
+- Responsive design with color-coded error categories
+- Animation support for smooth error appearance/dismissal
+
+### Global Error Display Component
+- Application-wide error notification system
+- Bottom-center positioning for non-intrusive user experience
+- Auto-dismiss functionality with 5-second timer
+- Visual countdown progress bar showing remaining time
+- Multiple error stacking with clear-all functionality
+- Responsive mobile design with proper timeout management
+- Smooth slide-up animation from bottom of screen
 
 ## Styling Approach
 - Uses CSS custom properties for theming
@@ -267,9 +329,16 @@ interface HierarchyNode {
 13. **Color Usage Guidelines**: Established strict guidelines for color usage to maintain theme consistency
 14. **Child Search Feature**: Implemented comprehensive child search functionality with context menu integration, keyboard shortcuts, and virtual scrolling navigation
 15. **UI Polish**: Fixed blinking cursor issue on focusable grid rows using `caret-color: transparent` while maintaining keyboard functionality
+16. **Dynamic Metric Columns**: Added support for metric columns based on metricKeys in HierarchyResponse
+17. **Sunrise Theme**: Updated vibrant theme with warm sunrise colors (creams, peaches, oranges, reds)
+18. **Embed Mode Implementation**: Created full embed mode functionality with EmbedModeService, responsive design, and route-based activation
+19. **Embed Mode Indentation Fix**: Fixed hierarchy indentation in embed mode using responsive `getIndentationPixels()` method (12px vs 20px per level)
+20. **Comprehensive Error Handling**: Implemented complete error handling system with ErrorHandlerService, ErrorDisplayComponent, and GlobalErrorDisplayComponent
+21. **Error Categorization**: Added error type classification (network, server, timeout, validation, unknown) with appropriate user messaging
+22. **Global Error Notifications**: Created bottom-center positioned error notifications with 5-second auto-dismiss and visual countdown
+23. **Error Simulation**: Added configurable error simulation in MockDataService for development and testing scenarios
 
 ## Next Steps/TODO
-- Add error handling for data loading
 - Implement lazy loading for deep hierarchies
 - Add loading states during data fetching
 - Consider implementing data persistence
@@ -278,10 +347,14 @@ interface HierarchyNode {
   - hierarchy-config-modal
   - progress-bar
   - tooltip
-  - All services (mock-data, theme, hierarchy-modal)
+  - error-display
+  - global-error-display
+  - All services (mock-data, theme, hierarchy-modal, embed-mode, error-handler)
 - Optimize performance for very large datasets (100K+ nodes)
 - Configure ESLint/Angular ESLint for code quality
 - Add npm scripts for Prettier formatting
+- Add error retry with exponential backoff
+- Implement error logging and analytics integration
 
 ## Known Issues
 - None currently identified in latest implementation
@@ -294,7 +367,7 @@ interface HierarchyNode {
 5. Column resize functionality properly prevents sorting during resize operations
 6. Search functionality works across name, partyId, and type fields
 7. **IMPORTANT**: Level property is calculated dynamically in data-grid component's flattenData() method, not generated by mock service
-8. Hierarchy indentation is achieved using calculated level * 20px padding
+8. Hierarchy indentation is achieved using calculated level * indentationPixels (20px normal, 12px embed mode)
 9. **Async Operations**: All data loading should use Observable patterns with proper loading states
 10. **Event Handling**: Use event.stopPropagation() and timing controls to prevent event conflicts
 11. **Visual Hierarchy**: Filter rows use subtle background colors, iconography shows type and legal status
@@ -313,3 +386,12 @@ interface HierarchyNode {
 24. **Focus Management**: Use `caret-color: transparent` to hide text cursor on focusable elements while maintaining keyboard functionality
 25. **Path Expansion**: Implement recursive path finding to expand parent nodes when navigating to search results
 26. **Search Algorithms**: Use recursive traversal for comprehensive child node searching across all descendant levels
+27. **Dynamic Metric Columns**: Use metricKeys from HierarchyResponse to create additional columns with proper formatting
+28. **Embed Mode Implementation**: Use EmbedModeService to detect embed mode and conditionally render components/features
+29. **Responsive Indentation**: Use getIndentationPixels() method for dynamic indentation based on embed mode (12px vs 20px per level)
+30. **Embed Mode Routing**: Access embed mode via `/dashboard/embedmode` route for integrated third-party applications
+31. **Error Handling Patterns**: Use ErrorHandlerService.handleError() for all API failures with appropriate context information
+32. **Error UI Integration**: Use ErrorDisplayComponent for contextual errors and GlobalErrorDisplayComponent for app-wide notifications
+33. **Error Simulation**: Use MockDataService error simulation methods for development testing (enableErrorSimulation, setErrorRate, forceError)
+34. **Error State Management**: Use signal-based reactive patterns for error state with proper cleanup of timeouts and subscriptions
+35. **Error User Experience**: Provide clear, actionable error messages with retry capabilities and automatic dismissal for non-critical errors

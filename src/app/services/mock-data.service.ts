@@ -120,22 +120,34 @@ export class MockDataService {
     const metricCount = this.randomBetween(3, 5);
     const selectedMetrics = this.getRandomItems(this.availableMetricKeys, metricCount);
     
-    const response: HierarchyResponse = {
-      root: {
-        children: [],
-        metricKeys: selectedMetrics
-      }
+    // Create root as a HierarchyNode
+    const root: HierarchyNode = {
+      name: 'root',
+      type: 'ROOT',
+      children: [],
+      expanded: true,
+      hasChildren: true,
+      childrenCount: 0,
+      metrics: this.generateMetrics(selectedMetrics, 'ROOT')
     };
 
     // If rootPartyId is provided, generate children for that specific node
     if (request.rootPartyId) {
-      response.root.children = this.generateChildrenForNode(request.rootPartyId, request.maxDepth, selectedMetrics);
+      root.children = this.generateChildrenForNode(request.rootPartyId, request.maxDepth, selectedMetrics);
     } else {
       // Generate hierarchy based on filter order
       if (request.filters.length > 0) {
-        response.root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth, selectedMetrics);
+        root.children = this.generateMultiLevelHierarchy(request.filters, request.maxDepth, selectedMetrics);
       }
     }
+    
+    // Update children count
+    root.childrenCount = root.children!.length;
+    
+    const response: HierarchyResponse = {
+      root: root,
+      metricKeys: selectedMetrics
+    };
 
     // Simulate loading delay with random duration between 500ms and 5 seconds
     const randomDelay = Math.floor(Math.random() * (1000 - 500 + 1)) + 500;
@@ -561,14 +573,14 @@ export class MockDataService {
       } else if (key.includes('Revenue') || key.includes('Income') || key.includes('Costs')) {
         // Financial values - higher for organizations, lower for persons
         const base = nodeType === 'PER' ? 100000 : 1000000;
-        const multiplier = nodeType === 'FILTER' ? 10 : 1;
+        const multiplier = nodeType === 'FILTER' || nodeType === 'ROOT' ? 10 : 1;
         metrics[key] = Math.round(Math.random() * base * multiplier);
       } else if (key.includes('Score')) {
         // Score values (0-100)
         metrics[key] = Math.round(Math.random() * 100);
       } else if (key.includes('Count')) {
         // Count values
-        const max = nodeType === 'FILTER' ? 10000 : nodeType === 'ORG' ? 1000 : 100;
+        const max = nodeType === 'FILTER' || nodeType === 'ROOT' ? 10000 : nodeType === 'ORG' ? 1000 : 100;
         metrics[key] = Math.round(Math.random() * max);
       } else {
         // Default numeric value

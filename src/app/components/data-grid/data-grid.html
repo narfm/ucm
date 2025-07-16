@@ -95,6 +95,20 @@
 
             <!-- Type icons -->
             <div class="type-icons">
+              <!-- ROOT icon (bank) -->
+              <svg *ngIf="stickyParent.type === 'ROOT'" 
+                   class="type-icon root-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Root node">
+                <path d="M3 21h18"/>
+                <path d="M3 10h18"/>
+                <path d="M5 6l7-3 7 3"/>
+                <path d="M5 10v11"/>
+                <path d="M9 10v11"/>
+                <path d="M13 10v11"/>
+                <path d="M17 10v11"/>
+                <path d="M21 10v11"/>
+              </svg>
+              
               <!-- UMP_L1_NAME filter icon (funnel) -->
               <svg *ngIf="stickyParent.type === 'FILTER/UMP_L1_NAME'" 
                    class="type-icon filter-icon ump-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -154,6 +168,7 @@
             </div>
             
             <span class="node-name" 
+                  [class.root-type]="stickyParent.type === 'ROOT'"
                   [class.filter-type]="stickyParent.type === 'FILTER'" 
                   [class.filter-ump-type]="stickyParent.type === 'FILTER/UMP_L1_NAME'"
                   [class.filter-client-type]="stickyParent.type === 'FILTER/CLIENT_OWNER_NAME'"
@@ -254,6 +269,7 @@
     <div *cdkVirtualFor="let row of flattenedData(); trackBy: trackByRow"
          class="grid-row"
          [class.clickable]="true"
+         [class.root-row]="row.type === 'ROOT'"
          [class.filter-row]="row.type === 'FILTER' || row.type.startsWith('FILTER/')"
          [class.org-row]="row.type === 'ORG'"
          [class.person-row]="row.type === 'PER'"
@@ -309,6 +325,20 @@
 
           <!-- Type icons -->
           <div class="type-icons">
+            <!-- ROOT icon (bank) -->
+            <svg *ngIf="row.type === 'ROOT'" 
+                 class="type-icon root-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Root node">
+              <path d="M3 21h18"/>
+              <path d="M3 10h18"/>
+              <path d="M5 6l7-3 7 3"/>
+              <path d="M5 10v11"/>
+              <path d="M9 10v11"/>
+              <path d="M13 10v11"/>
+              <path d="M17 10v11"/>
+              <path d="M21 10v11"/>
+            </svg>
+            
             <!-- UMP_L1_NAME filter icon (funnel) -->
             <svg *ngIf="row.type === 'FILTER/UMP_L1_NAME'" 
                  class="type-icon filter-icon ump-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -368,6 +398,7 @@
           </div>
           
           <span class="node-name" 
+                [class.root-type]="row.type === 'ROOT'"
                 [class.filter-type]="row.type === 'FILTER'" 
                 [class.filter-ump-type]="row.type === 'FILTER/UMP_L1_NAME'"
                 [class.filter-client-type]="row.type === 'FILTER/CLIENT_OWNER_NAME'"

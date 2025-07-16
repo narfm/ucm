@@ -1,6 +1,6 @@
 export interface HierarchyNode {
   name: string;
-  type: 'FILTER' | 'ORG' | 'PER' | string; // Allow dynamic filter types like 'FILTER/UPM_L1_NAME'
+  type: 'FILTER' | 'ORG' | 'PER' | 'ROOT' | string; // Allow dynamic filter types like 'FILTER/UPM_L1_NAME'
   filters?: string[];
   partyId?: string;
   childrenCount?: number;
@@ -24,10 +24,8 @@ export interface HierarchyRequest {
 }
 
 export interface HierarchyResponse {
-  root: {
-    children: HierarchyNode[];
-    metricKeys?: string[]; // Available metric column names
-  };
+  root: HierarchyNode;
+  metricKeys?: string[]; // Available metric column names
 }
 
 export type FilterType = 

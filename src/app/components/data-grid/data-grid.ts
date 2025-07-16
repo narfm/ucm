@@ -197,18 +197,29 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     this.mockDataService.generateHierarchicalData(this.hierarchyRequest).subscribe({
       next: (response) => {
-        const nodes = response.root.children || [];
+        // Include root node in the data
+        const nodes = [response.root];
         // Assign parent references after data is loaded
         this.assignParentReferences(nodes);
         // Set childrenLoaded and allChildrenLoaded for each node
         this.updateNodeLoadedStates(nodes);
         
         // Update columns with metric columns if available
-        if (response.root.metricKeys && response.root.metricKeys.length > 0) {
-          this.updateColumnsWithMetrics(response.root.metricKeys);
+        if (response.metricKeys && response.metricKeys.length > 0) {
+          this.updateColumnsWithMetrics(response.metricKeys);
         }
         
         this.data.set(nodes);
+        
+        // Ensure root node is always expanded
+        const currentState = this.gridState();
+        const newExpandedIds = new Set(currentState.expandedNodeIds);
+        newExpandedIds.add('root'); // Root node uses its name as ID
+        this.gridState.set({
+          ...currentState,
+          expandedNodeIds: newExpandedIds
+        });
+        
         this.loading.set(false);
       },
       error: (error) => {
@@ -269,8 +280,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     this.mockDataService.generateHierarchicalData(childRequest).subscribe({
       next: (response) => {
-        // Update the node with loaded children
-        node.children = response.root.children;
+        // Update the node with loaded children from root
+        node.children = response.root.children || [];
         
         // Assign parent references for the newly loaded children
         if (node.children) {
@@ -566,8 +577,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (response) => {
         if (targetNode) {
           // Update the node with new children
-          targetNode.children = response.root.children;
-          targetNode.childrenCount = response.root.children?.length || 0;
+          targetNode.children = response.root.children || [];
+          targetNode.childrenCount = targetNode.children.length;
           
           // Assign parent references for the newly loaded children
           if (targetNode.children) {

@@ -457,6 +457,10 @@
     }
   }
   
+  &.root-icon {
+    color: var(--primary-color);
+  }
+  
   &.org-icon {
     color: var(--success-color);
   }
@@ -546,6 +550,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
+  
+  &.root-type {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
   
   &.filter-type {
     color: var(--accent-color);

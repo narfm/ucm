@@ -314,6 +314,8 @@ interface HierarchyResponse {
 - Flattened data structure for virtual scroll
 
 ## Recent Changes (Session Summary)
+24. **Root Node Display**: Updated data structure to make root a HierarchyNode with name "root" that is displayed in the grid, with metricKeys as a sibling property in HierarchyResponse
+25. **Root Node Behavior**: Made root node expanded by default after receiving data (but still collapsible), with a bank icon instead of home icon
 1. **Random Delay Implementation**: Updated MockDataService to use random delay (500ms-5s) for realistic loading simulation
 2. **Progress Bar Enhancement**: Added rotating message sequence with indeterminate animation that doesn't complete until data is loaded
 3. **Context Menu**: Added "Change Hierarchy" option to data grid row context menu for node-specific hierarchy configuration

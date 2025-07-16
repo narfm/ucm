@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataGridComponent } from '../data-grid/data-grid';
-import { FilterBarComponent, FilterEvent } from '../filter-bar/filter-bar';
+import { FilterBarComponent, FilterEvent, ChildSearchEvent } from '../filter-bar/filter-bar';
 import { HierarchyNode, HierarchyRequest, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
 import { EmbedModeService } from '../../services/embed-mode.service';
 
@@ -71,5 +71,42 @@ export class DashboardComponent implements OnInit {
   
   onCellClick(event: {row: HierarchyNode, column: any}): void {
     console.log('Cell clicked:', event);
+  }
+  
+  onChildSearchEvent(event: ChildSearchEvent): void {
+    if (!this.dataGrid) return;
+    
+    switch (event.type) {
+      case 'start':
+        if (event.parent) {
+          this.dataGrid.startChildSearch(event.parent);
+        }
+        break;
+      case 'update':
+        if (event.searchTerm) {
+          // Update search in data grid
+          this.dataGrid.updateChildSearchFromExternal(event.searchTerm);
+        }
+        break;
+      case 'navigate-next':
+        this.dataGrid.navigateChildSearchNext();
+        break;
+      case 'navigate-previous':
+        this.dataGrid.navigateChildSearchPrevious();
+        break;
+      case 'clear':
+        this.dataGrid.clearChildSearchTerm();
+        break;
+      case 'close':
+        this.dataGrid.closeChildSearch();
+        break;
+    }
+  }
+  
+  // Handle child search request from data grid
+  onChildSearchRequest(node: HierarchyNode): void {
+    if (this.filterBar) {
+      this.filterBar.startChildSearch(node);
+    }
   }
 }

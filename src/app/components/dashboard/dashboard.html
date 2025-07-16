@@ -8,8 +8,10 @@
       #filterBar
       [data]="dataGrid.data()"
       [columns]="dataGrid.columns"
+      [flattenedData]="dataGrid.flattenedData()"
       [embedMode]="embedModeService.isEmbedMode()()"
-      (filterChange)="onFilterChange($event)"></app-filter-bar>
+      (filterChange)="onFilterChange($event)"
+      (childSearchEvent)="onChildSearchEvent($event)"></app-filter-bar>
   </div>
   
   <div class="dashboard-content">
@@ -19,6 +21,7 @@
       [hierarchyTypes]="hierarchyTypes"
       [embedMode]="embedModeService.isEmbedMode()()"
       (rowClick)="onRowClick($event)"
-      (cellClick)="onCellClick($event)"></app-data-grid>
+      (cellClick)="onCellClick($event)"
+      (childSearchRequest)="onChildSearchRequest($event)"></app-data-grid>
   </div>
 </div>

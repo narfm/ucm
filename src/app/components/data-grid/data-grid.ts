@@ -26,6 +26,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() embedMode: boolean = false;
   @Output() rowClick = new EventEmitter<HierarchyNode>();
   @Output() cellClick = new EventEmitter<{row: HierarchyNode, column: ColumnDefinition}>();
+  @Output() childSearchRequest = new EventEmitter<HierarchyNode>();
   
   // ViewChild for virtual scroll viewport
   @ViewChild(CdkVirtualScrollViewport) viewportRef!: CdkVirtualScrollViewport;
@@ -457,7 +458,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     if (event.ctrlKey && event.key.toLowerCase() === 'f') {
       if (this.nodeHasActualChildren(row) && !this.childSearchActive()) {
         event.preventDefault();
-        this.startChildSearch(row);
+        this.requestChildSearch(row);
       }
     }
   }
@@ -641,9 +642,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   getStickyParentTop(index: number): number {
     const headerHeight = 36; // Grid header height
     const rowHeight = 32; // Sticky row height
-    const childSearchHeight = this.childSearchActive() ? 52 : 0; // Child search bar height
     
-    return headerHeight + childSearchHeight + (index * rowHeight);
+    return headerHeight + (index * rowHeight);
   }
 
   // Calculate z-index for sticky parent rows (higher index = higher z-index)
@@ -651,14 +651,6 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     return 11 + index; // Start at 11 (above header) and increase for each level
   }
 
-  // Calculate top position for child search bar (after header + all sticky rows)
-  getChildSearchTop(): number {
-    const headerHeight = 36; // Grid header height
-    const rowHeight = 32; // Sticky row height
-    const stickyRowsCount = this.stickyParentNodes().length;
-    
-    return headerHeight + (stickyRowsCount * rowHeight);
-  }
   
   onColumnSort(column: ColumnDefinition): void {
     if (!column.sortable || this.resizing) return;
@@ -789,7 +781,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       const focusedRow = this.focusedRow();
       if (focusedRow && this.nodeHasActualChildren(focusedRow) && !this.childSearchActive()) {
         event.preventDefault();
-        this.startChildSearch(focusedRow);
+        this.requestChildSearch(focusedRow);
       }
     }
   }
@@ -960,7 +952,15 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
            (!node.childrenLoaded || !node.children || node.children.length === 0);
   }
 
-  // Child search methods
+  // Child search methods (now triggered externally)
+  requestChildSearch(node: HierarchyNode): void {
+    if (!this.nodeHasActualChildren(node)) return;
+    
+    this.childSearchRequest.emit(node);
+    this.hideContextMenu();
+  }
+  
+  // External interface for child search
   startChildSearch(node: HierarchyNode): void {
     if (!node.hasChildren) return;
     
@@ -970,31 +970,13 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     this.childSearchResults.set([]);
     this.childSearchCurrentIndex.set(-1);
     this.childSearchHighlightedNode.set(null);
-    
-    this.hideContextMenu();
-    
-    // Focus the search input after the view updates
-    setTimeout(() => {
-      const searchInput = document.querySelector('.child-search-bar input') as HTMLInputElement;
-      if (searchInput) {
-        searchInput.focus();
-      }
-    }, 100);
+  }
+  
+  updateChildSearchFromExternal(searchTerm: string): void {
+    this.childSearchTerm.set(searchTerm);
+    this.performChildSearch(searchTerm);
   }
 
-  updateChildSearchTerm(event: any): void {
-    const term = event.target.value;
-    this.childSearchTerm.set(term);
-    
-    if (term.trim() === '') {
-      this.childSearchResults.set([]);
-      this.childSearchCurrentIndex.set(-1);
-      this.childSearchHighlightedNode.set(null);
-      return;
-    }
-    
-    this.performChildSearch(term.trim());
-  }
 
   private performChildSearch(searchTerm: string): void {
     const parent = this.childSearchParent();
@@ -1192,43 +1174,6 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // Get hierarchy path for the current search context (either parent or current result)
-  getSearchParentHierarchyPath(): string {
-    const searchResults = this.childSearchResults();
-    const currentIndex = this.childSearchCurrentIndex();
-    
-    // If we have search results and are viewing a specific result, show its path
-    if (searchResults.length > 0 && currentIndex >= 0 && currentIndex < searchResults.length) {
-      const currentResult = searchResults[currentIndex];
-      return this.getNodeHierarchyPath(currentResult);
-    }
-    
-    // Otherwise show the search parent's path
-    const searchParent = this.childSearchParent();
-    if (!searchParent) return '';
-    
-    return this.getNodeHierarchyPath(searchParent);
-  }
-  
-  // Get appropriate tooltip text based on current search state
-  getHierarchyTooltipText(): string {
-    const searchResults = this.childSearchResults();
-    const currentIndex = this.childSearchCurrentIndex();
-    
-    // If we're viewing a specific search result
-    if (searchResults.length > 0 && currentIndex >= 0 && currentIndex < searchResults.length) {
-      const currentResult = searchResults[currentIndex];
-      return `Current result location: ${this.getNodeHierarchyPath(currentResult)}`;
-    }
-    
-    // Otherwise show search scope
-    const searchParent = this.childSearchParent();
-    if (searchParent) {
-      return `Searching within: ${this.getNodeHierarchyPath(searchParent)}`;
-    }
-    
-    return 'Search hierarchy location';
-  }
   
   // Get hierarchy path for any specific node
   private getNodeHierarchyPath(targetNode: HierarchyNode): string {
@@ -1283,26 +1228,6 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     return path.length > 0 ? path.join(' > ') : targetNode.name;
   }
 
-  onChildSearchKeydown(event: KeyboardEvent): void {
-    switch (event.key) {
-      case 'Escape':
-        event.preventDefault();
-        this.closeChildSearch();
-        break;
-      case 'Enter':
-        event.preventDefault();
-        this.navigateChildSearchNext();
-        break;
-      case 'ArrowDown':
-        event.preventDefault();
-        this.navigateChildSearchNext();
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        this.navigateChildSearchPrevious();
-        break;
-    }
-  }
 
   isChildSearchResultHighlighted(node: HierarchyNode): boolean {
     const results = this.childSearchResults();

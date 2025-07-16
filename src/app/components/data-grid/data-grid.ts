@@ -97,7 +97,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     const currentData = this.data();
     const searchTerm = this.searchText();
     
-    console.log('flattenedData computed - currentData:', currentData, 'length:', currentData?.length);
+    // console.log('flattenedData computed - currentData:', currentData, 'length:', currentData?.length);
     
     // Ensure we have data before processing
     if (!currentData || currentData.length === 0) {
@@ -119,7 +119,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Then flatten for virtual scrolling
     const flattened = this.flattenData(processedData, state.expandedNodeIds);
-    console.log('Flattened data:', flattened, 'length:', flattened.length);
+    // console.log('Flattened data:', flattened, 'length:', flattened.length);
     return flattened;
   });
   
@@ -467,9 +467,12 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   isRowFocused(row: HierarchyNode): boolean {
     const focusedRow = this.focusedRow();
     if (!focusedRow) return false;
+
+    if (focusedRow.partyId && row.partyId) {
+      return focusedRow.partyId === row.partyId;
+    }
     
-    return (focusedRow.partyId && focusedRow.partyId === row.partyId) ||
-           (focusedRow.name === row.name && focusedRow.type === row.type);
+    return            (focusedRow.name === row.name && focusedRow.type === row.type);
   }
   
   onCellClick(row: HierarchyNode, column: ColumnDefinition, event: Event) {

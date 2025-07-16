@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, signal, OnDestroy, inject, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { FilterType, FilterCriteria, HierarchyConfig, HierarchyType, HierarchyNode, ColumnDefinition } from '../../models/financial-data.interface';
 import { HierarchySelectorComponent } from '../hierarchy-selector/hierarchy-selector';
 import { MockDataService } from '../../services/mock-data.service';
@@ -10,7 +10,7 @@ import { ExcelExportService } from '../../services/excel-export.service';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
 
 export interface FilterEvent {
-  type: 'search' | 'filter' | 'hierarchy-config' | 'hierarchy-types-loaded';
+  type: 'filter' | 'hierarchy-config' | 'hierarchy-types-loaded';
   value: any;
 }
 
@@ -45,10 +45,6 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   
   // Selected filter types
   selectedFilterTypes: FilterType[] = [];
-  
-  // Search functionality
-  searchText = '';
-  private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
   
   // Hierarchy configuration
@@ -63,16 +59,6 @@ export class FilterBarComponent implements OnInit, OnDestroy {
   currentHierarchyType = signal<HierarchyType | null>(null);
   
   constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(searchText => {
-      this.filterChange.emit({
-        type: 'search',
-        value: searchText
-      });
-    });
   }
 
   ngOnInit(): void {
@@ -137,21 +123,6 @@ export class FilterBarComponent implements OnInit, OnDestroy {
     });
   }
   
-  onSearchChange(value: string): void {
-    this.searchText = value;
-    this.searchSubject.next(value);
-  }
-  
-  clearSearch(): void {
-    this.searchText = '';
-    this.searchSubject.next('');
-  }
-  
-  clearAllFilters(): void {
-    this.selectedFilterTypes = [];
-    this.clearSearch();
-    this.applyFilters();
-  }
 
   onHierarchyConfigChange(config: HierarchyConfig): void {
     this.hierarchyConfig.set(config);

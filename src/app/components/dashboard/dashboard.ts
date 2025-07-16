@@ -17,7 +17,6 @@ export class DashboardComponent implements OnInit {
   @ViewChild('dataGrid') dataGrid!: DataGridComponent;
   @ViewChild('filterBar') filterBar!: FilterBarComponent;
   
-  searchText = signal<string>('');
   hierarchyTypes: HierarchyType[] = [];
   
   // Embed mode service
@@ -36,9 +35,6 @@ export class DashboardComponent implements OnInit {
   
   onFilterChange(event: FilterEvent): void {
     switch (event.type) {
-      case 'search':
-        this.searchText.set(event.value);
-        break;
       case 'filter':
         // Column filters not implemented yet
         break;

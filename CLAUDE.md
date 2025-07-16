@@ -189,12 +189,10 @@ interface HierarchyResponse {
   - Search by name, party ID, or type across all child nodes
 
 ### Filter Bar Component
-- Search by name or party ID
-- Clear all functionality
 - Compact hierarchy selector in header with click-to-expand configuration
 - Shows current selected hierarchy and max depth in header
 - Uses modal service for hierarchy configuration
-- **Embed Mode Support**: Shows simplified interface with search-only functionality
+- **Embed Mode Support**: Shows simplified interface optimized for constrained layouts
 
 ### Hierarchy Selector Component
 - Dual-mode display: compact in header, full configuration in modal

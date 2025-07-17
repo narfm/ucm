@@ -15,9 +15,10 @@ export interface FilterEvent {
 }
 
 export interface ChildSearchEvent {
-  type: 'start' | 'update' | 'navigate-next' | 'navigate-previous' | 'close' | 'clear';
+  type: 'start' | 'update' | 'navigate-next' | 'navigate-previous' | 'close' | 'clear' | 'toggle-recursive';
   searchTerm?: string;
   parent?: HierarchyNode;
+  recursive?: boolean;
 }
 
 @Component({
@@ -75,6 +76,7 @@ export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
   childSearchTerm = signal<string>('');
   childSearchResults = signal<HierarchyNode[]>([]);
   childSearchCurrentIndex = signal<number>(-1);
+  childSearchRecursive = signal<boolean>(false); // Default to direct children only
   private childSearchHighlightTimeout?: number;
   
   constructor() {
@@ -402,6 +404,22 @@ export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
         searchInput.focus();
       }
     }, 50);
+  }
+
+  toggleRecursiveSearch(event: any): void {
+    const recursive = event.target.checked;
+    this.childSearchRecursive.set(recursive);
+    
+    // Emit event to sync with data-grid
+    this.childSearchEvent.emit({ 
+      type: 'toggle-recursive',
+      recursive 
+    } as any);
+    
+    // Re-run search if there's a current search term
+    if (this.childSearchTerm()) {
+      this.performChildSearch(this.childSearchTerm());
+    }
   }
 
   closeChildSearch(): void {

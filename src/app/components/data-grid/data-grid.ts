@@ -46,6 +46,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   childSearchParent = signal<HierarchyNode | null>(null);
   childSearchTerm = signal<string>('');
   childSearchResults = signal<HierarchyNode[]>([]);
+  childSearchRecursive = signal<boolean>(false); // Default to direct children only
   childSearchCurrentIndex = signal<number>(-1);
   childSearchHighlightedNode = signal<HierarchyNode | null>(null);
   private childSearchHighlightTimeout?: number;
@@ -59,6 +60,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   // Sticky parent tracking - now supports multiple parent levels
   stickyParentNodes = signal<HierarchyNode[]>([]);
   maxStickyParentLevel = signal<number>(0);
+  
+  // Sorting state
+  isSorting = signal<boolean>(false);
   
   // Context menu properties
   contextMenuVisible = false;
@@ -659,6 +663,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   onColumnSort(column: ColumnDefinition): void {
     if (!column.sortable || this.resizing) return;
     
+    // Set sorting state to true
+    this.isSorting.set(true);
+    
     const currentState = this.gridState();
     let newSortDirection: 'asc' | 'desc' | undefined = 'asc';
     
@@ -675,6 +682,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       sortColumn: newSortDirection ? column.key : undefined,
       sortDirection: newSortDirection
     });
+    
+    // Use setTimeout to give the UI time to update and show the sorting animation
+    setTimeout(() => {
+      this.isSorting.set(false);
+    }, 300); // 300ms delay to show the animation
   }
   
   private filterBySearch(nodes: HierarchyNode[], searchText: string): HierarchyNode[] {
@@ -1001,7 +1013,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
     
-    const results = this.findChildrenMatching(parent, searchTerm);
+    const recursive = this.childSearchRecursive();
+    const results = this.findChildrenMatching(parent, searchTerm, recursive);
     this.childSearchResults.set(results);
     
     if (results.length > 0) {
@@ -1013,11 +1026,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private findChildrenMatching(parent: HierarchyNode, searchTerm: string): HierarchyNode[] {
+  private findChildrenMatching(parent: HierarchyNode, searchTerm: string, recursive: boolean = true): HierarchyNode[] {
     const results: HierarchyNode[] = [];
     const searchLower = searchTerm.toLowerCase();
     
-    const traverseChildren = (node: HierarchyNode) => {
+    const traverseChildren = (node: HierarchyNode, depth: number = 0) => {
       if (node.children) {
         node.children.forEach(child => {
           // Check if child matches search term
@@ -1030,8 +1043,10 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
             results.push(child);
           }
           
-          // Recursively search in child's children
-          traverseChildren(child);
+          // Only recurse if recursive mode is enabled
+          if (recursive && child.children) {
+            traverseChildren(child, depth + 1);
+          }
         });
       }
     };
@@ -1190,6 +1205,14 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     if (this.childSearchHighlightTimeout) {
       clearTimeout(this.childSearchHighlightTimeout);
+    }
+  }
+
+  setChildSearchRecursive(recursive: boolean): void {
+    this.childSearchRecursive.set(recursive);
+    // Re-run search with new mode if search is active
+    if (this.childSearchActive() && this.childSearchTerm()) {
+      this.performChildSearch(this.childSearchTerm());
     }
   }
 

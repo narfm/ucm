@@ -105,6 +105,11 @@ export class DashboardComponent implements OnInit {
       case 'close':
         this.dataGrid.closeChildSearch();
         break;
+      case 'toggle-recursive':
+        if (event.recursive !== undefined) {
+          this.dataGrid.setChildSearchRecursive(event.recursive);
+        }
+        break;
     }
   }
   

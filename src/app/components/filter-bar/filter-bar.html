@@ -62,11 +62,30 @@
       </div>
       
       <div class="search-controls">
+        <label class="recursive-search-toggle">
+          <input type="checkbox" 
+                 [checked]="childSearchRecursive()"
+                 (change)="toggleRecursiveSearch($event)"
+                 appTooltip="When checked, search includes all descendants. When unchecked, search only direct children.">
+          <span>Search all levels</span>
+        </label>
+        
         <span class="search-results-count" *ngIf="searchResults.length > 0">
           {{searchCurrentIndex + 1}} of {{searchResults.length}}
         </span>
         <span class="search-no-results" *ngIf="childSearchTerm() && searchResults.length === 0">
-          No results found
+          <ng-container *ngIf="childSearchParent()?.name === 'root' && !childSearchRecursive()">
+            No direct children found in root. Try enabling "Search all levels" or select a specific filter/organization to search within.
+          </ng-container>
+          <ng-container *ngIf="childSearchParent()?.name === 'root' && childSearchRecursive()">
+            No results found in entire hierarchy. Try different search terms or check if data is loaded.
+          </ng-container>
+          <ng-container *ngIf="childSearchParent()?.name !== 'root' && !childSearchRecursive()">
+            No direct children found. Try enabling "Search all levels" or select a different parent node.
+          </ng-container>
+          <ng-container *ngIf="childSearchParent()?.name !== 'root' && childSearchRecursive()">
+            No results found in this branch. Try different search terms or select a different parent node.
+          </ng-container>
         </span>
         
         <div class="search-navigation">

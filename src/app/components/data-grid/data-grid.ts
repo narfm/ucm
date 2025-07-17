@@ -400,7 +400,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     // Handle metric columns (e.g., "metrics.Revenue")
     if (column.key.startsWith('metrics.')) {
       const metricKey = column.key.substring(8); // Remove "metrics." prefix
-      return row.metrics ? row.metrics[metricKey] : null;
+      return row.values ? row.values[metricKey] : null;
     }
     
     return (row as any)[column.key];
@@ -423,7 +423,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
           // Format based on metric type
           if (metricKey.includes('%')) {
             return `${value.toFixed(1)}%`;
-          } else if (metricKey.includes('Revenue') || metricKey.includes('Income') || metricKey.includes('Costs')) {
+          } else if (metricKey.includes('Revenue') || metricKey.includes('Income') || metricKey.includes('Costs') || metricKey.includes('Profit') || metricKey.includes('Expense')) {
             return `$${new Intl.NumberFormat('en-US').format(value)}`;
           } else if (metricKey.includes('Count')) {
             return new Intl.NumberFormat('en-US').format(value);
@@ -704,8 +704,17 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private sortData(nodes: HierarchyNode[], sortColumn: string, direction: 'asc' | 'desc'): HierarchyNode[] {
     const sortedNodes = [...nodes].sort((a, b) => {
-      const aValue = (a as any)[sortColumn];
-      const bValue = (b as any)[sortColumn];
+      let aValue, bValue;
+
+      if(sortColumn.startsWith('metrics')) {
+        const metricKey = sortColumn.replace('metrics.', '')
+      aValue = (a as any).values?.[metricKey] ?? 0;
+      bValue = (b as any).values?.[metricKey] ?? 0;
+      } else {
+      aValue = (a as any)[sortColumn];
+      bValue = (b as any)[sortColumn];
+      }
+
       
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return direction === 'asc' ? 1 : -1;

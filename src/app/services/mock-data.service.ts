@@ -128,7 +128,7 @@ export class MockDataService {
       expanded: true,
       hasChildren: true,
       childrenCount: 0,
-      metrics: this.generateMetrics(selectedMetrics, 'ROOT')
+      values: this.generateMetrics(selectedMetrics, 'ROOT')
     };
 
     // If rootPartyId is provided, generate children for that specific node
@@ -209,7 +209,7 @@ export class MockDataService {
       filters: [`${filters[currentLevel]}/${filterType}`],
       children: [],
       expanded: false,
-      metrics: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -271,7 +271,7 @@ export class MockDataService {
       filters: allFilters,
       children: [],
       expanded: false,
-      metrics: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -332,7 +332,7 @@ export class MockDataService {
       filters: allFilters,
       children: [],
       expanded: false,
-      metrics: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -390,7 +390,7 @@ export class MockDataService {
       filters: [`${filterName}/${filterType}`],
       children: [],
       expanded: false,
-      metrics: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER')
     };
 
     if (maxDepth > 1) {
@@ -421,7 +421,7 @@ export class MockDataService {
       legalEntity: Math.random() > 0.3,
       children: [],
       expanded: false,
-      metrics: this.generateMetrics(metricKeys, nodeType)
+      values: this.generateMetrics(metricKeys, nodeType)
     };
 
     // 30% chance to create nodes with lazy loading (hasChildren=true but empty children)

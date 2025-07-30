@@ -128,7 +128,9 @@ export class MockDataService {
       expanded: true,
       hasChildren: true,
       childrenCount: 0,
-      values: this.generateMetrics(selectedMetrics, 'ROOT')
+      values: this.generateMetrics(selectedMetrics, 'ROOT'),
+      selfAccountCount: 0,
+      childrenAccountCount: 0
     };
 
     // If rootPartyId is provided, generate children for that specific node
@@ -141,8 +143,9 @@ export class MockDataService {
       }
     }
     
-    // Update children count
+    // Update children count and account counts
     root.childrenCount = root.children!.length;
+    root.childrenAccountCount = this.calculateChildrenAccountCount(root);
     
     const response: HierarchyResponse = {
       root: root,
@@ -164,6 +167,13 @@ export class MockDataService {
     
     for (let i = 0; i < childrenCount; i++) {
       const childNode = this.createOrganizationNode(filterType, {} as HierarchyNode, 1, maxDepth, metricKeys);
+      // Make sure childNode has proper account counts
+      if (!childNode.selfAccountCount) {
+        childNode.selfAccountCount = childNode.type === 'PER' ? this.randomBetween(1, 10) : this.randomBetween(5, 50);
+      }
+      if (childNode.children && childNode.children.length > 0) {
+        childNode.childrenAccountCount = this.calculateChildrenAccountCount(childNode);
+      }
       children.push(childNode);
     }
     
@@ -209,7 +219,9 @@ export class MockDataService {
       filters: [`${filters[currentLevel]}/${filterType}`],
       children: [],
       expanded: false,
-      values: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER'),
+      selfAccountCount: this.randomBetween(50, 200),
+      childrenAccountCount: 0
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -257,6 +269,9 @@ export class MockDataService {
     filterNode.childrenCount = filterNode.children!.length;
     filterNode.hasChildren = filterNode.children!.length > 0;
     
+    // Calculate childrenAccountCount by summing up from children
+    filterNode.childrenAccountCount = this.calculateChildrenAccountCount(filterNode);
+    
     return filterNode;
   }
 
@@ -271,7 +286,9 @@ export class MockDataService {
       filters: allFilters,
       children: [],
       expanded: false,
-      values: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER'),
+      selfAccountCount: this.randomBetween(50, 200),
+      childrenAccountCount: 0
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -318,6 +335,9 @@ export class MockDataService {
     filterNode.childrenCount = filterNode.children!.length;
     filterNode.hasChildren = filterNode.children!.length > 0;
     
+    // Calculate childrenAccountCount by summing up from children
+    filterNode.childrenAccountCount = this.calculateChildrenAccountCount(filterNode);
+    
     return filterNode;
   }
 
@@ -332,7 +352,9 @@ export class MockDataService {
       filters: allFilters,
       children: [],
       expanded: false,
-      values: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER'),
+      selfAccountCount: this.randomBetween(50, 200),
+      childrenAccountCount: 0
     };
 
     if (currentLevel + 1 < filters.length && currentLevel + 1 < maxDepth) {
@@ -380,6 +402,9 @@ export class MockDataService {
     filterNode.childrenCount = filterNode.children!.length;
     filterNode.hasChildren = filterNode.children!.length > 0;
     
+    // Calculate childrenAccountCount by summing up from children
+    filterNode.childrenAccountCount = this.calculateChildrenAccountCount(filterNode);
+    
     return filterNode;
   }
 
@@ -390,7 +415,9 @@ export class MockDataService {
       filters: [`${filterName}/${filterType}`],
       children: [],
       expanded: false,
-      values: this.generateMetrics(metricKeys, 'FILTER')
+      values: this.generateMetrics(metricKeys, 'FILTER'),
+      selfAccountCount: this.randomBetween(50, 200),
+      childrenAccountCount: 0
     };
 
     if (maxDepth > 1) {
@@ -401,6 +428,10 @@ export class MockDataService {
         filterNode.children!.push(orgNode);
       }
     }
+
+    filterNode.childrenCount = filterNode.children!.length;
+    filterNode.hasChildren = filterNode.children!.length > 0;
+    filterNode.childrenAccountCount = this.calculateChildrenAccountCount(filterNode);
 
     return filterNode;
   }
@@ -421,7 +452,9 @@ export class MockDataService {
       legalEntity: Math.random() > 0.3,
       children: [],
       expanded: false,
-      values: this.generateMetrics(metricKeys, nodeType)
+      values: this.generateMetrics(metricKeys, nodeType),
+      selfAccountCount: nodeType === 'PER' ? this.randomBetween(1, 10) : this.randomBetween(5, 50),
+      childrenAccountCount: 0
     };
 
     // 30% chance to create nodes with lazy loading (hasChildren=true but empty children)
@@ -437,7 +470,27 @@ export class MockDataService {
       }
     }
 
+    // Calculate childrenAccountCount for org nodes if they have children
+    if (orgNode.children && orgNode.children.length > 0) {
+      orgNode.childrenAccountCount = this.calculateChildrenAccountCount(orgNode);
+    }
+
     return orgNode;
+  }
+
+  private calculateChildrenAccountCount(node: HierarchyNode): number {
+    let total = 0;
+    
+    if (node.children && node.children.length > 0) {
+      node.children.forEach(child => {
+        // Add child's self account count
+        total += child.selfAccountCount || 0;
+        // Add child's children account count
+        total += child.childrenAccountCount || 0;
+      });
+    }
+    
+    return total;
   }
 
   private generateOrganizationName(filterType: FilterType): string {

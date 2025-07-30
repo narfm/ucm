@@ -1073,3 +1073,141 @@
   }
 }
 
+// Hierarchy info column styling
+.hierarchy-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  
+  .hierarchy-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    .hierarchy-icon {
+      width: 14px;
+      height: 14px;
+      opacity: 0.4;
+      stroke-width: 2;
+    }
+    
+    .hierarchy-count {
+      font-weight: 500;
+      color: var(--text-tertiary);
+      font-size: 0.8rem;
+      min-width: 20px;
+    }
+  }
+  
+  .accounts-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-variant-numeric: tabular-nums;
+    
+    .account-value {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      
+      &.has-children {
+        color: var(--text-secondary);
+      }
+    }
+    
+    .account-separator {
+      color: var(--text-tertiary);
+      font-weight: 300;
+      opacity: 0.6;
+    }
+    
+    .account-total {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+    }
+    
+    .account-label {
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+      font-weight: 400;
+      opacity: 0.7;
+      margin-left: 2px;
+    }
+  }
+  
+  // Subtle hover effect
+  .grid-row:hover & {
+    .hierarchy-icon {
+      opacity: 0.6;
+    }
+    
+    .hierarchy-count {
+      color: var(--text-secondary);
+    }
+    
+    .account-label {
+      opacity: 0.9;
+    }
+  }
+  
+  // Different styles for different node types
+  .filter-row & {
+    .hierarchy-icon {
+      color: var(--warning-color);
+      opacity: 0.5;
+    }
+    
+    .hierarchy-count {
+      color: var(--warning-color);
+      opacity: 0.7;
+    }
+  }
+  
+  .org-row & {
+    .accounts-summary {
+      .account-value,
+      .account-total {
+        color: var(--primary-color);
+      }
+    }
+  }
+  
+  .person-row & {
+    .hierarchy-indicator {
+      opacity: 0.7;
+    }
+    
+    .accounts-summary {
+      font-size: 0.8rem;
+      
+      .account-value,
+      .account-total {
+        font-weight: 500;
+      }
+    }
+  }
+  
+  // Embed mode adjustments
+  .embed-mode & {
+    gap: 8px;
+    font-size: 0.8rem;
+    
+    .hierarchy-indicator {
+      .hierarchy-icon {
+        width: 12px;
+        height: 12px;
+      }
+    }
+    
+    .accounts-summary {
+      .account-label {
+        display: none; // Hide label in embed mode to save space
+      }
+    }
+  }
+}
+

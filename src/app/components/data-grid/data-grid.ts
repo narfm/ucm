@@ -160,18 +160,18 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '550px', minWidth: '200px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '220px', minWidth: '120px' },
-    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '220px', minWidth: '120px' },
-    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '120px', minWidth: '120px' },
-    { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '120px', minWidth: '120px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '500px', minWidth: '200px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '180px', minWidth: '120px' },
+    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '200px', minWidth: '120px' },
+    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '100px', minWidth: '80px' },
+    { key: 'hierarchyInfo', label: 'Hierarchy / Accounts', sortable: false, align: 'right', width: '220px', minWidth: '180px' }
   ];
 
   // Embed mode columns (reduced set with responsive widths)
   embedColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '50%', minWidth: '120px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '25%', minWidth: '60px' },
-    { key: 'childrenCount', label: 'Children', sortable: true, dataType: 'number', align: 'right', width: '25%', minWidth: '60px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '45%', minWidth: '120px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '20%', minWidth: '60px' },
+    { key: 'hierarchyInfo', label: 'Hierarchy', sortable: false, align: 'right', width: '35%', minWidth: '100px' }
   ];
   
   ngOnInit() {
@@ -407,7 +407,30 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       return row.values ? row.values[metricKey] : null;
     }
     
+    // Handle special hierarchyInfo column
+    if (column.key === 'hierarchyInfo') {
+      return this.formatHierarchyInfo(row);
+    }
+    
     return (row as any)[column.key];
+  }
+  
+  private formatHierarchyInfo(row: HierarchyNode): any {
+    const childrenCount = row.childrenCount || 0;
+    const selfAccounts = row.selfAccountCount || 0;
+    const childrenAccounts = row.childrenAccountCount || 0;
+    const totalAccounts = selfAccounts + childrenAccounts;
+    
+    // Return an object with structured data for template rendering
+    return {
+      hasChildren: childrenCount > 0,
+      childrenCount,
+      selfAccounts,
+      childrenAccounts,
+      totalAccounts,
+      // Calculate percentage for visual indicator
+      selfAccountsPercentage: totalAccounts > 0 ? Math.round((selfAccounts / totalAccounts) * 100) : 0
+    };
   }
 
   getIndentationPixels(level: number): number {
@@ -417,6 +440,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   formatCellValue(value: any, column: ColumnDefinition): string {
     if (value == null) return '';
+    
+    // Special columns that return objects (handled in template)
+    if (column.key === 'hierarchyInfo') {
+      return '';
+    }
     
     switch (column.dataType) {
       case 'number':

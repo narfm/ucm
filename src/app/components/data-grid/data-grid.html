@@ -189,9 +189,38 @@
           </div>
           
           <!-- Other cells -->
-          <span *ngIf="column.key !== 'name'">
+          <span *ngIf="column.key !== 'name' && column.key !== 'hierarchyInfo'">
             {{ formatCellValue(getCellValue(stickyParent, column), column) }}
           </span>
+          
+          <!-- Hierarchy Info Column -->
+          <div *ngIf="column.key === 'hierarchyInfo'" class="hierarchy-info-cell">
+            <ng-container *ngIf="getCellValue(stickyParent, column) as info">
+              <!-- Children indicator -->
+              <div *ngIf="info.hasChildren" class="hierarchy-indicator">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="hierarchy-icon">
+                  <circle cx="12" cy="12" r="2"/>
+                  <circle cx="12" cy="5" r="2"/>
+                  <circle cx="12" cy="19" r="2"/>
+                  <path d="M12 7v5m0 2v5" stroke-dasharray="2 2"/>
+                </svg>
+                <span class="hierarchy-count">{{ info.childrenCount }}</span>
+              </div>
+              
+              <!-- Accounts summary -->
+              <div class="accounts-summary">
+                <span class="account-value" [class.has-children]="info.childrenAccounts > 0">
+                  {{ info.selfAccounts.toLocaleString() }}
+                </span>
+                <span *ngIf="info.childrenAccounts > 0" class="account-separator">/</span>
+                <span *ngIf="info.childrenAccounts > 0" class="account-total" 
+                      [appTooltip]="'Total: ' + info.totalAccounts.toLocaleString() + ' accounts (Self: ' + info.selfAccounts.toLocaleString() + ', Children: ' + info.childrenAccounts.toLocaleString() + ')'">
+                  {{ info.totalAccounts.toLocaleString() }}
+                </span>
+                <span class="account-label">{{ info.totalAccounts === 1 ? 'acct' : 'accts' }}</span>
+              </div>
+            </ng-container>
+          </div>
         </div>
       </div>
     </div>
@@ -345,9 +374,38 @@
         </div>
         
         <!-- Other cells -->
-        <span *ngIf="column.key !== 'name'">
+        <span *ngIf="column.key !== 'name' && column.key !== 'hierarchyInfo'">
           {{ formatCellValue(getCellValue(row, column), column) }}
         </span>
+        
+        <!-- Hierarchy Info Column -->
+        <div *ngIf="column.key === 'hierarchyInfo'" class="hierarchy-info-cell">
+          <ng-container *ngIf="getCellValue(row, column) as info">
+            <!-- Children indicator -->
+            <div *ngIf="info.hasChildren" class="hierarchy-indicator">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="hierarchy-icon">
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="12" cy="5" r="2"/>
+                <circle cx="12" cy="19" r="2"/>
+                <path d="M12 7v5m0 2v5" stroke-dasharray="2 2"/>
+              </svg>
+              <span class="hierarchy-count">{{ info.childrenCount }}</span>
+            </div>
+            
+            <!-- Accounts summary -->
+            <div class="accounts-summary">
+              <span class="account-value" [class.has-children]="info.childrenAccounts > 0">
+                {{ info.selfAccounts.toLocaleString() }}
+              </span>
+              <span *ngIf="info.childrenAccounts > 0" class="account-separator">/</span>
+              <span *ngIf="info.childrenAccounts > 0" class="account-total" 
+                    [appTooltip]="'Total: ' + info.totalAccounts.toLocaleString() + ' accounts (Self: ' + info.selfAccounts.toLocaleString() + ', Children: ' + info.childrenAccounts.toLocaleString() + ')'">
+                {{ info.totalAccounts.toLocaleString() }}
+              </span>
+              <span class="account-label">{{ info.totalAccounts === 1 ? 'acct' : 'accts' }}</span>
+            </div>
+          </ng-container>
+        </div>
       </div>
     </div>
   </cdk-virtual-scroll-viewport>

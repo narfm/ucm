@@ -129,7 +129,7 @@ interface HierarchyNode {
   expanded?: boolean;
   level?: number;
   parent?: HierarchyNode;
-  metrics?: Record<string, any>; // Dynamic metric values for additional columns
+  values?: Record<string, any>; // Dynamic metric values for additional columns
 }
 
 interface HierarchyResponse {

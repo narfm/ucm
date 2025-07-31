@@ -261,6 +261,20 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  position: relative;
+}
+
+.header-controls {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  z-index: 11;
+  
+  // In embed mode, make it more compact
+  .data-grid-container.embed-mode & {
+    top: 2px;
+    right: 4px;
+  }
 }
 
 

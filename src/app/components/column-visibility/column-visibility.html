@@ -1,0 +1,97 @@
+<div class="column-visibility-container">
+  <ng-container *ngIf="showAsDropdown; else inlineControls">
+    <!-- Dropdown button -->
+    <button 
+      class="column-visibility-button"
+      (click)="toggleDropdown()"
+      [class.active]="dropdownOpen"
+      appTooltip="Show/hide columns ({{ getVisibleColumnCount() }}/{{ columns.length }} visible)"
+      type="button">
+      <span class="icon">&#128065;</span> <!-- Eye icon -->
+      <span class="count">{{ getVisibleColumnCount() }}/{{ columns.length }}</span>
+      <span class="dropdown-arrow" [class.rotated]="dropdownOpen">&#9662;</span>
+    </button>
+    
+    <!-- Dropdown menu -->
+    <div class="column-visibility-dropdown" *ngIf="dropdownOpen">
+      <div class="dropdown-header">
+        <h4>Column Visibility</h4>
+        <div class="quick-actions">
+          <button class="quick-action-btn" (click)="onShowAll()" appTooltip="Show all columns">
+            Show All
+          </button>
+          <button class="quick-action-btn" (click)="onHideNonEssential()" appTooltip="Hide all except essential">
+            Hide All
+          </button>
+          <button class="quick-action-btn" (click)="onResetDefaults()" appTooltip="Reset to defaults">
+            Reset
+          </button>
+        </div>
+      </div>
+      
+      <div class="column-list">
+        <div 
+          *ngFor="let column of columns; trackBy: trackByColumn" 
+          class="column-item"
+          [class.essential]="isEssentialColumn(column)"
+          [class.disabled]="isEssentialColumn(column)">
+          
+          <label class="column-checkbox">
+            <input 
+              type="checkbox" 
+              [checked]="visibilityService.isColumnVisible(column.key)"
+              [disabled]="isEssentialColumn(column)"
+              (change)="onToggleColumn(column, $event)"
+            />
+            <span class="checkmark"></span>
+            <span class="column-name">{{ getColumnLabel(column) }}</span>
+            <span class="essential-badge" *ngIf="isEssentialColumn(column)">Required</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="dropdown-footer">
+        <span class="visible-count">
+          {{ getVisibleColumnCount() }} of {{ columns.length }} columns visible
+        </span>
+      </div>
+    </div>
+  </ng-container>
+  
+  <!-- Inline controls template -->
+  <ng-template #inlineControls>
+    <div class="inline-column-controls">
+      <h4>Column Visibility</h4>
+      <div class="quick-actions">
+        <button class="quick-action-btn" (click)="onShowAll()">Show All</button>
+        <button class="quick-action-btn" (click)="onHideNonEssential()">Hide All</button>
+        <button class="quick-action-btn" (click)="onResetDefaults()">Reset</button>
+      </div>
+      
+      <div class="column-grid">
+        <div 
+          *ngFor="let column of columns; trackBy: trackByColumn" 
+          class="column-item"
+          [class.essential]="isEssentialColumn(column)"
+          [class.disabled]="isEssentialColumn(column)">
+          
+          <label class="column-checkbox">
+            <input 
+              type="checkbox" 
+              [checked]="visibilityService.isColumnVisible(column.key)"
+              [disabled]="isEssentialColumn(column)"
+              (change)="onToggleColumn(column, $event)"
+            />
+            <span class="checkmark"></span>
+            <span class="column-name">{{ getColumnLabel(column) }}</span>
+            <span class="essential-badge" *ngIf="isEssentialColumn(column)">Required</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="visible-count">
+        {{ getVisibleColumnCount() }} of {{ columns.length }} columns visible
+      </div>
+    </div>
+  </ng-template>
+</div>

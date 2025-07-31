@@ -24,8 +24,17 @@
   </app-error-display>
 
   <div class="grid-header">
+    <!-- Column visibility controls in header -->
+    <div class="header-controls">
+      <app-column-visibility 
+        [columns]="columns"
+        [embedMode]="embedMode"
+        [showAsDropdown]="true">
+      </app-column-visibility>
+    </div>
+    
     <div class="header-row">
-      <div *ngFor="let column of columns; let i = index; trackBy: trackByColumn"
+      <div *ngFor="let column of visibleColumns(); let i = index; trackBy: trackByColumn"
            class="header-cell"
            [style.width]="column.width"
            [style.min-width]="column.minWidth"
@@ -54,7 +63,7 @@
             <path d="M7 10l5 5 5-5"/>
           </svg>
         </span>
-        <div *ngIf="i < columns.length - 1" 
+        <div *ngIf="i < visibleColumns().length - 1" 
              class="resize-handle"
              (mousedown)="onResizeStart($event, i)"></div>
       </div>
@@ -73,7 +82,7 @@
            [class.person-row]="stickyParent.type === 'PER'"
            [class.account-row]="stickyParent.type === 'ACCT'">
         
-        <div *ngFor="let column of columns; trackBy: trackByColumn"
+        <div *ngFor="let column of visibleColumns(); trackBy: trackByColumn"
              class="grid-cell"
              [style.width]="column.width"
              [style.min-width]="column.minWidth"
@@ -280,7 +289,7 @@
         <span class="loading-text">Loading...</span>
       </div>
       
-      <div *ngFor="let column of columns; trackBy: trackByColumn"
+      <div *ngFor="let column of visibleColumns(); trackBy: trackByColumn"
            class="grid-cell"
            [style.width]="column.width"
            [style.min-width]="column.minWidth"

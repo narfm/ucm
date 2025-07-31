@@ -10,11 +10,13 @@ import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
 import { ErrorHandlerService, AppError } from '../../services/error-handler.service';
 import { ErrorDisplayComponent } from '../error-display/error-display';
+import { ColumnVisibilityService } from '../../services/column-visibility.service';
+import { ColumnVisibilityComponent } from '../column-visibility/column-visibility';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective, ErrorDisplayComponent],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective, ErrorDisplayComponent, ColumnVisibilityComponent],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -82,6 +84,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   private mockDataService = inject(MockDataService);
   private hierarchyModalService = inject(HierarchyModalService);
   private errorHandlerService = inject(ErrorHandlerService);
+  private columnVisibilityService = inject(ColumnVisibilityService);
   
   // Resize properties
   resizing = false;
@@ -94,6 +97,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   gridState = signal<GridState>({
     filters: [],
     expandedNodeIds: new Set<string>()
+  });
+  
+  // Visible columns based on column visibility service
+  visibleColumns = computed(() => {
+    return this.columnVisibilityService.visibleColumns()(this.columns);
   });
   
   // Sorted and flattened data for virtual scrolling
@@ -179,6 +187,10 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.columns || this.columns.length === 0) {
       this.columns = this.embedMode ? this.embedColumns : this.defaultColumns;
     }
+    
+    // Initialize column visibility service
+    this.columnVisibilityService.initializeFromColumns(this.columns);
+    this.columnVisibilityService.setEmbedMode(this.embedMode);
     
     // Initialize hierarchy configuration from mock service
     this.initializeHierarchyConfig();
@@ -267,6 +279,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Update the columns array
     this.columns = [...baseColumns, ...metricColumns];
+    
+    // Update column visibility service with new columns
+    this.columnVisibilityService.initializeFromColumns(this.columns);
   }
   
   private loadNodeChildren(node: HierarchyNode): void {
@@ -781,15 +796,21 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   // Column resize methods
-  onResizeStart(event: MouseEvent, columnIndex: number): void {
+  onResizeStart(event: MouseEvent, visibleColumnIndex: number): void {
     event.preventDefault();
     event.stopPropagation();
     
     this.resizing = true;
-    this.resizeColumnIndex = columnIndex;
+    
+    // Get the visible column and find its index in the full columns array
+    const visibleColumns = this.visibleColumns();
+    const visibleColumn = visibleColumns[visibleColumnIndex];
+    const actualColumnIndex = this.columns.findIndex(col => col.key === visibleColumn.key);
+    
+    this.resizeColumnIndex = actualColumnIndex;
     this.startX = event.pageX;
     
-    const column = this.columns[columnIndex];
+    const column = this.columns[actualColumnIndex];
     const currentWidth = column.width ? parseInt(column.width) : 150;
     this.startWidth = currentWidth;
     

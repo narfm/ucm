@@ -44,17 +44,18 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
     
     // If no config is provided, get default levels from mock service
     if (!this.config.levels || this.config.levels.length === 0) {
-      const defaultLevels = this.mockDataService.getHierarchyLevels();
-      this.config = {
-        levels: defaultLevels,
-        maxDepth: this.config.maxDepth || 3,
-        hierarchyTypeCode: this.config.hierarchyTypeCode
-      };
-      this.pendingConfig = {
-        levels: defaultLevels.map(level => ({ ...level })),
-        maxDepth: this.config.maxDepth,
-        hierarchyTypeCode: this.config.hierarchyTypeCode || 'G001'
-      };
+      this.mockDataService.getHierarchyLevels().subscribe(defaultLevels => {
+        this.config = {
+          levels: defaultLevels,
+          maxDepth: this.config.maxDepth || 3,
+          hierarchyTypeCode: this.config.hierarchyTypeCode
+        };
+        this.pendingConfig = {
+          levels: defaultLevels.map(level => ({ ...level })),
+          maxDepth: this.config.maxDepth,
+          hierarchyTypeCode: this.config.hierarchyTypeCode || 'G001'
+        };
+      });
     }
           // Set selected hierarchy type
           this.selectedHierarchyType = this.config.hierarchyTypeCode || 'G001';

@@ -34,6 +34,9 @@ export class MockDataService {
   private errorSimulationEnabled = false;
   private errorRate = 0.2; // 20% chance of error when enabled
 
+  // Cache for hierarchy levels to avoid multiple API calls
+  private hierarchyLevelsCache$: Observable<HierarchyLevel[]> | null = null;
+
   // Available hierarchy levels configuration
   private hierarchyLevels: HierarchyLevel[] = [
     {
@@ -86,9 +89,18 @@ export class MockDataService {
 
   private nodeIdCounter = 0;
 
-  // Public method to get available hierarchy levels
-  getHierarchyLevels(): HierarchyLevel[] {
-    return [...this.hierarchyLevels];
+  // Public method to get available hierarchy levels as Observable with caching
+  getHierarchyLevels(): Observable<HierarchyLevel[]> {
+    // Return cached observable if it exists
+    if (this.hierarchyLevelsCache$) {
+      return this.hierarchyLevelsCache$;
+    }
+    
+    // Create and cache the observable
+    const randomDelay = Math.floor(Math.random() * (1000 - 300 + 1)) + 300;
+    this.hierarchyLevelsCache$ = of([...this.hierarchyLevels]).pipe(delay(randomDelay));
+    
+    return this.hierarchyLevelsCache$;
   }
 
   // Get hierarchy level by ID

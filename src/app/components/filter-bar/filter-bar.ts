@@ -84,11 +84,12 @@ export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit(): void {
     // Initialize hierarchy configuration from mock service
-    const levels = this.mockDataService.getHierarchyLevels();
-    this.hierarchyConfig.set({
-      levels: levels,
-      maxDepth: 3,
-      hierarchyTypeCode: 'G001'
+    this.mockDataService.getHierarchyLevels().subscribe(levels => {
+      this.hierarchyConfig.set({
+        levels: levels,
+        maxDepth: 3,
+        hierarchyTypeCode: 'G001'
+      });
     });
     
     // Load hierarchy types for display

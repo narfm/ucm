@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, inject, computed, signal, ViewChild, ElementRef, effect } from '@angular/core';
+import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
@@ -560,16 +561,16 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     // Set up hierarchy config based on current hierarchy request
-    let hierarchyConfig: HierarchyConfig = this.buildHierarchyConfigFromRequest();
-    
-    this.hierarchyModalService.openModal({
-      config: hierarchyConfig,
-      title: 'Change Hierarchy',
-      nodeContext: { name: node.name },
-      hierarchyTypes: this.hierarchyTypes,
-      onConfigChange: (config) => {
-        this.onNodeHierarchyConfigChange(config, node);
-      }
+    this.buildHierarchyConfigFromRequest().subscribe(hierarchyConfig => {
+      this.hierarchyModalService.openModal({
+        config: hierarchyConfig,
+        title: 'Change Hierarchy',
+        nodeContext: { name: node.name },
+        hierarchyTypes: this.hierarchyTypes,
+        onConfigChange: (config) => {
+          this.onNodeHierarchyConfigChange(config, node);
+        }
+      });
     });
     
     this.hideContextMenu();
@@ -922,39 +923,43 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Initialize hierarchy configuration from mock service
   private initializeHierarchyConfig(): void {
-    const levels = this.mockDataService.getHierarchyLevels();
-    this.nodeHierarchyConfig = {
-      levels: levels,
-      maxDepth: this.hierarchyRequest?.maxDepth || 3
-    };
+    this.mockDataService.getHierarchyLevels().subscribe(levels => {
+      this.nodeHierarchyConfig = {
+        levels: levels,
+        maxDepth: this.hierarchyRequest?.maxDepth || 3
+      };
+    });
   }
 
   // Build hierarchy config based on current request
-  private buildHierarchyConfigFromRequest(): HierarchyConfig {
-    const allLevels = this.mockDataService.getHierarchyLevels();
-    
-    if (this.hierarchyRequest?.filters) {
-      // Update enabled state and order based on current filters
-      const updatedLevels = allLevels.map(level => ({
-        ...level,
-        enabled: this.hierarchyRequest!.filters.includes(level.id),
-        order: this.hierarchyRequest!.filters.indexOf(level.id) !== -1 
-          ? this.hierarchyRequest!.filters.indexOf(level.id) 
-          : level.order
-      }));
-      
-      return {
-        levels: updatedLevels,
-        maxDepth: this.hierarchyRequest.maxDepth || 3,
-        hierarchyTypeCode: this.hierarchyRequest.hierarchyTypeCode || 'G001'
-      };
-    }
-    
-    return {
-      levels: allLevels,
-      maxDepth: this.hierarchyRequest?.maxDepth || 3,
-      hierarchyTypeCode: this.hierarchyRequest?.hierarchyTypeCode || 'G001'
-    };
+  private buildHierarchyConfigFromRequest(): Observable<HierarchyConfig> {
+    return new Observable(observer => {
+      this.mockDataService.getHierarchyLevels().subscribe(allLevels => {
+        if (this.hierarchyRequest?.filters) {
+          // Update enabled state and order based on current filters
+          const updatedLevels = allLevels.map(level => ({
+            ...level,
+            enabled: this.hierarchyRequest!.filters.includes(level.id),
+            order: this.hierarchyRequest!.filters.indexOf(level.id) !== -1 
+              ? this.hierarchyRequest!.filters.indexOf(level.id) 
+              : level.order
+          }));
+          
+          observer.next({
+            levels: updatedLevels,
+            maxDepth: this.hierarchyRequest.maxDepth || 3,
+            hierarchyTypeCode: this.hierarchyRequest.hierarchyTypeCode || 'G001'
+          });
+        } else {
+          observer.next({
+            levels: allLevels,
+            maxDepth: this.hierarchyRequest?.maxDepth || 3,
+            hierarchyTypeCode: this.hierarchyRequest?.hierarchyTypeCode || 'G001'
+          });
+        }
+        observer.complete();
+      });
+    });
   }
 
   // Helper method to assign parent references

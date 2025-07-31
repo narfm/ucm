@@ -20,6 +20,7 @@
         [hierarchyTypes]="modalConfig()?.hierarchyTypes || []"
         [compactMode]="false"
         [modalMode]="true"
+        (close)="closeModal()"
         (configChange)="onConfigChange($event)">
       </app-hierarchy-selector>
     </div>

@@ -25,6 +25,8 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
   @Output() configChange = new EventEmitter<HierarchyConfig>();
   @Output() openConfiguration = new EventEmitter<void>();
 
+  @Output() close = new EventEmitter<void>();
+
   @ViewChild('dragHandle') dragHandle?: ElementRef<HTMLElement>;
 
   private hierarchyModalService = inject(HierarchyModalService);
@@ -92,7 +94,7 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
 
   toggleLevel(levelId: string): void {
     const levels = this.pendingConfig.levels.map(level => 
-      level.id === levelId ? { ...level, enabled: !level.enabled } : level
+      level.code === levelId ? { ...level, enabled: !level.enabled } : level
     );
 
     this.pendingConfig = {
@@ -114,11 +116,11 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
   }
 
   getFiltersArray(): string[] {
-    return this.getEnabledLevels().map(level => level.id);
+    return this.getEnabledLevels().map(level => level.code);
   }
 
   trackByLevel(index: number, level: HierarchyLevel): string {
-    return level.id;
+    return level.code;
   }
 
   onCompactClick(): void {
@@ -160,6 +162,7 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
 
   closeConfiguration(): void {
     this.showFullConfiguration.set(false);
+    this.close.emit();
   }
 
   getCurrentMaxDepth(): number {

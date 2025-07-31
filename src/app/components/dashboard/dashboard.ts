@@ -45,7 +45,7 @@ export class DashboardComponent implements OnInit {
           .filter(level => level.enabled)
           .sort((a, b) => a.order - b.order);
         
-        this.hierarchyRequest.filters = enabledLevels.map(level => level.id);
+        this.hierarchyRequest.filters = enabledLevels.map(level => level.code);
         this.hierarchyRequest.maxDepth = config.maxDepth;
         
         // Update hierarchy type code if provided

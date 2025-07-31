@@ -431,7 +431,7 @@ export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
   // Get hierarchy path for the current search context (either parent or current result)
   getSearchParentHierarchyPath(): string {
     const searchResults = this.childSearchResults();
-    const currentIndex = this.childSearchCurrentIndex();
+    const currentIndex = this.searchCurrentIndex;
     
     // If we have search results and are viewing a specific result, show its path
     if (searchResults.length > 0 && currentIndex >= 0 && currentIndex < searchResults.length) {
@@ -449,7 +449,7 @@ export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
   // Get appropriate tooltip text based on current search state
   getHierarchyTooltipText(): string {
     const searchResults = this.childSearchResults();
-    const currentIndex = this.childSearchCurrentIndex();
+    const currentIndex = this.searchCurrentIndex;
     
     // If we're viewing a specific search result
     if (searchResults.length > 0 && currentIndex >= 0 && currentIndex < searchResults.length) {

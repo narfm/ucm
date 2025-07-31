@@ -40,21 +40,21 @@ export class MockDataService {
   // Available hierarchy levels configuration
   private hierarchyLevels: HierarchyLevel[] = [
     {
-      id: 'UPM_L1_NAME',
+      code: 'UPM_L1_NAME',
       name: 'Service Area',
       description: 'Primary business service area',
       enabled: true,
       order: 0
     },
     {
-      id: 'CLIENT_OWNER_NAME',
+      code: 'CLIENT_OWNER_NAME',
       name: 'Client Owner',
       description: 'Client relationship owner',
       enabled: false,
       order: 1
     },
     {
-      id: 'CRM_CLIENT_TYPE',
+      code: 'CRM_CLIENT_TYPE',
       name: 'CRM Client Type',
       description: 'ECAL/MCAL Client Type',
       enabled: false,
@@ -105,7 +105,7 @@ export class MockDataService {
 
   // Get hierarchy level by ID
   getHierarchyLevelById(id: string): HierarchyLevel | undefined {
-    return this.hierarchyLevels.find(level => level.id === id);
+    return this.hierarchyLevels.find(level => level.code === id);
   }
 
   // Get available hierarchy types

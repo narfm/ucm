@@ -592,7 +592,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       .filter(level => level.enabled)
       .sort((a, b) => a.order - b.order);
     
-    const newFilters = enabledLevels.map(level => level.id);
+    const newFilters = enabledLevels.map(level => level.code);
     
     if (newFilters.length === 0) {
       alert('Please select at least one hierarchy level');
@@ -939,9 +939,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
           // Update enabled state and order based on current filters
           const updatedLevels = allLevels.map(level => ({
             ...level,
-            enabled: this.hierarchyRequest!.filters.includes(level.id),
-            order: this.hierarchyRequest!.filters.indexOf(level.id) !== -1 
-              ? this.hierarchyRequest!.filters.indexOf(level.id) 
+            enabled: this.hierarchyRequest!.filters.includes(level.code),
+            order: this.hierarchyRequest!.filters.indexOf(level.code) !== -1 
+              ? this.hierarchyRequest!.filters.indexOf(level.code) 
               : level.order
           }));
           

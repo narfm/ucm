@@ -4,6 +4,7 @@ export interface HierarchyNode {
   filters?: string[];
   partyId?: string;
   childrenCount?: number;
+  immediateChildrenCount?: number;
   hasChildren?: boolean;
   legalEntity?: boolean;
   children?: HierarchyNode[];
@@ -40,11 +41,13 @@ export type FilterType =
   | 'Treasury Services';
 
 export interface HierarchyLevel {
-  id: string;
+  // id: string;
   name: string;
   description: string;
   enabled: boolean;
   order: number;
+  code: string;
+  values?: string[];
 }
 
 export interface HierarchyConfig {

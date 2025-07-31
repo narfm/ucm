@@ -80,7 +80,7 @@
         <div class="level-info">
           <div class="level-header">
             <span class="level-name">{{ level.name }}</span>
-            <span class="level-id">{{ level.id }}</span>
+            <span class="level-id">{{ level.code }}</span>
           </div>
           <div class="level-description">{{ level.description }}</div>
         </div>
@@ -90,7 +90,7 @@
           <label class="toggle-switch">
             <input type="checkbox" 
                    [checked]="level.enabled"
-                   (change)="toggleLevel(level.id)">
+                   (change)="toggleLevel(level.code)">
             <span class="toggle-slider"></span>
           </label>
         </div>

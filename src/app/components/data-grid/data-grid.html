@@ -209,48 +209,58 @@
           </div>
           
           <!-- Other cells -->
-          <span *ngIf="column.key !== 'name' && column.key !== 'hierarchyInfo'">
+          <span *ngIf="column.key !== 'name' && column.key !== 'clients' && column.key !== 'accounts'"
+                [class.negative-value]="column.dataType === 'number' && getCellValue(stickyParent, column) < 0">
             {{ formatCellValue(getCellValue(stickyParent, column), column) }}
           </span>
           
-          <!-- Hierarchy Info Column -->
-          <div *ngIf="column.key === 'hierarchyInfo'" class="hierarchy-info-cell">
+          <!-- Clients Column -->
+          <div *ngIf="column.key === 'clients'" class="clients-cell">
             <ng-container *ngIf="getCellValue(stickyParent, column) as info">
-              <!-- Children indicator -->
-              <div *ngIf="info.hasChildren" class="hierarchy-indicator">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="hierarchy-icon">
-                  <circle cx="12" cy="12" r="2"/>
-                  <circle cx="12" cy="5" r="2"/>
-                  <circle cx="12" cy="19" r="2"/>
-                  <path d="M12 7v5m0 2v5" stroke-dasharray="2 2"/>
-                </svg>
-                <span class="hierarchy-count">{{ info.childrenCount }}</span>
+              <div class="clients-info" *ngIf="info.hasChildren">
+                <div class="clients-counts">
+                  <span class="immediate-count" [appTooltip]="'Immediate children'">
+                    {{ info.immediateChildrenCount }}
+                  </span>
+                  <span class="separator">/</span>
+                  <span class="total-count" [appTooltip]="'Total children (all levels)'">
+                    {{ info.childrenCount }}
+                  </span>
+                </div>
+                <div class="clients-visual" [style.width.%]="info.immediatePercentage">
+                  <div class="visual-bar"></div>
+                </div>
               </div>
-              
-              <!-- Accounts summary -->
-              <div class="accounts-summary">
-                <span class="account-value" [class.has-children]="info.childrenAccounts > 0">
-                  {{ info.selfAccounts.toLocaleString() }}
-                </span>
-                <span *ngIf="info.childrenAccounts > 0" class="account-separator">/</span>
-                <span *ngIf="info.childrenAccounts > 0" class="account-total" 
-                      [appTooltip]="'Total: ' + info.totalAccounts.toLocaleString() + ' accounts (Self: ' + info.selfAccounts.toLocaleString() + ', Children: ' + info.childrenAccounts.toLocaleString() + ')'">
-                  {{ info.totalAccounts.toLocaleString() }}
-                </span>
-                <span class="account-label">{{ info.totalAccounts === 1 ? 'acct' : 'accts' }}</span>
-                
-                <!-- Fetch accounts button -->
-                <button *ngIf="info.selfAccounts > 0" 
-                        class="fetch-accounts-btn"
+              <span *ngIf="!info.hasChildren" class="no-data">-</span>
+            </ng-container>
+          </div>
+          
+          <!-- Accounts Column -->
+          <div *ngIf="column.key === 'accounts'" class="accounts-cell">
+            <ng-container *ngIf="getCellValue(stickyParent, column) as info">
+              <div class="accounts-info" *ngIf="info.hasAccounts">
+                <div class="accounts-counts">
+                  <span class="children-count" [appTooltip]="'Children accounts'">
+                    {{ info.childrenAccounts }}
+                  </span>
+                  <span class="separator">/</span>
+                  <span class="self-count" [appTooltip]="'Self accounts'" [class.downloadable]="info.canDownload">
+                    {{ info.selfAccounts }}
+                  </span>
+                </div>
+                <button *ngIf="info.canDownload" 
+                        class="download-accounts-btn"
                         (click)="fetchNodeAccounts(stickyParent); $event.stopPropagation()"
-                        [appTooltip]="'Fetch ' + info.selfAccounts.toLocaleString() + ' accounts'">
+                        [appTooltip]="'Fetch ' + info.selfAccounts + ' accounts'">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="2" y="6" width="20" height="8" rx="2"/>
-                    <path d="M6 10h4"/>
-                    <path d="M6 14h8"/>
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <line x1="9" y1="9" x2="15" y2="9"/>
+                    <line x1="9" y1="12" x2="15" y2="12"/>
+                    <line x1="9" y1="15" x2="11" y2="15"/>
                   </svg>
                 </button>
               </div>
+              <span *ngIf="!info.hasAccounts" class="no-data">-</span>
             </ng-container>
           </div>
         </div>
@@ -417,48 +427,58 @@
         </div>
         
         <!-- Other cells -->
-        <span *ngIf="column.key !== 'name' && column.key !== 'hierarchyInfo'">
+        <span *ngIf="column.key !== 'name' && column.key !== 'clients' && column.key !== 'accounts'"
+              [class.negative-value]="column.dataType === 'number' && getCellValue(row, column) < 0">
           {{ formatCellValue(getCellValue(row, column), column) }}
         </span>
         
-        <!-- Hierarchy Info Column -->
-        <div *ngIf="column.key === 'hierarchyInfo'" class="hierarchy-info-cell">
+        <!-- Clients Column -->
+        <div *ngIf="column.key === 'clients'" class="clients-cell">
           <ng-container *ngIf="getCellValue(row, column) as info">
-            <!-- Children indicator -->
-            <div *ngIf="info.hasChildren" class="hierarchy-indicator">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="hierarchy-icon">
-                <circle cx="12" cy="12" r="2"/>
-                <circle cx="12" cy="5" r="2"/>
-                <circle cx="12" cy="19" r="2"/>
-                <path d="M12 7v5m0 2v5" stroke-dasharray="2 2"/>
-              </svg>
-              <span class="hierarchy-count">{{ info.childrenCount }}</span>
+            <div class="clients-info" *ngIf="info.hasChildren">
+              <div class="clients-counts">
+                <span class="immediate-count" [appTooltip]="'Immediate children'">
+                  {{ info.immediateChildrenCount }}
+                </span>
+                <span class="separator">/</span>
+                <span class="total-count" [appTooltip]="'Total children (all levels)'">
+                  {{ info.childrenCount }}
+                </span>
+              </div>
+              <div class="clients-visual" [style.width.%]="info.immediatePercentage">
+                <div class="visual-bar"></div>
+              </div>
             </div>
-            
-            <!-- Accounts summary -->
-            <div class="accounts-summary">
-              <span class="account-value" [class.has-children]="info.childrenAccounts > 0">
-                {{ info.selfAccounts.toLocaleString() }}
-              </span>
-              <span *ngIf="info.childrenAccounts > 0" class="account-separator">/</span>
-              <span *ngIf="info.childrenAccounts > 0" class="account-total" 
-                    [appTooltip]="'Total: ' + info.totalAccounts.toLocaleString() + ' accounts (Self: ' + info.selfAccounts.toLocaleString() + ', Children: ' + info.childrenAccounts.toLocaleString() + ')'">
-                {{ info.totalAccounts.toLocaleString() }}
-              </span>
-              <span class="account-label">{{ info.totalAccounts === 1 ? 'acct' : 'accts' }}</span>
-              
-              <!-- Fetch accounts button -->
-              <button *ngIf="info.selfAccounts > 0" 
-                      class="fetch-accounts-btn"
+            <span *ngIf="!info.hasChildren" class="no-data">-</span>
+          </ng-container>
+        </div>
+        
+        <!-- Accounts Column -->
+        <div *ngIf="column.key === 'accounts'" class="accounts-cell">
+          <ng-container *ngIf="getCellValue(row, column) as info">
+            <div class="accounts-info" *ngIf="info.hasAccounts">
+              <div class="accounts-counts">
+                <span class="children-count" [appTooltip]="'Children accounts'">
+                  {{ info.childrenAccounts }}
+                </span>
+                <span class="separator">/</span>
+                <span class="self-count" [appTooltip]="'Self accounts'" [class.downloadable]="info.canDownload">
+                  {{ info.selfAccounts }}
+                </span>
+              </div>
+              <button *ngIf="info.canDownload" 
+                      class="download-accounts-btn"
                       (click)="fetchNodeAccounts(row); $event.stopPropagation()"
-                      [appTooltip]="'Fetch ' + info.selfAccounts.toLocaleString() + ' accounts'">
+                      [appTooltip]="'Fetch ' + info.selfAccounts + ' accounts'">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <rect x="2" y="6" width="20" height="8" rx="2"/>
-                  <path d="M6 10h4"/>
-                  <path d="M6 14h8"/>
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <line x1="9" y1="9" x2="15" y2="9"/>
+                  <line x1="9" y1="12" x2="15" y2="12"/>
+                  <line x1="9" y1="15" x2="11" y2="15"/>
                 </svg>
               </button>
             </div>
+            <span *ngIf="!info.hasAccounts" class="no-data">-</span>
           </ng-container>
         </div>
       </div>

@@ -169,18 +169,20 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '500px', minWidth: '200px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '180px', minWidth: '120px' },
-    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '200px', minWidth: '120px' },
-    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '100px', minWidth: '80px' },
-    { key: 'hierarchyInfo', label: 'Hierarchy / Accounts', sortable: false, align: 'right', width: '220px', minWidth: '180px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '400px', minWidth: '200px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '150px', minWidth: '100px' },
+    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '180px', minWidth: '120px' },
+    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '80px', minWidth: '60px' },
+    { key: 'clients', label: 'Clients', sortable: true, align: 'center', width: '180px', minWidth: '140px' },
+    { key: 'accounts', label: 'Accounts', sortable: true, align: 'center', width: '200px', minWidth: '160px' }
   ];
 
   // Embed mode columns (reduced set with responsive widths)
   embedColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '45%', minWidth: '120px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '20%', minWidth: '60px' },
-    { key: 'hierarchyInfo', label: 'Hierarchy', sortable: false, align: 'right', width: '35%', minWidth: '100px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '40%', minWidth: '120px' },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '15%', minWidth: '60px' },
+    { key: 'clients', label: 'Clients', sortable: true, align: 'center', width: '20%', minWidth: '80px' },
+    { key: 'accounts', label: 'Accounts', sortable: true, align: 'center', width: '25%', minWidth: '100px' }
   ];
   
   ngOnInit() {
@@ -271,10 +273,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // In embed mode, adjust base column widths to accommodate metrics
     if (this.embedMode && metricColumns.length > 0) {
-      // Adjust widths to fit: Name (40%), Type (20%), Children (20%), Metric (20%)
-      baseColumns[0].width = '40%'; // Name
-      baseColumns[1].width = '20%'; // Type
-      baseColumns[2].width = '20%'; // Children
+      // Adjust widths to fit: Name (35%), Type (15%), Clients (15%), Accounts (15%), Metric (20%)
+      baseColumns[0].width = '35%'; // Name
+      baseColumns[1].width = '15%'; // Type
+      baseColumns[2].width = '15%'; // Clients
+      baseColumns[3].width = '15%'; // Accounts
     }
     
     // Update the columns array
@@ -423,27 +426,45 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       return row.values ? row.values[metricKey] : null;
     }
     
-    // Handle special hierarchyInfo column
-    if (column.key === 'hierarchyInfo') {
-      return this.formatHierarchyInfo(row);
+    // Handle special clients column
+    if (column.key === 'clients') {
+      return this.formatClientsInfo(row);
+    }
+    
+    // Handle special accounts column
+    if (column.key === 'accounts') {
+      return this.formatAccountsInfo(row);
     }
     
     return (row as any)[column.key];
   }
   
-  private formatHierarchyInfo(row: HierarchyNode): any {
+  private formatClientsInfo(row: HierarchyNode): any {
     const childrenCount = row.childrenCount || 0;
+    const immediateChildrenCount = row.immediateChildrenCount || 0;
+    
+    // Return an object with structured data for template rendering
+    return {
+      hasChildren: childrenCount > 0,
+      childrenCount,
+      immediateChildrenCount,
+      // Calculate percentage for visual indicator
+      immediatePercentage: childrenCount > 0 ? Math.round((immediateChildrenCount / childrenCount) * 100) : 0
+    };
+  }
+  
+  private formatAccountsInfo(row: HierarchyNode): any {
     const selfAccounts = row.selfAccountCount || 0;
     const childrenAccounts = row.childrenAccountCount || 0;
     const totalAccounts = selfAccounts + childrenAccounts;
     
     // Return an object with structured data for template rendering
     return {
-      hasChildren: childrenCount > 0,
-      childrenCount,
       selfAccounts,
       childrenAccounts,
       totalAccounts,
+      hasAccounts: totalAccounts > 0,
+      canDownload: selfAccounts > 0,
       // Calculate percentage for visual indicator
       selfAccountsPercentage: totalAccounts > 0 ? Math.round((selfAccounts / totalAccounts) * 100) : 0
     };
@@ -458,7 +479,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     if (value == null) return '';
     
     // Special columns that return objects (handled in template)
-    if (column.key === 'hierarchyInfo') {
+    if (column.key === 'clients' || column.key === 'accounts') {
       return '';
     }
     
@@ -472,7 +493,13 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
           if (metricKey.includes('%')) {
             return `${value.toFixed(1)}%`;
           } else if (metricKey.includes('Revenue') || metricKey.includes('Income') || metricKey.includes('Costs') || metricKey.includes('Profit') || metricKey.includes('Expense')) {
-            return `$${new Intl.NumberFormat('en-US').format(value)}`;
+            // Format dollar values with brackets for negative
+            if (value < 0) {
+              const absValue = Math.abs(value);
+              return `($${new Intl.NumberFormat('en-US').format(absValue)})`;
+            } else {
+              return `$${new Intl.NumberFormat('en-US').format(value)}`;
+            }
           } else if (metricKey.includes('Count')) {
             return new Intl.NumberFormat('en-US').format(value);
           } else {

@@ -713,6 +713,12 @@
   font-size: 0.75rem;
 }
 
+// Negative value styling for dollar amounts
+.negative-value {
+  color: var(--danger-color);
+  font-weight: 500;
+}
+
 // Virtual scroll styles
 ::ng-deep .cdk-virtual-scroll-content-wrapper {
   width: 100%;
@@ -1105,7 +1111,159 @@
   }
 }
 
-// Hierarchy info column styling
+// Clients column styling
+.clients-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  
+  .clients-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    max-width: 140px;
+    
+    .clients-counts {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      font-variant-numeric: tabular-nums;
+      
+      .immediate-count {
+        font-weight: 600;
+        color: var(--accent-color);
+        font-size: 0.875rem;
+      }
+      
+      .separator {
+        color: var(--text-tertiary);
+        opacity: 0.6;
+      }
+      
+      .total-count {
+        font-weight: 500;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+    }
+    
+    .clients-visual {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+      
+      .visual-bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, var(--accent-color), var(--accent-color-hover));
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+    }
+  }
+  
+  .no-data {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+  }
+}
+
+// Accounts column styling
+.accounts-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  
+  .accounts-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .accounts-counts {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      font-variant-numeric: tabular-nums;
+      
+      .children-count {
+        font-weight: 500;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+      
+      .separator {
+        color: var(--text-tertiary);
+        opacity: 0.6;
+      }
+      
+      .self-count {
+        font-weight: 600;
+        color: var(--success-color);
+        font-size: 0.875rem;
+        
+        &.downloadable {
+          color: var(--info-color);
+          cursor: pointer;
+          
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+    
+    .download-accounts-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-tertiary);
+      
+      svg {
+        width: 12px;
+        height: 12px;
+        stroke-width: 1.5;
+      }
+      
+      &:hover {
+        background: var(--bg-tertiary);
+        color: var(--info-color);
+        border-color: var(--info-color);
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+  
+  .no-data {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+  }
+}
+
+// Hierarchy info column styling (legacy - to be removed)
 .hierarchy-info-cell {
   display: flex;
   align-items: center;

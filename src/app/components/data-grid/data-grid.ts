@@ -1015,6 +1015,83 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     this.childSearchRequest.emit(node);
     this.hideContextMenu();
   }
+
+  fetchNodeAccounts(node: HierarchyNode) {
+    if (!node.selfAccountCount || node.selfAccountCount <= 0 || !node.partyId) {
+      this.hideContextMenu();
+      return;
+    }
+
+    const nodePartyId = node.partyId; // TypeScript type guard
+    
+    // Set row loading state
+    this.setRowLoading(nodePartyId, true);
+
+    // Fetch accounts from the service
+    this.mockDataService.getAccounts(nodePartyId).subscribe({
+      next: (response) => {
+        // Create individual account nodes
+        const accountNodes: HierarchyNode[] = response.list.map(account => ({
+          name: account.name,
+          type: account.type,
+          partyId: account.partyId,
+          hasChildren: false,
+          childrenCount: 0,
+          level: (node.level || 0) + 2, // One level deeper since we'll have a parent folder
+          parent: undefined, // Will be set when we create the parent folder
+          selfAccountCount: 0,
+          childrenAccountCount: 0
+        }));
+
+        // Create a parent folder for all accounts
+        const accountsFolder: HierarchyNode = {
+          name: `Accounts (${response.list.length})`,
+          type: 'ORG', // Use ORG type for the folder
+          partyId: `${nodePartyId}_ACCOUNTS_FOLDER`,
+          hasChildren: true,
+          childrenCount: response.list.length,
+          level: (node.level || 0) + 1,
+          parent: node,
+          children: accountNodes,
+          expanded: true, // Start expanded so accounts are visible
+          selfAccountCount: 0,
+          childrenAccountCount: 0,
+          legalEntity: false
+        };
+
+        // Set the parent reference for all account nodes
+        accountNodes.forEach(account => {
+          account.parent = accountsFolder;
+        });
+
+        // Add the accounts folder as the first child of the node
+        if (!node.children) {
+          node.children = [];
+        }
+        node.children.unshift(accountsFolder); // Add as first child
+        
+        // Mark both the node and accounts folder as expanded
+        const nodeId = nodePartyId || node.name;
+        const accountsFolderId = accountsFolder.partyId!; // We know this is defined since we just set it
+        const expandedIds = new Set(this.gridState().expandedNodeIds);
+        expandedIds.add(nodeId);
+        expandedIds.add(accountsFolderId);
+        this.gridState.update(state => ({
+          ...state,
+          expandedNodeIds: expandedIds
+        }));
+
+        // Data will automatically refresh due to reactive computed signal
+        this.setRowLoading(nodePartyId, false);
+      },
+      error: (error) => {
+        this.setRowLoading(nodePartyId, false);
+        this.handleError(error, `fetchAccounts for node ${node.name} (${nodePartyId})`);
+      }
+    });
+
+    this.hideContextMenu();
+  }
   
   // External interface for child search
   startChildSearch(node: HierarchyNode): void {

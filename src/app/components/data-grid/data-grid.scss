@@ -396,6 +396,14 @@
     }
   }
   
+  &.account-row {
+    background: rgba(var(--info-color-rgb), 0.02);
+    
+    &:hover {
+      background: rgba(var(--info-color-rgb), 0.06);
+    }
+  }
+  
   // Row loading state
   &.row-loading {
     position: relative;
@@ -553,6 +561,10 @@
   &.person-icon {
     color: var(--purple-color);
   }
+  
+  &.account-icon {
+    color: var(--info-color);
+  }
 }
 
 .legal-icons {
@@ -668,6 +680,12 @@
   &.person-type {
     color: var(--text-secondary);
     font-weight: 400;
+  }
+  
+  &.account-type {
+    color: var(--info-color);
+    font-weight: 500;
+    font-style: italic;
   }
 }
 
@@ -1137,6 +1155,34 @@
       opacity: 0.7;
       margin-left: 2px;
     }
+    
+    .fetch-accounts-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 2px 4px;
+      margin-left: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+      
+      &:hover {
+        background: var(--bg-secondary);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+      
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
   }
   
   // Subtle hover effect
@@ -1187,6 +1233,16 @@
       .account-value,
       .account-total {
         font-weight: 500;
+      }
+    }
+  }
+  
+  .account-row & {
+    .accounts-summary {
+      .account-value,
+      .account-total {
+        color: var(--info-color);
+        font-weight: 600;
       }
     }
   }

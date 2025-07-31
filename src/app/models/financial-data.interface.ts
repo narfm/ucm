@@ -89,3 +89,13 @@ export interface HierarchyType {
   hierarchyTypeCode: string;
   groupDescText: string;
 }
+
+export interface AccountItem {
+  name: string;
+  partyId: string;
+  type: 'ACCT';
+}
+
+export interface AccountResponse {
+  list: AccountItem[];
+}

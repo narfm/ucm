@@ -70,7 +70,8 @@
       <div class="grid-row sticky-row"
            [class.filter-row]="stickyParent.type === 'FILTER' || stickyParent.type.startsWith('FILTER/')"
            [class.org-row]="stickyParent.type === 'ORG'"
-           [class.person-row]="stickyParent.type === 'PER'">
+           [class.person-row]="stickyParent.type === 'PER'"
+           [class.account-row]="stickyParent.type === 'ACCT'">
         
         <div *ngFor="let column of columns; trackBy: trackByColumn"
              class="grid-cell"
@@ -160,6 +161,15 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
               </svg>
+              
+              <!-- Account icon -->
+              <svg *ngIf="stickyParent.type === 'ACCT'" 
+                   class="type-icon account-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Account">
+                <rect x="2" y="6" width="20" height="8" rx="2"/>
+                <path d="M6 10h4"/>
+                <path d="M6 14h8"/>
+              </svg>
             </div>
 
             <!-- Legal entity icon -->
@@ -185,7 +195,8 @@
                   [class.filter-ump-type]="stickyParent.type === 'FILTER/UMP_L1_NAME'"
                   [class.filter-client-type]="stickyParent.type === 'FILTER/CLIENT_OWNER_NAME'"
                   [class.org-type]="stickyParent.type === 'ORG'" 
-                  [class.person-type]="stickyParent.type === 'PER'">{{ formatCellValue(getCellValue(stickyParent, column), column) }}</span>
+                  [class.person-type]="stickyParent.type === 'PER'"
+                  [class.account-type]="stickyParent.type === 'ACCT'">{{ formatCellValue(getCellValue(stickyParent, column), column) }}</span>
           </div>
           
           <!-- Other cells -->
@@ -218,6 +229,18 @@
                   {{ info.totalAccounts.toLocaleString() }}
                 </span>
                 <span class="account-label">{{ info.totalAccounts === 1 ? 'acct' : 'accts' }}</span>
+                
+                <!-- Fetch accounts button -->
+                <button *ngIf="info.selfAccounts > 0" 
+                        class="fetch-accounts-btn"
+                        (click)="fetchNodeAccounts(stickyParent); $event.stopPropagation()"
+                        [appTooltip]="'Fetch ' + info.selfAccounts.toLocaleString() + ' accounts'">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="2" y="6" width="20" height="8" rx="2"/>
+                    <path d="M6 10h4"/>
+                    <path d="M6 14h8"/>
+                  </svg>
+                </button>
               </div>
             </ng-container>
           </div>
@@ -240,6 +263,7 @@
          [class.filter-row]="row.type === 'FILTER' || row.type.startsWith('FILTER/')"
          [class.org-row]="row.type === 'ORG'"
          [class.person-row]="row.type === 'PER'"
+         [class.account-row]="row.type === 'ACCT'"
          [class.row-loading]="isRowLoading(row.partyId || row.name)"
          [class.search-result-highlighted]="isChildSearchResultHighlighted(row)"
          [class.search-result-current]="isCurrentChildSearchResult(row)"
@@ -345,6 +369,15 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
+            
+            <!-- Account icon -->
+            <svg *ngIf="row.type === 'ACCT'" 
+                 class="type-icon account-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Account">
+              <rect x="2" y="6" width="20" height="8" rx="2"/>
+              <path d="M6 10h4"/>
+              <path d="M6 14h8"/>
+            </svg>
           </div>
 
           <!-- Legal entity icon -->
@@ -370,7 +403,8 @@
                 [class.filter-ump-type]="row.type === 'FILTER/UMP_L1_NAME'"
                 [class.filter-client-type]="row.type === 'FILTER/CLIENT_OWNER_NAME'"
                 [class.org-type]="row.type === 'ORG'" 
-                [class.person-type]="row.type === 'PER'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
+                [class.person-type]="row.type === 'PER'"
+                [class.account-type]="row.type === 'ACCT'">{{ formatCellValue(getCellValue(row, column), column) }}</span>
         </div>
         
         <!-- Other cells -->
@@ -403,6 +437,18 @@
                 {{ info.totalAccounts.toLocaleString() }}
               </span>
               <span class="account-label">{{ info.totalAccounts === 1 ? 'acct' : 'accts' }}</span>
+              
+              <!-- Fetch accounts button -->
+              <button *ngIf="info.selfAccounts > 0" 
+                      class="fetch-accounts-btn"
+                      (click)="fetchNodeAccounts(row); $event.stopPropagation()"
+                      [appTooltip]="'Fetch ' + info.selfAccounts.toLocaleString() + ' accounts'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="2" y="6" width="20" height="8" rx="2"/>
+                  <path d="M6 10h4"/>
+                  <path d="M6 14h8"/>
+                </svg>
+              </button>
             </div>
           </ng-container>
         </div>
@@ -444,6 +490,17 @@
         <path d="M21 21l-4.35-4.35"/>
       </svg>
       Search Children
+    </div>
+    <div class="context-menu-item" 
+         (click)="fetchNodeAccounts(contextMenuNode!)"
+         [class.disabled]="!contextMenuNode?.selfAccountCount || (contextMenuNode?.selfAccountCount || 0) <= 0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           appTooltip="Fetch accounts for this node">
+        <rect x="2" y="6" width="20" height="8" rx="2"/>
+        <path d="M6 10h4"/>
+        <path d="M6 14h8"/>
+      </svg>
+      Fetch Accounts
     </div>
   </div>
   

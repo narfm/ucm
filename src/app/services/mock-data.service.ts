@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
-import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria, HierarchyLevel, HierarchyType } from '../models/financial-data.interface';
+import { HierarchyNode, HierarchyRequest, HierarchyResponse, FilterType, FilterCriteria, HierarchyLevel, HierarchyType, AccountResponse, AccountItem } from '../models/financial-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -642,6 +642,49 @@ export class MockDataService {
     });
     
     return metrics;
+  }
+
+  // Get accounts for a specific node
+  getAccounts(partyId: string): Observable<AccountResponse> {
+    const accountCount = this.randomBetween(1, 10);
+    const accounts: AccountItem[] = [];
+    
+    for (let i = 0; i < accountCount; i++) {
+      const accountName = this.generateAccountName(partyId, i + 1);
+      const accountPartyId = `${partyId}_ACCT_${String(i + 1).padStart(3, '0')}`;
+      
+      accounts.push({
+        name: accountName,
+        partyId: accountPartyId,
+        type: 'ACCT'
+      });
+    }
+    
+    const response: AccountResponse = {
+      list: accounts
+    };
+    
+    // Simulate loading delay
+    const randomDelay = Math.floor(Math.random() * (1500 - 300 + 1)) + 300;
+    return of(response).pipe(delay(randomDelay));
+  }
+
+  private generateAccountName(parentPartyId: string, accountNumber: number): string {
+    const accountTypes = [
+      'Savings Account',
+      'Checking Account', 
+      'Investment Account',
+      'Trust Account',
+      'Corporate Account',
+      'Operational Account',
+      'Settlement Account',
+      'Custody Account',
+      'Money Market Account',
+      'Trading Account'
+    ];
+    
+    const baseType = this.getRandomItem(accountTypes);
+    return `${baseType} ${String(accountNumber).padStart(3, '0')}`;
   }
 
   // Error simulation methods

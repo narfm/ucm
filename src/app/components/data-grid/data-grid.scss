@@ -264,17 +264,17 @@
   position: relative;
 }
 
-.header-controls {
-  position: absolute;
-  top: 4px;
-  right: 8px;
+.column-menu-button {
+  position: sticky;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  padding: 0 4px;
   z-index: 11;
-  
-  // In embed mode, make it more compact
-  .data-grid-container.embed-mode & {
-    top: 2px;
-    right: 4px;
-  }
+  box-shadow: -2px 0 4px var(--shadow-light);
 }
 
 

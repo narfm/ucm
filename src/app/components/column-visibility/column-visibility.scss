@@ -7,47 +7,30 @@
 .column-visibility-button {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color, rgba(var(--text-secondary-rgb), 0.2));
-  border-radius: 4px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
   color: var(--text-secondary);
-  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px var(--shadow-light);
+  position: relative;
 
   &:hover {
-    background: var(--bg-secondary);
-    border-color: var(--accent-color);
+    background: var(--bg-tertiary);
     color: var(--text-primary);
   }
 
   &.active {
-    background: var(--accent-color);
-    color: var(--bg-primary);
-    border-color: var(--accent-color);
+    background: var(--bg-tertiary);
+    color: var(--accent-color);
   }
 
-  .icon {
-    font-size: 14px;
-  }
-
-  .count {
-    font-size: 11px;
-    font-weight: 500;
-    opacity: 0.9;
-  }
-
-  .dropdown-arrow {
-    font-size: 8px;
-    transition: transform 0.2s ease;
-    
-    &.rotated {
-      transform: rotate(180deg);
-    }
+  svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -247,6 +230,17 @@
   }
 }
 
+/* Backdrop */
+.column-visibility-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background: transparent;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .column-visibility-dropdown {
@@ -266,14 +260,6 @@
 
 /* Embed Mode Adjustments */
 @media (max-width: 500px) {
-  .column-visibility-button {
-    padding: 4px 8px;
-    
-    .count {
-      display: none;
-    }
-  }
-  
   .column-visibility-dropdown {
     min-width: 240px;
   }

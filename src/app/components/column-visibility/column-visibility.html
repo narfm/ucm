@@ -5,11 +5,13 @@
       class="column-visibility-button"
       (click)="toggleDropdown()"
       [class.active]="dropdownOpen"
-      appTooltip="Show/hide columns ({{ getVisibleColumnCount() }}/{{ columns.length }} visible)"
+      appTooltip="Show/hide columns"
       type="button">
-      <span class="icon">&#128065;</span> <!-- Eye icon -->
-      <span class="count">{{ getVisibleColumnCount() }}/{{ columns.length }}</span>
-      <span class="dropdown-arrow" [class.rotated]="dropdownOpen">&#9662;</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
     </button>
     
     <!-- Dropdown menu -->
@@ -56,6 +58,9 @@
         </span>
       </div>
     </div>
+    
+    <!-- Backdrop to close dropdown -->
+    <div class="column-visibility-backdrop" *ngIf="dropdownOpen" (click)="toggleDropdown()"></div>
   </ng-container>
   
   <!-- Inline controls template -->

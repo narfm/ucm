@@ -15,6 +15,7 @@ export class ColumnVisibilityComponent {
   @Input() columns: ColumnDefinition[] = [];
   @Input() showAsDropdown: boolean = true;
   @Input() embedMode: boolean = false;
+  @Input() verticalLayout: boolean = false;
   
   private columnVisibilityService = inject(ColumnVisibilityService);
   

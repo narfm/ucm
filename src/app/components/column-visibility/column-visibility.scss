@@ -32,6 +32,38 @@
     width: 16px;
     height: 16px;
   }
+
+  // Vertical layout styling (for column headers)
+  &.vertical-layout {
+    position: relative;
+    width: 16px;
+    height: 16px; // Small square button
+    background: transparent;
+    opacity: 0.7; // Subtle visibility
+    transition: all 0.2s ease;
+    border-radius: 2px;
+    border: 1px solid var(--border-color);
+    z-index: 15;
+
+    &:hover {
+      opacity: 1;
+      background: var(--bg-tertiary);
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+    }
+
+    &.active {
+      opacity: 1;
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+      color: white;
+    }
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
+  }
 }
 
 /* Dropdown Menu */

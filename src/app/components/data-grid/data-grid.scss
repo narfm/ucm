@@ -264,17 +264,19 @@
   position: relative;
 }
 
-.column-menu-button {
-  position: sticky;
-  right: 0;
+.column-menu-trigger {
+  position: absolute;
+  right: -16px; // Position within the thick border
+  top: 0;
+  bottom: 0;
+  width: 16px; // Match the border width
+  z-index: 12;
+  background: transparent; // Remove debug background
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
-  padding: 0 4px;
-  z-index: 11;
-  box-shadow: -2px 0 4px var(--shadow-light);
+  
 }
 
 
@@ -297,9 +299,15 @@
   border-right: 1px solid var(--border-color);
   position: relative;
   transition: all 0.2s ease;
-  
+
+  // Show column menu trigger on hover for the last column
   &:last-child {
-    border-right: none;
+    border-right: 16px solid var(--border-color); // Thick border to contain the button
+    position: relative;
+    
+    &:hover .column-menu-trigger .column-visibility-button.vertical-layout {
+      opacity: 1;
+    }
   }
   
   .resize-handle {

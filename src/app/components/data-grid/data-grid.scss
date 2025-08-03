@@ -8,6 +8,7 @@
   box-shadow: 0 2px 8px var(--shadow-light);
   border: 1px solid var(--border-color);
   position: relative;
+  padding-right: 20px; // Make space for the column visibility bookmark
   
   &.resizing {
     user-select: none;
@@ -25,6 +26,7 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    padding-right: 15px; // Less padding in embed mode
     
     .grid-header {
       .header-row {
@@ -1444,6 +1446,73 @@
         display: none; // Hide label in embed mode to save space
       }
     }
+  }
+}
+
+// Column visibility bookmark on right border
+.column-visibility-bookmark {
+  position: absolute;
+  right: -1px; // Align with border
+  // top: 50%;
+  transform: translateY(50%);
+  z-index: 100;
+  
+  ::ng-deep .column-visibility-button {
+    position: relative;
+    width: 22px;
+    height: 100px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: -3px 0 6px var(--shadow-light);
+    color: var(--text-secondary);
+    
+    &:hover {
+      background: var(--bg-tertiary);
+      transform: translateX(-3px);
+      box-shadow: -5px 0 10px var(--shadow-medium);
+      color: var(--text-primary);
+    }
+    
+    &.active {
+      background: var(--accent-color);
+      color: var(--bg-primary);
+      transform: translateX(-3px);
+      box-shadow: -5px 0 10px var(--shadow-medium);
+    }
+    
+    // Hide the default icon
+    svg {
+      display: none;
+    }
+    
+    // Add vertical text
+    &::after {
+      content: 'Columns';
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      white-space: nowrap;
+      transform: rotate(180deg);
+    }
+  }
+  
+  // Adjust dropdown position
+  ::ng-deep .column-visibility-dropdown {
+    right: 30px;
+    // top: 50%;
+    transform: translateY(-17%);
+    margin-top: 0;
+    box-shadow: var(--shadow-dark);
   }
 }
 

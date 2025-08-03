@@ -55,18 +55,6 @@
           </svg>
         </span>
         
-        <!-- Column menu button on each header -->
-        <div class="column-menu-trigger" 
-             *ngIf="i === visibleColumns().length - 1"
-             (click)="$event.stopPropagation()">
-          <app-column-visibility 
-            [columns]="columns"
-            [embedMode]="embedMode"
-            [showAsDropdown]="true"
-            [verticalLayout]="true">
-          </app-column-visibility>
-        </div>
-        
         <div *ngIf="i < visibleColumns().length - 1" 
              class="resize-handle"
              (mousedown)="onResizeStart($event, i)"></div>
@@ -543,4 +531,14 @@
        (click)="hideContextMenu()"></div>
        
   <!-- Node hierarchy modal now uses service -->
+  
+  <!-- Column visibility bookmark on right border -->
+  <div class="column-visibility-bookmark">
+    <app-column-visibility 
+      [columns]="columns"
+      [embedMode]="embedMode"
+      [showAsDropdown]="true"
+      [verticalLayout]="true">
+    </app-column-visibility>
+  </div>
 </div>

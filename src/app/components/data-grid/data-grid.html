@@ -55,6 +55,12 @@
           </svg>
         </span>
         
+        <!-- Column filter component -->
+        <app-column-filter 
+          [column]="column"
+          (filterChange)="onFilterChange()">
+        </app-column-filter>
+        
         <div *ngIf="i < visibleColumns().length - 1" 
              class="resize-handle"
              (mousedown)="onResizeStart($event, i)"></div>

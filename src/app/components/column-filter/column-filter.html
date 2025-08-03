@@ -1,0 +1,39 @@
+<!-- Filter button -->
+<button *ngIf="column.filterable" 
+        class="column-filter-button"
+        [class.active]="isFilterActive"
+        (click)="toggleFilter($event)"
+        [appTooltip]="'Filter ' + column.label">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+  </svg>
+</button>
+
+<!-- Filter dropdown -->
+<div *ngIf="showFilterDropdown" 
+     class="column-filter-dropdown"
+     [style.left.px]="filterDropdownX"
+     [style.top.px]="filterDropdownY">
+  <div class="filter-dropdown-header">
+    <span>Filter {{ column.label }}</span>
+    <button class="close-button" (click)="closeFilter()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="filter-dropdown-body">
+    <div *ngFor="let option of filterOptions"
+         class="filter-option"
+         [class.selected]="currentFilterValue === option.value"
+         (click)="applyFilter(option.value)">
+      <span class="filter-option-checkbox">
+        <svg *ngIf="currentFilterValue === option.value" 
+             width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+        </svg>
+      </span>
+      <span class="filter-option-label">{{ option.label }}</span>
+    </div>
+  </div>
+</div>

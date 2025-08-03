@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
-import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
+import { HierarchyNode, ColumnDefinition, GridState, HierarchyRequest, HierarchyConfig, HierarchyType, FilterCriteria } from '../../models/financial-data.interface';
 import { MockDataService } from '../../services/mock-data.service';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
@@ -12,11 +12,13 @@ import { ErrorHandlerService, AppError } from '../../services/error-handler.serv
 import { ErrorDisplayComponent } from '../error-display/error-display';
 import { ColumnVisibilityService } from '../../services/column-visibility.service';
 import { ColumnVisibilityComponent } from '../column-visibility/column-visibility';
+import { ColumnFilterService } from '../../services/column-filter.service';
+import { ColumnFilterComponent } from '../column-filter/column-filter';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective, ErrorDisplayComponent, ColumnVisibilityComponent],
+  imports: [CommonModule, ScrollingModule, ProgressBarComponent, FormsModule, TooltipDirective, ErrorDisplayComponent, ColumnVisibilityComponent, ColumnFilterComponent],
   templateUrl: './data-grid.html',
   styleUrl: './data-grid.scss'
 })
@@ -67,6 +69,11 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   // Sorting state
   isSorting = signal<boolean>(false);
   
+  // Legal Entity Filter state
+  showLegalEntityFilter = false;
+  legalEntityFilterX = 0;
+  legalEntityFilterY = 0;
+  
   // Context menu properties
   contextMenuVisible = false;
   contextMenuX = 0;
@@ -85,6 +92,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   private hierarchyModalService = inject(HierarchyModalService);
   private errorHandlerService = inject(ErrorHandlerService);
   private columnVisibilityService = inject(ColumnVisibilityService);
+  public columnFilterService = inject(ColumnFilterService);
   
   // Resize properties
   resizing = false;
@@ -120,7 +128,12 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     
     let processedData = currentData;
     
-    // Apply search filtering first
+    // Apply column filters first
+    if (state.filters && state.filters.length > 0) {
+      processedData = this.applyColumnFilters(processedData, state.filters);
+    }
+    
+    // Apply search filtering
     if (searchTerm && searchTerm.trim() !== '') {
       processedData = this.filterBySearch(processedData, searchTerm.trim());
     }
@@ -172,7 +185,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     { key: 'name', label: 'Name', sortable: true, searchable: true, width: '400px', minWidth: '200px' },
     { key: 'type', label: 'Type', sortable: true, searchable: true, width: '150px', minWidth: '100px' },
     { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '180px', minWidth: '120px' },
-    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '80px', minWidth: '60px' },
+    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '80px', minWidth: '60px', filterable: true, filterType: 'boolean' },
     { key: 'clients', label: 'Clients', sortable: true, align: 'center', width: '180px', minWidth: '140px' },
     { key: 'accounts', label: 'Accounts', sortable: true, align: 'center', width: '200px', minWidth: '160px' }
   ];
@@ -758,6 +771,62 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.isSorting.set(false);
     }, 300); // 300ms delay to show the animation
+  }
+  
+  // Filter change handler
+  onFilterChange(): void {
+    const currentState = this.gridState();
+    const activeFilters = this.columnFilterService.activeFilters();
+    
+    this.gridState.set({
+      ...currentState,
+      filters: activeFilters
+    });
+  }
+  
+  private applyColumnFilters(nodes: HierarchyNode[], filters: FilterCriteria[]): HierarchyNode[] {
+    return this.filterNodesWithFilters(nodes, filters);
+  }
+  
+  private filterNodesWithFilters(nodes: HierarchyNode[], filters: FilterCriteria[]): HierarchyNode[] {
+    const results: HierarchyNode[] = [];
+    
+    nodes.forEach(node => {
+      const nodeMatchesFilters = filters.every(filter => this.nodeMatchesFilter(node, filter));
+      
+      const filteredChildren = node.children 
+        ? this.filterNodesWithFilters(node.children, filters) 
+        : [];
+      
+      // Include node if it matches filters OR has matching children
+      if (nodeMatchesFilters || filteredChildren.length > 0) {
+        const clonedNode = { ...node, children: filteredChildren };
+        results.push(clonedNode);
+      }
+    });
+    
+    return results;
+  }
+  
+  private nodeMatchesFilter(node: HierarchyNode, filter: FilterCriteria): boolean {
+    const value = (node as any)[filter.column];
+    
+    switch (filter.operator) {
+      case 'equals':
+        return value === filter.value;
+      case 'contains':
+        return String(value).toLowerCase().includes(String(filter.value).toLowerCase());
+      case 'startsWith':
+        return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase());
+      case 'endsWith':
+        return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase());
+      case 'greaterThan':
+        return value > filter.value;
+      case 'lessThan':
+        return value < filter.value;
+      default:
+        return true;
+    }
   }
   
   private filterBySearch(nodes: HierarchyNode[], searchText: string): HierarchyNode[] {

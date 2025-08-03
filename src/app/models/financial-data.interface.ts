@@ -66,6 +66,9 @@ export interface ColumnDefinition {
   resizable?: boolean;
   dataType?: 'string' | 'number' | 'boolean';
   align?: 'left' | 'center' | 'right';
+  filterable?: boolean;
+  filterType?: 'text' | 'boolean' | 'select' | 'number' | 'date';
+  filterOptions?: any[];
 }
 
 export interface FilterCriteria {

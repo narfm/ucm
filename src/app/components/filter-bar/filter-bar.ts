@@ -226,6 +226,7 @@ export class FilterBarComponent implements OnInit, OnDestroy, OnChanges {
       this.currentHierarchyType.set(currentType || null);
     }
     
+    // Pass the config including selectedValues to parent
     this.filterChange.emit({
       type: 'hierarchy-config',
       value: config

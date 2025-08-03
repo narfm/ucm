@@ -1,19 +1,20 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject, OnInit, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HierarchyLevel, HierarchyConfig, HierarchyType } from '../../models/financial-data.interface';
 import { HierarchyModalService } from '../../services/hierarchy-modal.service';
 import { MockDataService } from '../../services/mock-data.service';
+import { ValuesSidePanelComponent } from '../values-side-panel/values-side-panel';
 
 @Component({
   selector: 'app-hierarchy-selector',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule],
+  imports: [CommonModule, DragDropModule, FormsModule, ValuesSidePanelComponent],
   templateUrl: './hierarchy-selector.html',
   styleUrl: './hierarchy-selector.scss'
 })
-export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewInit {
+export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewInit, OnDestroy {
   @Input() config: HierarchyConfig = {
     levels: [],
     maxDepth: 3
@@ -34,8 +35,16 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
   
   showFullConfiguration = signal<boolean>(false);
   pendingConfig: HierarchyConfig = { ...this.config };
+  pendingSelectedValues: Record<string, string[]> = {};
   
   selectedHierarchyType: string = 'G001'; // Default to G001
+  
+  // Values panel state
+  valuesPanelOpen = false;
+  valuesPanelTitle = '';
+  valuesPanelValues: string[] = [];
+  valuesPanelSelectedValues: string[] = [];
+  currentPanelLevelCode = '';
   
   private isDragging = false;
   private dragOffset = { x: 0, y: 0 };
@@ -57,11 +66,15 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
           maxDepth: this.config.maxDepth,
           hierarchyTypeCode: this.config.hierarchyTypeCode || 'G001'
         };
+        // Initialize selected values with all values selected by default
+        this.initializeSelectedValues(defaultLevels);
       });
+    } else {
+      // Initialize selected values with all values selected by default
+      this.initializeSelectedValues(this.config.levels);
     }
-          // Set selected hierarchy type
-          this.selectedHierarchyType = this.config.hierarchyTypeCode || 'G001';
-
+    // Set selected hierarchy type
+    this.selectedHierarchyType = this.config.hierarchyTypeCode || 'G001';
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -72,8 +85,18 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
       this.pendingConfig = {
         levels: this.config.levels.map(level => ({ ...level })),
         maxDepth: this.config.maxDepth,
-        hierarchyTypeCode: this.config.hierarchyTypeCode || 'G001'
+        hierarchyTypeCode: this.config.hierarchyTypeCode || 'G001',
+        selectedValues: this.config.selectedValues
       };
+      
+      // Initialize selected values when config changes
+      if (this.config.selectedValues) {
+        // Use selectedValues from config if available
+        this.pendingSelectedValues = { ...this.config.selectedValues };
+      } else {
+        // Otherwise initialize with all values selected by default
+        this.initializeSelectedValues(this.config.levels);
+      }
     }
   }
 
@@ -139,7 +162,8 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
   applyConfiguration(): void {
     this.configChange.emit({ 
       ...this.pendingConfig,
-      hierarchyTypeCode: this.selectedHierarchyType
+      hierarchyTypeCode: this.selectedHierarchyType,
+      selectedValues: this.pendingSelectedValues
     });
     this.closeConfiguration();
   }
@@ -249,5 +273,73 @@ export class HierarchySelectorComponent implements OnChanges, OnInit, AfterViewI
     this.isDragging = false;
     document.removeEventListener('mousemove', this.onMouseMove.bind(this));
     document.removeEventListener('mouseup', this.onMouseUp.bind(this));
+  }
+
+  private initializeSelectedValues(levels: HierarchyLevel[]): void {
+    // Initialize with all values selected by default
+    levels.forEach(level => {
+      if (level.values) {
+        this.pendingSelectedValues[level.code] = [...level.values];
+      }
+    });
+  }
+
+  isValueSelected(levelCode: string, value: string): boolean {
+    return this.pendingSelectedValues[levelCode]?.includes(value) ?? false;
+  }
+
+  toggleValue(levelCode: string, value: string): void {
+    if (!this.pendingSelectedValues[levelCode]) {
+      this.pendingSelectedValues[levelCode] = [];
+    }
+    
+    const values = this.pendingSelectedValues[levelCode];
+    const index = values.indexOf(value);
+    
+    if (index > -1) {
+      values.splice(index, 1);
+    } else {
+      values.push(value);
+    }
+  }
+
+  selectAllValues(levelCode: string): void {
+    const level = this.pendingConfig.levels.find(l => l.code === levelCode);
+    if (level?.values) {
+      this.pendingSelectedValues[levelCode] = [...level.values];
+    }
+  }
+
+  deselectAllValues(levelCode: string): void {
+    this.pendingSelectedValues[levelCode] = [];
+  }
+
+  getSelectedValues(): Record<string, string[]> {
+    return this.pendingSelectedValues;
+  }
+
+  getSelectedCount(levelCode: string): number {
+    return this.pendingSelectedValues[levelCode]?.length || 0;
+  }
+
+  // Values panel management
+  openValuesPanel(level: HierarchyLevel): void {
+    this.currentPanelLevelCode = level.code;
+    this.valuesPanelTitle = `Select ${level.name} Values`;
+    this.valuesPanelValues = level.values || [];
+    this.valuesPanelSelectedValues = this.pendingSelectedValues[level.code] || [];
+    this.valuesPanelOpen = true;
+  }
+
+  closeValuesPanel(): void {
+    this.valuesPanelOpen = false;
+  }
+
+  applyValuesSelection(selectedValues: string[]): void {
+    this.pendingSelectedValues[this.currentPanelLevelCode] = selectedValues;
+  }
+
+  ngOnDestroy(): void {
+    // Clean up any resources if needed
   }
 }

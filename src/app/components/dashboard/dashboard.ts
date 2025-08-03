@@ -53,6 +53,11 @@ export class DashboardComponent implements OnInit {
           this.hierarchyRequest.hierarchyTypeCode = config.hierarchyTypeCode;
         }
         
+        // Include selected values if provided
+        if (config.selectedValues) {
+          this.hierarchyRequest.selectedValues = config.selectedValues;
+        }
+        
         if (this.dataGrid) {
           this.dataGrid.reloadWithNewHierarchy(this.hierarchyRequest);
         }

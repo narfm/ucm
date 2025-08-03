@@ -606,3 +606,82 @@
   }
 }
 
+// Value selection styles
+.level-values {
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-color);
+  margin-top: -1px;
+}
+
+.values-button {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--hover-bg);
+    border-color: var(--accent-color);
+    
+    .arrow-icon {
+      transform: translateX(2px);
+    }
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2);
+  }
+}
+
+.filter-icon {
+  color: var(--accent-color);
+  flex-shrink: 0;
+}
+
+.values-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.values-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selected-count {
+  font-size: 0.813rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.arrow-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+// Adjust level styles when values are shown
+.hierarchy-level.enabled .level-content {
+  border-radius: 6px 6px 0 0;
+}
+
+.hierarchy-level.enabled:has(.level-values) {
+  border-radius: 6px;
+  overflow: hidden;
+}
+

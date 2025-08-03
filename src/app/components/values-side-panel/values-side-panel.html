@@ -1,0 +1,55 @@
+<div class="values-side-panel" [class.open]="isOpen">
+  <div class="panel-overlay" (click)="onClose()" [class.visible]="isOpen"></div>
+  
+  <div class="panel-content">
+    <div class="panel-header">
+      <div class="panel-title">
+        <h3>{{ title }}</h3>
+        <span class="selected-count">{{ selectedCount }} of {{ totalCount }} selected</span>
+      </div>
+      <button class="close-btn" (click)="onClose()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="panel-controls">
+      <input type="text" 
+             class="search-input"
+             [(ngModel)]="searchTerm"
+             (input)="onSearchChange()"
+             placeholder="Search values..."
+             #searchInput>
+      
+      <div class="action-buttons">
+        <button class="action-btn" (click)="selectAll()" [disabled]="filteredValues.length === 0">
+          Select All
+        </button>
+        <button class="action-btn" (click)="clearAll()" [disabled]="selectedValues.length === 0">
+          Clear All
+        </button>
+      </div>
+    </div>
+    
+    <div class="values-list">
+      <div class="no-results" *ngIf="filteredValues.length === 0 && searchTerm">
+        No values match "{{ searchTerm }}"
+      </div>
+      
+      <div class="value-item" 
+           *ngFor="let value of filteredValues; trackBy: trackByValue"
+           (click)="toggleValue(value)">
+        <input type="checkbox" 
+               [checked]="isSelected(value)"
+               (click)="$event.stopPropagation()">
+        <span class="value-label" [title]="value">{{ value }}</span>
+      </div>
+    </div>
+    
+    <div class="panel-footer">
+      <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+      <button class="apply-btn" (click)="onApply()">Apply</button>
+    </div>
+  </div>
+</div>

@@ -24,6 +24,7 @@ export interface HierarchyRequest {
   hierarchyTypeCode: string;
   maxDepth: number;
   rootPartyId?: string; // For lazy loading children of a specific node
+  selectedValues?: Record<string, string[]>; // Map of filter code to selected values
 }
 
 export interface HierarchyResponse {
@@ -54,6 +55,7 @@ export interface HierarchyConfig {
   levels: HierarchyLevel[];
   maxDepth: number;
   hierarchyTypeCode?: string;
+  selectedValues?: Record<string, string[]>;
 }
 
 export interface ColumnDefinition {

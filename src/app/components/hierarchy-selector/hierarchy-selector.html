@@ -96,6 +96,22 @@
         </div>
       </div>
 
+      <!-- Values selection for enabled levels -->
+      <div class="level-values" *ngIf="level.enabled && level.values && level.values.length > 0">
+        <button class="values-button" (click)="openValuesPanel(level)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="filter-icon">
+            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+          </svg>
+          <span class="values-text">
+            <span class="values-label">Filter Values:</span>
+            <span class="selected-count">{{ getSelectedCount(level.code) }} of {{ level.values.length }} selected</span>
+          </span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="arrow-icon">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+      </div>
+
       <div *cdkDragPreview class="drag-preview">
         {{ level.name }}
       </div>
@@ -142,3 +158,13 @@
     </button>
   </div>
 </div>
+
+<!-- Values Side Panel -->
+<app-values-side-panel
+  [isOpen]="valuesPanelOpen"
+  [title]="valuesPanelTitle"
+  [values]="valuesPanelValues"
+  [selectedValues]="valuesPanelSelectedValues"
+  (close)="closeValuesPanel()"
+  (applySelection)="applyValuesSelection($event)">
+</app-values-side-panel>

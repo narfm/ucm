@@ -16,6 +16,18 @@ export class MockDataService {
     'Treasury Services'
   ];
 
+  // Generate more realistic data with many client owners
+  private clientOwners = this.generateClientOwners(150);
+
+  private crmClientTypes = [
+    'ECAL - Enterprise Client',
+    'ECAL - Strategic Account',
+    'ECAL - Key Account',
+    'MCAL - Mid-Market Client',
+    'MCAL - Growth Account',
+    'MCAL - Standard Account'
+  ];
+
   // Available metric keys that can be generated
   private availableMetricKeys = [
     'Revenue',
@@ -44,21 +56,24 @@ export class MockDataService {
       name: 'Service Area',
       description: 'Primary business service area',
       enabled: true,
-      order: 0
+      order: 0,
+      values: this.filterTypes
     },
     {
       code: 'CLIENT_OWNER_NAME',
       name: 'Client Owner',
       description: 'Client relationship owner',
       enabled: false,
-      order: 1
+      order: 1,
+      values: this.clientOwners
     },
     {
       code: 'CRM_CLIENT_TYPE',
       name: 'CRM Client Type',
       description: 'ECAL/MCAL Client Type',
       enabled: false,
-      order: 2
+      order: 2,
+      values: this.crmClientTypes
     }
   ];
 
@@ -73,21 +88,8 @@ export class MockDataService {
     lastNames: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Miller', 'Davis', 'Garcia', 'Rodriguez', 'Wilson']
   };
 
-  private clientOwners = [
-    'Adam Tessler', 'Sarah Mitchell', 'Michael Chen', 'Emily Rodriguez', 'David Park',
-    'Jessica Thompson', 'Robert Kim', 'Lisa Wang', 'James Anderson', 'Mary Singh'
-  ];
-
-  private crmClientTypes = [
-    'ECAL - Enterprise Client',
-    'ECAL - Strategic Account',
-    'ECAL - Key Account',
-    'MCAL - Mid-Market Client',
-    'MCAL - Growth Account',
-    'MCAL - Standard Account'
-  ];
-
   private nodeIdCounter = 0;
+  private currentRequest?: HierarchyRequest;
 
   // Public method to get available hierarchy levels as Observable with caching
   getHierarchyLevels(): Observable<HierarchyLevel[]> {
@@ -123,6 +125,9 @@ export class MockDataService {
   }
 
   generateHierarchicalData(request: HierarchyRequest): Observable<HierarchyResponse> {
+    // Store the current request for reference in other methods
+    this.currentRequest = request;
+    
     // Simulate API errors if enabled
     if (this.errorSimulationEnabled && Math.random() < this.errorRate) {
       return this.simulateApiError().pipe(delay(1000));
@@ -208,17 +213,29 @@ export class MockDataService {
     const firstFilter = filters[0];
     
     if (firstFilter === 'UPM_L1_NAME') {
-      return this.filterTypes.map(filterType => 
-        this.createUpmFilterNode(filterType, filters, maxDepth, 0, metricKeys)
-      );
+      // Get selected values for this filter, default to all if not specified
+      const selectedValues = this.currentRequest?.selectedValues?.[firstFilter] || this.filterTypes;
+      return selectedValues
+        .filter(value => this.filterTypes.includes(value as FilterType))
+        .map(filterType => 
+          this.createUpmFilterNode(filterType as FilterType, filters, maxDepth, 0, metricKeys)
+        );
     } else if (firstFilter === 'CLIENT_OWNER_NAME') {
-      return this.clientOwners.map(clientOwner => 
-        this.createClientOwnerFilterNode(clientOwner, filters, maxDepth, 0, metricKeys)
-      );
+      // Get selected values for this filter, default to all if not specified
+      const selectedValues = this.currentRequest?.selectedValues?.[firstFilter] || this.clientOwners;
+      return selectedValues
+        .filter(value => this.clientOwners.includes(value))
+        .map(clientOwner => 
+          this.createClientOwnerFilterNode(clientOwner, filters, maxDepth, 0, metricKeys)
+        );
     } else if (firstFilter === 'CRM_CLIENT_TYPE') {
-      return this.crmClientTypes.map(clientType => 
-        this.createCrmClientTypeFilterNode(clientType, filters, maxDepth, 0, metricKeys)
-      );
+      // Get selected values for this filter, default to all if not specified
+      const selectedValues = this.currentRequest?.selectedValues?.[firstFilter] || this.crmClientTypes;
+      return selectedValues
+        .filter(value => this.crmClientTypes.includes(value))
+        .map(clientType => 
+          this.createCrmClientTypeFilterNode(clientType, filters, maxDepth, 0, metricKeys)
+        );
     }
     
     return [];
@@ -240,9 +257,13 @@ export class MockDataService {
       // Create next level filters
       const nextFilter = filters[currentLevel + 1];
       if (nextFilter === 'CLIENT_OWNER_NAME') {
-        const clientCount = this.randomBetween(2, 4);
-        for (let i = 0; i < clientCount; i++) {
-          const clientOwner = this.getRandomItem(this.clientOwners);
+        // Get selected values for CLIENT_OWNER_NAME filter
+        const selectedClientOwners = this.currentRequest?.selectedValues?.[nextFilter] || this.clientOwners;
+        const availableClients = this.clientOwners.filter(owner => selectedClientOwners.includes(owner));
+        const clientCount = Math.min(this.randomBetween(2, 4), availableClients.length);
+        const selectedClients = this.getRandomItems(availableClients, clientCount);
+        
+        for (const clientOwner of selectedClients) {
           const clientNode = this.createClientOwnerFilterNode(
             clientOwner, 
             filters, 
@@ -254,9 +275,13 @@ export class MockDataService {
           filterNode.children!.push(clientNode);
         }
       } else if (nextFilter === 'CRM_CLIENT_TYPE') {
-        const crmTypeCount = this.randomBetween(2, 4);
-        for (let i = 0; i < crmTypeCount; i++) {
-          const crmType = this.getRandomItem(this.crmClientTypes);
+        // Get selected values for CRM_CLIENT_TYPE filter
+        const selectedCrmTypes = this.currentRequest?.selectedValues?.[nextFilter] || this.crmClientTypes;
+        const availableCrmTypes = this.crmClientTypes.filter(type => selectedCrmTypes.includes(type));
+        const crmTypeCount = Math.min(this.randomBetween(2, 4), availableCrmTypes.length);
+        const selectedTypes = this.getRandomItems(availableCrmTypes, crmTypeCount);
+        
+        for (const crmType of selectedTypes) {
           const crmNode = this.createCrmClientTypeFilterNode(
             crmType, 
             filters, 
@@ -307,8 +332,11 @@ export class MockDataService {
       // Create next level filters
       const nextFilter = filters[currentLevel + 1];
       if (nextFilter === 'UPM_L1_NAME') {
-        const serviceCount = this.randomBetween(2, 4);
-        const selectedServices = this.getRandomItems(this.filterTypes, serviceCount);
+        // Get selected values for UPM_L1_NAME filter
+        const selectedUpmTypes = this.currentRequest?.selectedValues?.[nextFilter] || this.filterTypes;
+        const availableServices = this.filterTypes.filter(type => selectedUpmTypes.includes(type));
+        const serviceCount = Math.min(this.randomBetween(2, 4), availableServices.length);
+        const selectedServices = this.getRandomItems(availableServices, serviceCount);
         for (const filterType of selectedServices) {
           const serviceNode = this.createUpmFilterNode(
             filterType, 
@@ -322,8 +350,11 @@ export class MockDataService {
           filterNode.children!.push(serviceNode);
         }
       } else if (nextFilter === 'CRM_CLIENT_TYPE') {
-        const crmTypeCount = this.randomBetween(2, 3);
-        const selectedCrmTypes = this.getRandomItems(this.crmClientTypes, crmTypeCount);
+        // Get selected values for CRM_CLIENT_TYPE filter
+        const selectedCrmTypesConfig = this.currentRequest?.selectedValues?.[nextFilter] || this.crmClientTypes;
+        const availableCrmTypes = this.crmClientTypes.filter(type => selectedCrmTypesConfig.includes(type));
+        const crmTypeCount = Math.min(this.randomBetween(2, 3), availableCrmTypes.length);
+        const selectedCrmTypes = this.getRandomItems(availableCrmTypes, crmTypeCount);
         for (const crmType of selectedCrmTypes) {
           const crmNode = this.createCrmClientTypeFilterNode(
             crmType, 
@@ -373,8 +404,11 @@ export class MockDataService {
       // Create next level filters
       const nextFilter = filters[currentLevel + 1];
       if (nextFilter === 'UPM_L1_NAME') {
-        const serviceCount = this.randomBetween(2, 3);
-        const selectedServices = this.getRandomItems(this.filterTypes, serviceCount);
+        // Get selected values for UPM_L1_NAME filter
+        const selectedUpmTypes = this.currentRequest?.selectedValues?.[nextFilter] || this.filterTypes;
+        const availableServices = this.filterTypes.filter(type => selectedUpmTypes.includes(type));
+        const serviceCount = Math.min(this.randomBetween(2, 3), availableServices.length);
+        const selectedServices = this.getRandomItems(availableServices, serviceCount);
         for (const filterType of selectedServices) {
           const serviceNode = this.createUpmFilterNode(
             filterType, 
@@ -388,8 +422,11 @@ export class MockDataService {
           filterNode.children!.push(serviceNode);
         }
       } else if (nextFilter === 'CLIENT_OWNER_NAME') {
-        const clientCount = this.randomBetween(2, 3);
-        const selectedClients = this.getRandomItems(this.clientOwners, clientCount);
+        // Get selected values for CLIENT_OWNER_NAME filter
+        const selectedClientConfig = this.currentRequest?.selectedValues?.[nextFilter] || this.clientOwners;
+        const availableClients = this.clientOwners.filter(owner => selectedClientConfig.includes(owner));
+        const clientCount = Math.min(this.randomBetween(2, 3), availableClients.length);
+        const selectedClients = this.getRandomItems(availableClients, clientCount);
         for (const clientOwner of selectedClients) {
           const clientNode = this.createClientOwnerFilterNode(
             clientOwner, 
@@ -745,5 +782,58 @@ export class MockDataService {
         break;
     }
     return throwError(() => error).pipe(delay(1000));
+  }
+
+  // Generate realistic client owner names
+  private generateClientOwners(count: number): string[] {
+    const firstNames = [
+      'John', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Robert', 'Lisa', 'James', 'Mary',
+      'William', 'Patricia', 'Richard', 'Linda', 'Joseph', 'Barbara', 'Thomas', 'Jennifer', 'Charles', 'Maria',
+      'Christopher', 'Susan', 'Daniel', 'Margaret', 'Matthew', 'Dorothy', 'Anthony', 'Ashley', 'Mark', 'Kimberly',
+      'Donald', 'Donna', 'Paul', 'Carol', 'Steven', 'Michelle', 'Andrew', 'Laura', 'Kenneth', 'Amy',
+      'Joshua', 'Angela', 'Kevin', 'Shirley', 'Brian', 'Emma', 'George', 'Brenda', 'Ronald', 'Samantha',
+      'Edward', 'Deborah', 'Ryan', 'Rachel', 'Jacob', 'Carolyn', 'Gary', 'Janet', 'Nicholas', 'Virginia',
+      'Eric', 'Ruth', 'Jonathan', 'Anna', 'Stephen', 'Sophia', 'Larry', 'Olivia', 'Justin', 'Madison'
+    ];
+    
+    const lastNames = [
+      'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Miller', 'Davis', 'Garcia', 'Rodriguez', 'Wilson',
+      'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Hernandez', 'Moore', 'Martin', 'Jackson', 'Thompson', 'White',
+      'Lopez', 'Lee', 'Gonzalez', 'Harris', 'Clark', 'Lewis', 'Robinson', 'Walker', 'Perez', 'Hall',
+      'Young', 'Allen', 'Sanchez', 'Wright', 'King', 'Scott', 'Green', 'Baker', 'Adams', 'Nelson',
+      'Hill', 'Ramirez', 'Campbell', 'Mitchell', 'Roberts', 'Carter', 'Phillips', 'Evans', 'Turner', 'Torres',
+      'Parker', 'Collins', 'Edwards', 'Stewart', 'Flores', 'Morris', 'Nguyen', 'Murphy', 'Rivera', 'Cook',
+      'Rogers', 'Morgan', 'Peterson', 'Cooper', 'Reed', 'Bailey', 'Bell', 'Gomez', 'Kelly', 'Howard',
+      'Ward', 'Cox', 'Diaz', 'Richardson', 'Wood', 'Watson', 'Brooks', 'Bennett', 'Gray', 'James',
+      'Reyes', 'Cruz', 'Hughes', 'Price', 'Myers', 'Long', 'Foster', 'Sanders', 'Ross', 'Morales',
+      'Powell', 'Sullivan', 'Russell', 'Ortiz', 'Jenkins', 'Gutierrez', 'Perry', 'Butler', 'Barnes', 'Fisher'
+    ];
+    
+    const departments = ['Senior', 'Lead', 'Principal', 'Global', 'Regional', 'Executive'];
+    const titles = ['Manager', 'Director', 'VP', 'SVP', 'EVP', 'Partner'];
+    
+    const owners = new Set<string>();
+    
+    while (owners.size < count) {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const hasDepartment = Math.random() > 0.7;
+      const hasTitle = Math.random() > 0.5;
+      
+      let name = `${firstName} ${lastName}`;
+      
+      if (hasDepartment && hasTitle) {
+        const dept = departments[Math.floor(Math.random() * departments.length)];
+        const title = titles[Math.floor(Math.random() * titles.length)];
+        name = `${firstName} ${lastName} (${dept} ${title})`;
+      } else if (hasTitle) {
+        const title = titles[Math.floor(Math.random() * titles.length)];
+        name = `${firstName} ${lastName} (${title})`;
+      }
+      
+      owners.add(name);
+    }
+    
+    return Array.from(owners).sort();
   }
 }

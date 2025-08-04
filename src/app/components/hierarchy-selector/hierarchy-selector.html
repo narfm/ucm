@@ -10,7 +10,7 @@
       <circle cx="15" cy="19" r="1"/>
     </svg>
   </div>
-  <div class="hierarchy-content" (click)="onCompactClick()">
+  <div class="hierarchy-content" (click)="onCompactClick()" (keyup.enter)="onCompactClick()" tabindex="0">
     <div class="hierarchy-label">Hierarchy:</div>
     <div class="active-hierarchy" *ngIf="getEnabledLevels().length > 0; else noHierarchy">
       <span *ngFor="let level of getEnabledLevels(); let i = index" 
@@ -95,8 +95,8 @@
         </div>
 
         <div class="level-controls">
-          <div class="level-order">{{ level.order + 1 }}</div>
-          <label class="toggle-switch">
+          <!-- <div class="level-order">{{ level.order + 1 }}</div> -->
+          <label for="depth" class="toggle-switch">
             <input type="checkbox" 
                    [checked]="level.enabled"
                    (change)="toggleLevel(level.code)">
@@ -130,12 +130,12 @@
       <div *ngFor="let depth of [1,2,3,4,5,6,7]"
            class="depth-circle"
            [class.selected]="getCurrentMaxDepth() === depth"
-           (click)="selectMaxDepth(depth)">
+           (click)="selectMaxDepth(depth)" (keyup.enter)="selectMaxDepth(depth)" tabindex="0">
         {{ depth }}
       </div>
       <div class="depth-circle depth-circle-all"
            [class.selected]="getCurrentMaxDepth() === 0"
-           (click)="selectMaxDepth(0)"
+           (click)="selectMaxDepth(0)" (keyup.enter)="selectMaxDepth(0)" tabindex="0"
            title="All levels">
         ∞
       </div>

@@ -3,7 +3,7 @@
   <div class="hierarchy-type-section" *ngIf="!embedMode">
     <div class="hierarchy-type-value" 
          *ngIf="currentHierarchyType(); else loadingHierarchyType"
-         (click)="openHierarchyConfiguration()"
+         (click)="openHierarchyConfiguration()" (keyup.enter)="openHierarchyConfiguration()" tabindex="0"
          tabindex="0"
          role="button"
          aria-label="Click to change hierarchy configuration">

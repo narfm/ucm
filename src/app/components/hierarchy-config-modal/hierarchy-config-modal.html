@@ -1,6 +1,6 @@
 <!-- Modal Overlay - Rendered at root level -->
-<div *ngIf="isOpen()" class="hierarchy-config-overlay" (click)="onOverlayClick($event)">
-  <div class="hierarchy-config-panel" (click)="$event.stopPropagation()">
+<div *ngIf="isOpen()" class="hierarchy-config-overlay" (click)="onOverlayClick($event)" (keyup.enter)="onOverlayClick($event)" tabindex="0">
+  <div class="hierarchy-config-panel" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()" tabindex="0">
     <div class="panel-header">
       <h3 class="panel-title">
         {{ modalConfig()?.nodeContext ? 'Change Hierarchy for: ' + modalConfig()?.nodeContext?.name : modalConfig()?.title }}

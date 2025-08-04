@@ -36,7 +36,7 @@ export class HierarchyConfigModalComponent implements OnInit, OnDestroy {
     this.hierarchyModalService.closeModal();
   }
 
-  onOverlayClick(event: MouseEvent) {
+  onOverlayClick(event: Event) {
     // Only close if clicking the overlay itself, not its contents
     if (event.target === event.currentTarget) {
       this.closeModal();

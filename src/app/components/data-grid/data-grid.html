@@ -34,7 +34,7 @@
            [class.sorted-desc]="gridState().sortColumn === column.key && gridState().sortDirection === 'desc'"
            [class.text-right]="column.align === 'right'"
            [class.text-center]="column.align === 'center'"
-           (click)="onColumnSort(column)">
+           (click)="onColumnSort(column)" (keyup.enter)="onColumnSort(column)" tabindex="0">
         <span class="column-label">{{ column.label }}</span>
         <span *ngIf="column.sortable" class="sort-indicator">
           <svg *ngIf="gridState().sortColumn === column.key && gridState().sortDirection === 'asc'" 
@@ -116,7 +116,7 @@
             <!-- Type icons -->
             <div class="type-icons">
               <!-- ROOT icon (bank) -->
-              <svg *ngIf="stickyParent.type === 'ROOT'" 
+              <!-- <svg *ngIf="stickyParent.type === 'ROOT'" 
                    class="type-icon root-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    appTooltip="Root node">
                 <path d="M3 21h18"/>
@@ -127,7 +127,7 @@
                 <path d="M13 10v11"/>
                 <path d="M17 10v11"/>
                 <path d="M21 10v11"/>
-              </svg>
+              </svg> -->
               
               <!-- UMP_L1_NAME filter icon (funnel) -->
               <svg *ngIf="stickyParent.type === 'FILTER/UMP_L1_NAME'" 
@@ -156,6 +156,15 @@
               <svg *ngIf="stickyParent.type === 'ORG'" 
                    class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    appTooltip="Organization">
+                <path d="M3 21h18"/>
+                <path d="M5 21V7l8-4v18"/>
+                <path d="M19 21V11l-6-4"/>
+              </svg>
+
+              <!-- FOLDER icon -->
+              <svg *ngIf="stickyParent.type === 'FOLDER'" 
+                   class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   appTooltip="Account">
                 <path d="M3 21h18"/>
                 <path d="M5 21V7l8-4v18"/>
                 <path d="M19 21V11l-6-4"/>
@@ -207,8 +216,7 @@
           </div>
           
           <!-- Other cells -->
-          <span *ngIf="column.key !== 'name' && column.key !== 'clients' && column.key !== 'accounts'"
-                [class.negative-value]="column.dataType === 'number' && getCellValue(stickyParent, column) < 0">
+          <span *ngIf="column.key !== 'name' && column.key !== 'clients' && column.key !== 'accounts'">
             {{ formatCellValue(getCellValue(stickyParent, column), column) }}
           </span>
           
@@ -217,11 +225,11 @@
             <ng-container *ngIf="getCellValue(stickyParent, column) as info">
               <div class="clients-info" *ngIf="info.hasChildren">
                 <div class="clients-counts">
-                  <span class="immediate-count" [appTooltip]="'Immediate children'">
+                  <span class="immediate-count" [appTooltip]="'Immediate children'" *ngIf="info.immediateChildrenCount > 0">
                     {{ info.immediateChildrenCount }}
                   </span>
-                  <span class="separator">/</span>
-                  <span class="total-count" [appTooltip]="'Total children (all levels)'">
+                  <span class="separator" *ngIf="info.immediateChildrenCount > 0 && info.childrenCount > 0">/</span>
+                  <span class="total-count" [appTooltip]="'Total children (all levels)'" *ngIf="info.childrenCount > 0">
                     {{ info.childrenCount }}
                   </span>
                 </div>
@@ -305,7 +313,7 @@
            [class.text-center]="column.align === 'center'"
            [class.boolean-true]="column.dataType === 'boolean' && getCellValue(row, column) === true"
            [class.boolean-false]="column.dataType === 'boolean' && getCellValue(row, column) === false"
-           (click)="onCellClick(row, column, $event)">
+           (click)="onCellClick(row, column, $event)" (keyup.enter)="onCellClick(row, column, $event)" tabindex="0">
         
         <!-- Name with expand/collapse -->
         <div *ngIf="column.key === 'name'" class="name-cell">
@@ -334,7 +342,7 @@
           <!-- Type icons -->
           <div class="type-icons">
             <!-- ROOT icon (bank) -->
-            <svg *ngIf="row.type === 'ROOT'" 
+            <!-- <svg *ngIf="row.type === 'ROOT'" 
                  class="type-icon root-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  appTooltip="Root node">
               <path d="M3 21h18"/>
@@ -345,7 +353,7 @@
               <path d="M13 10v11"/>
               <path d="M17 10v11"/>
               <path d="M21 10v11"/>
-            </svg>
+            </svg> -->
             
             <!-- UMP_L1_NAME filter icon (funnel) -->
             <svg *ngIf="row.type === 'FILTER/UMP_L1_NAME'" 
@@ -363,7 +371,7 @@
             </svg>
             
             <!-- Default filter icon (for other filter types) -->
-            <svg *ngIf="row.type === 'FILTER' || (row.type.startsWith('FILTER/') && row.type !== 'FILTER/UMP_L1_NAME' && row.type !== 'FILTER/CLIENT_OWNER_NAME')" 
+            <svg *ngIf="row.type === 'FILTER' || (row.type && row.type.startsWith('FILTER/') && row.type !== 'FILTER/UMP_L1_NAME' && row.type !== 'FILTER/CLIENT_OWNER_NAME')" 
                  class="type-icon filter-icon default-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="3"/>
               <path d="M12 1v6m0 6v6"/>
@@ -372,6 +380,15 @@
             
             <!-- Organization icon -->
             <svg *ngIf="row.type === 'ORG'" 
+                 class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 appTooltip="Organization">
+              <path d="M3 21h18"/>
+              <path d="M5 21V7l8-4v18"/>
+              <path d="M19 21V11l-6-4"/>
+            </svg>
+
+            <!-- FOLDER icon -->
+            <svg *ngIf="row.type === 'FOLDER'" 
                  class="type-icon org-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  appTooltip="Organization">
               <path d="M3 21h18"/>
@@ -425,8 +442,7 @@
         </div>
         
         <!-- Other cells -->
-        <span *ngIf="column.key !== 'name' && column.key !== 'clients' && column.key !== 'accounts'"
-              [class.negative-value]="column.dataType === 'number' && getCellValue(row, column) < 0">
+        <span *ngIf="column.key !== 'name' && column.key !== 'clients' && column.key !== 'accounts'">
           {{ formatCellValue(getCellValue(row, column), column) }}
         </span>
         
@@ -435,12 +451,13 @@
           <ng-container *ngIf="getCellValue(row, column) as info">
             <div class="clients-info" *ngIf="info.hasChildren">
               <div class="clients-counts">
-                <span class="immediate-count" [appTooltip]="'Immediate children'">
-                  {{ info.immediateChildrenCount }}
+                <span class="immediate-count" [appTooltip]="'Immediate children'" *ngIf="info.immediateChildrenCount > 0">
+                  {{ info.immediateChildrenCount  | number}}
                 </span>
-                <span class="separator">/</span>
-                <span class="total-count" [appTooltip]="'Total children (all levels)'">
-                  {{ info.childrenCount }}
+                <span class="separator" *ngIf="info.immediateChildrenCount > 0 && info.childrenCount > 0">/</span>
+                <span class="total-count" [appTooltip]="'Total children (all levels)'"
+                *ngIf="info.childrenCount > 0">
+                  {{ info.childrenCount | number }}
                 </span>
               </div>
               <div class="clients-visual" [style.width.%]="info.immediatePercentage">
@@ -456,12 +473,12 @@
           <ng-container *ngIf="getCellValue(row, column) as info">
             <div class="accounts-info" *ngIf="info.hasAccounts">
               <div class="accounts-counts">
-                <span class="children-count" [appTooltip]="'Children accounts'">
-                  {{ info.childrenAccounts }}
+                <span class="children-count" [appTooltip]="'Children accounts'" *ngIf="info.childrenAccounts > 0">
+                  {{ info.childrenAccounts | number }}
                 </span>
-                <span class="separator">/</span>
-                <span class="self-count" [appTooltip]="'Self accounts'" [class.downloadable]="info.canDownload">
-                  {{ info.selfAccounts }}
+                <span class="separator" *ngIf="info.childrenAccounts > 0 && info.selfAccounts > 0">/</span>
+                <span class="self-count" [appTooltip]="'Self accounts'" [class.downloadable]="info.canDownload" *ngIf="info.selfAccounts > 0">
+                  {{ info.selfAccounts | number}}
                 </span>
               </div>
               <button *ngIf="info.canDownload" 
@@ -490,6 +507,7 @@
        [style.top.px]="contextMenuY">
     <div class="context-menu-item" 
          (click)="refreshNodeChildren(contextMenuNode!)"
+         (keyup.enter)="refreshNodeChildren(contextMenuNode!)" tabindex="0"
          [class.disabled]="!nodeHasActualChildren(contextMenuNode)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            appTooltip="Reload this node's children from server">
@@ -500,6 +518,7 @@
     </div>
     <div class="context-menu-item" 
          (click)="changeNodeHierarchy(contextMenuNode!)"
+         (keyup.enter)="changeNodeHierarchy(contextMenuNode!)" tabindex="0"
          [class.disabled]="!nodeHasActualChildren(contextMenuNode)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            appTooltip="Configure hierarchy for this node">
@@ -510,6 +529,7 @@
     </div>
     <div class="context-menu-item" 
          (click)="requestChildSearch(contextMenuNode!)"
+         (keyup.enter)="requestChildSearch(contextMenuNode!)" tabindex="0"
          [class.disabled]="!nodeHasActualChildren(contextMenuNode)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            appTooltip="Search within this node's children">
@@ -520,6 +540,7 @@
     </div>
     <div class="context-menu-item" 
          (click)="fetchNodeAccounts(contextMenuNode!)"
+         (keyup.enter)="fetchNodeAccounts(contextMenuNode!)" tabindex="0"
          [class.disabled]="!contextMenuNode?.selfAccountCount || (contextMenuNode?.selfAccountCount || 0) <= 0">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            appTooltip="Fetch accounts for this node">
@@ -534,7 +555,7 @@
   <!-- Backdrop to close context menu -->
   <div *ngIf="contextMenuVisible" 
        class="context-menu-backdrop"
-       (click)="hideContextMenu()"></div>
+       (click)="hideContextMenu()" (keyup.enter)="hideContextMenu()" tabindex="0"></div>
        
   <!-- Node hierarchy modal now uses service -->
   

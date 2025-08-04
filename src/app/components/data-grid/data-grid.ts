@@ -312,7 +312,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       ...this.hierarchyRequest,
       rootPartyId: node.partyId,
       maxDepth: this.hierarchyRequest.maxDepth,
-      filters: node.parent?.filters || []
+      // filters: node.parent?.filters || []
     };
     
     this.mockDataService.generateHierarchicalData(childRequest).subscribe({
@@ -564,7 +564,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   onCellClick(row: HierarchyNode, column: ColumnDefinition, event: Event) {
-    event.stopPropagation();
+    // event.stopPropagation();
     this.cellClick.emit({ row, column });
   }
   
@@ -1168,7 +1168,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
         // Create a parent folder for all accounts
         const accountsFolder: HierarchyNode = {
           name: `Accounts (${response.list.length})`,
-          type: 'ORG', // Use ORG type for the folder
+          type: 'FOLDER', // Use ORG type for the folder
           partyId: `${nodePartyId}_ACCOUNTS_FOLDER`,
           hasChildren: true,
           childrenCount: response.list.length,
@@ -1178,7 +1178,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
           expanded: true, // Start expanded so accounts are visible
           selfAccountCount: 0,
           childrenAccountCount: 0,
-          legalEntity: false
+          legalEntity: undefined,
+          allChildrenLoaded: true,
+          childrenLoaded: true
         };
 
         // Set the parent reference for all account nodes
@@ -1190,7 +1192,10 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!node.children) {
           node.children = [];
         }
+        node.allChildrenLoaded = true;
         node.children.unshift(accountsFolder); // Add as first child
+
+        this.updateNodeInData(node);
         
         // Mark both the node and accounts folder as expanded
         const nodeId = nodePartyId || node.name;
@@ -1548,7 +1553,7 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!node) continue;
       
       // If this is a parent node (has children and is expanded)
-      if (node.hasChildren && node.children && node.children.length > 0) {
+      if (node.children && node.children.length > 0) {
         const nodeId = node.partyId || node.name;
         const isExpanded = this.gridState().expandedNodeIds.has(nodeId);
         

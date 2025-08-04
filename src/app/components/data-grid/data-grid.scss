@@ -304,7 +304,7 @@
 
   // Show column menu trigger on hover for the last column
   &:last-child {
-    border-right: 16px solid var(--border-color); // Thick border to contain the button
+    // border-right: 16px solid var(--border-color); // Thick border to contain the button
     position: relative;
     
     &:hover .column-menu-trigger .column-visibility-button.vertical-layout {
@@ -884,7 +884,7 @@
   .sticky-parent-row {
     position: absolute;
     left: 0;
-    right: 0;
+    right: 30px;
     background: var(--bg-primary);
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 2px 8px var(--shadow-medium);

@@ -182,12 +182,12 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // Default columns if none provided
   defaultColumns: ColumnDefinition[] = [
-    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '400px', minWidth: '200px' },
-    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '150px', minWidth: '100px' },
-    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '180px', minWidth: '120px' },
-    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '80px', minWidth: '60px', filterable: true, filterType: 'boolean' },
-    { key: 'clients', label: 'Clients', sortable: true, align: 'center', width: '180px', minWidth: '140px' },
-    { key: 'accounts', label: 'Accounts', sortable: true, align: 'center', width: '200px', minWidth: '160px' }
+    { key: 'name', label: 'Name', sortable: true, searchable: true, width: '400px', minWidth: '200px', filterable: true },
+    { key: 'type', label: 'Type', sortable: true, searchable: true, width: '150px', minWidth: '100px', filterable: true },
+    { key: 'partyId', label: 'Party ID', sortable: true, searchable: true, width: '180px', minWidth: '120px', filterable: true },
+    { key: 'legalEntity', label: 'Legal', sortable: true, dataType: 'boolean', align: 'center', width: '80px', minWidth: '60px', filterable: true },
+    { key: 'clients', label: 'Clients', sortable: true, align: 'center', width: '180px', minWidth: '140px', dataType: 'number', filterable: true },
+    { key: 'accounts', label: 'Accounts', sortable: true, align: 'center', width: '200px', minWidth: '160px', dataType: 'number', filterable: true }
   ];
 
   // Embed mode columns (reduced set with responsive widths)
@@ -281,7 +281,8 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       dataType: 'number',
       align: 'right' as const,
       width: this.embedMode ? '25%' : '150px',
-      minWidth: this.embedMode ? '60px' : '100px'
+      minWidth: this.embedMode ? '60px' : '100px',
+      filterable: true
     }));
     
     // In embed mode, adjust base column widths to accommodate metrics
@@ -809,7 +810,26 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   private nodeMatchesFilter(node: HierarchyNode, filter: FilterCriteria): boolean {
-    const value = (node as any)[filter.column];
+    let value: any;
+    
+    // Get the actual value based on column type
+    if (filter.column.startsWith('metrics.')) {
+      const metricKey = filter.column.substring(8);
+      value = node.values ? node.values[metricKey] : null;
+    } else if (filter.column === 'clients') {
+      // For clients column, use the childrenCount
+      value = node.childrenCount || 0;
+    } else if (filter.column === 'accounts') {
+      // For accounts column, use the total accounts count
+      value = (node.selfAccountCount || 0) + (node.childrenAccountCount || 0);
+    } else {
+      value = (node as any)[filter.column];
+    }
+    
+    // Handle null/undefined values
+    if (value === null || value === undefined) {
+      return filter.operator === 'equals' && (filter.value === null || filter.value === undefined);
+    }
     
     switch (filter.operator) {
       case 'equals':
@@ -821,9 +841,9 @@ export class DataGridComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'endsWith':
         return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase());
       case 'greaterThan':
-        return value > filter.value;
+        return Number(value) > Number(filter.value);
       case 'lessThan':
-        return value < filter.value;
+        return Number(value) < Number(filter.value);
       default:
         return true;
     }

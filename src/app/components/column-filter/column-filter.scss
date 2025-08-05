@@ -38,27 +38,37 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow-medium);
   z-index: 1000;
-  min-width: 200px;
+  min-width: 280px;
+  max-width: 350px;
   overflow: hidden;
   
-  .filter-dropdown-header {
+  .filter-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--text-primary);
+    
+    .filter-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
     
     .close-button {
       background: none;
       border: none;
-      padding: 4px;
+      width: 24px;
+      height: 24px;
       border-radius: 4px;
       cursor: pointer;
       color: var(--text-secondary);
+      font-size: 20px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s ease;
       
       &:hover {
@@ -68,49 +78,120 @@
     }
   }
   
-  .filter-dropdown-body {
-    padding: 8px 0;
+  .filter-content {
+    padding: 16px;
+    
+    .filter-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      
+      .filter-select {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          border-color: var(--accent-color);
+        }
+        
+        &:focus {
+          outline: none;
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2);
+        }
+        
+        &.full-width {
+          width: 100%;
+        }
+      }
+      
+      .filter-input {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        
+        &::placeholder {
+          color: var(--text-tertiary);
+        }
+        
+        &:hover {
+          border-color: var(--accent-color);
+        }
+        
+        &:focus {
+          outline: none;
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2);
+        }
+      }
+    }
+    
+    .current-filter {
+      margin-top: 12px;
+      padding: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      
+      .filter-label {
+        margin-right: 4px;
+      }
+      
+      .filter-value {
+        color: var(--text-primary);
+        
+        strong {
+          color: var(--accent-color);
+        }
+      }
+    }
   }
   
-  .filter-option {
+  .filter-actions {
     display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    font-size: 0.875rem;
-    color: var(--text-primary);
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
     
-    &:hover {
-      background: var(--bg-tertiary);
-    }
-    
-    &.selected {
-      background: var(--accent-color);
-      color: var(--bg-primary);
-      
-      .filter-option-checkbox {
-        color: var(--bg-primary);
-      }
-    }
-    
-    .filter-option-checkbox {
-      width: 16px;
-      height: 16px;
-      margin-right: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent-color);
-      
-      svg {
-        width: 14px;
-        height: 14px;
-      }
-    }
-    
-    .filter-option-label {
+    .filter-button {
       flex: 1;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &.clear {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        
+        &:hover {
+          background: var(--bg-primary);
+        }
+      }
+      
+      &.apply {
+        background: var(--accent-color);
+        color: var(--bg-primary);
+        
+        &:hover {
+          opacity: 0.9;
+        }
+      }
     }
   }
 }

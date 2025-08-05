@@ -1,0 +1,107 @@
+.filter-indicator-container {
+  background: rgba(var(--accent-color-rgb), 0.05);
+  border: 1px solid rgba(var(--accent-color-rgb), 0.15);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  animation: slideDown 0.2s ease-out;
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+    gap: 12px;
+    
+    .filter-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      
+      .filter-icon {
+        opacity: 0.6;
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+      }
+      
+      .filter-count {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        opacity: 0.8;
+        white-space: nowrap;
+      }
+      
+      .filter-list {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        opacity: 0.7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    
+    .clear-all-button {
+      background: none;
+      border: none;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      
+      svg {
+        width: 10px;
+        height: 10px;
+      }
+      
+      &:hover {
+        background: rgba(var(--accent-color-rgb), 0.1);
+        color: var(--accent-color);
+        opacity: 1;
+      }
+    }
+  }
+  
+  .filter-chips {
+    display: none; // Hide individual chips for more compact view
+  }
+  
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 8px;
+    
+    .filter-header {
+      margin-bottom: 8px;
+    }
+    
+    .filter-chips {
+      gap: 6px;
+      
+      .filter-chip {
+        font-size: 0.75rem;
+        padding: 3px 6px 3px 10px;
+      }
+    }
+  }
+}

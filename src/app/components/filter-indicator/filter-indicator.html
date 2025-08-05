@@ -1,0 +1,20 @@
+<div class="filter-indicator-container" *ngIf="hasActiveFilters">
+  <div class="filter-header">
+    <div class="filter-info">
+      <svg class="filter-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+      </svg>
+      <span class="filter-count">{{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }} applied</span>
+      <span class="filter-list" [appTooltip]="getFilterTooltip()">
+        {{ getFilterSummary() }}
+      </span>
+    </div>
+    <button class="clear-all-button" 
+            (click)="clearAllFilters()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+      Clear
+    </button>
+  </div>
+</div>

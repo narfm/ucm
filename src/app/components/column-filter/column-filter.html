@@ -1,39 +1,75 @@
 <!-- Filter button -->
-<button *ngIf="column.filterable" 
+<button *ngIf="column.filterable"
         class="column-filter-button"
         [class.active]="isFilterActive"
         (click)="toggleFilter($event)"
-        [appTooltip]="'Filter ' + column.label">
+        [appTooltip]="isFilterActive ? 'Filter is active' : 'Filter ' + column.label">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
   </svg>
 </button>
 
 <!-- Filter dropdown -->
-<div *ngIf="showFilterDropdown" 
-     class="column-filter-dropdown"
+<div class="column-filter-dropdown"
+     *ngIf="showFilterDropdown"
      [style.left.px]="filterDropdownX"
-     [style.top.px]="filterDropdownY">
-  <div class="filter-dropdown-header">
-    <span>Filter {{ column.label }}</span>
-    <button class="close-button" (click)="closeFilter()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M18 6L6 18M6 6l12 12"/>
-      </svg>
-    </button>
+     [style.top.px]="filterDropdownY"
+     (click)="$event.stopPropagation()"
+     (mousedown)="$event.stopPropagation()"
+     (mouseup)="$event.stopPropagation()">
+  
+  <div class="filter-header">
+    <span class="filter-title">Filter {{ column.label }}</span>
+    <button class="close-button" (click)="closeFilter()">×</button>
   </div>
-  <div class="filter-dropdown-body">
-    <div *ngFor="let option of filterOptions"
-         class="filter-option"
-         [class.selected]="currentFilterValue === option.value"
-         (click)="applyFilter(option.value)">
-      <span class="filter-option-checkbox">
-        <svg *ngIf="currentFilterValue === option.value" 
-             width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
-        </svg>
-      </span>
-      <span class="filter-option-label">{{ option.label }}</span>
+  
+  <div class="filter-content">
+    <!-- Text filter -->
+    <div *ngIf="isTextColumn" class="filter-form">
+      <select class="filter-select" [(ngModel)]="filterOperator">
+        <option *ngFor="let op of textOperatorOptions" [value]="op.value">{{ op.label }}</option>
+      </select>
+      <input type="text" 
+             class="filter-input" 
+             [(ngModel)]="filterValue"
+             placeholder="Enter value..."
+             (keyup.enter)="applyFilter()">
     </div>
+    
+    <!-- Number filter -->
+    <div *ngIf="isNumberColumn" class="filter-form">
+      <select class="filter-select" [(ngModel)]="filterOperator">
+        <option *ngFor="let op of numberOperatorOptions" [value]="op.value">{{ op.label }}</option>
+      </select>
+      <input type="number" 
+             class="filter-input" 
+             [(ngModel)]="filterValue"
+             placeholder="Enter number..."
+             (keyup.enter)="applyFilter()">
+    </div>
+    
+    <!-- Boolean filter -->
+    <div *ngIf="isBooleanColumn" class="filter-form">
+      <select class="filter-select full-width" [(ngModel)]="filterValue">
+        <option *ngFor="let op of booleanOptions" [value]="op.value">{{ op.label }}</option>
+      </select>
+    </div>
+    
+    <!-- Current filter display -->
+    <div *ngIf="currentFilter" class="current-filter">
+      <span class="filter-label">Active:</span>
+      <span class="filter-value">
+        {{ currentFilter.operator }} 
+        <strong>{{ isBooleanColumn ? (currentFilter.value ? 'Yes' : 'No') : currentFilter.value }}</strong>
+      </span>
+    </div>
+  </div>
+  
+  <div class="filter-actions">
+    <button class="filter-button clear" 
+            *ngIf="isFilterActive"
+            (click)="clearFilter()">Clear</button>
+    <button class="filter-button apply" 
+            (click)="applyFilter()">Apply</button>
   </div>
 </div>

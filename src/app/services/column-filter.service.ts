@@ -1,11 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { FilterCriteria } from '../models/financial-data.interface';
 
-export interface LegalEntityFilterOption {
-  value: 'all' | 'legal' | 'non-legal';
-  label: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -14,15 +9,7 @@ export class ColumnFilterService {
   
   public readonly activeFilters = computed(() => this.columnFilters());
   public readonly hasActiveFilters = computed(() => this.columnFilters().length > 0);
-  
-  public readonly legalEntityFilterOptions: LegalEntityFilterOption[] = [
-    { value: 'all', label: 'All' },
-    { value: 'legal', label: 'Legal Entities Only' },
-    { value: 'non-legal', label: 'Non-Legal Entities Only' }
-  ];
-  
-  private legalEntityFilter = signal<'all' | 'legal' | 'non-legal'>('all');
-  public readonly currentLegalEntityFilter = computed(() => this.legalEntityFilter());
+  public readonly activeFilterCount = computed(() => this.columnFilters().length);
   
   addFilter(filter: FilterCriteria): void {
     const filters = this.columnFilters();
@@ -46,7 +33,6 @@ export class ColumnFilterService {
   
   clearAllFilters(): void {
     this.columnFilters.set([]);
-    this.legalEntityFilter.set('all');
   }
   
   getFilterForColumn(columnKey: string): FilterCriteria | undefined {
@@ -55,19 +41,5 @@ export class ColumnFilterService {
   
   hasFilterForColumn(columnKey: string): boolean {
     return this.columnFilters().some(f => f.column === columnKey);
-  }
-  
-  setLegalEntityFilter(value: 'all' | 'legal' | 'non-legal'): void {
-    this.legalEntityFilter.set(value);
-    
-    if (value === 'all') {
-      this.removeFilter('legalEntity');
-    } else {
-      this.addFilter({
-        column: 'legalEntity',
-        value: value === 'legal',
-        operator: 'equals'
-      });
-    }
   }
 }

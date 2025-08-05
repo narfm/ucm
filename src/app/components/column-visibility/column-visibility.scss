@@ -1,6 +1,7 @@
 .column-visibility-container {
   position: relative;
   display: inline-block;
+  margin: 5px;
 }
 
 /* Dropdown Button */
@@ -44,12 +45,15 @@
     border-radius: 0;
     border: none;
     z-index: 15;
+    transform: rotate(180deg);
 
     &:hover {
       opacity: 1;
       background: transparent;
       border-color: transparent;
       color: inherit;
+          transform: rotate(180deg);
+
     }
 
     &.active {
